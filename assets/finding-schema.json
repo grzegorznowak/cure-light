@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "cure-light finding",
+  "type": "object",
+  "required": ["id", "vector", "summary", "severity", "status", "evidence"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^(V[123]|D[0-9]+)-[0-9]+$" },
+    "vector": { "enum": ["conformance", "implementation", "debt"] },
+    "summary": { "type": "string" },
+    "severity": { "enum": ["HIGH", "MED", "LOW"] },
+    "origin": { "enum": ["PR-introduced", "pre-existing", "n/a"] },
+    "progress": { "enum": ["fix-in-PR", "pre-existing-debt", "deferred-decision", "track-separately", "n/a"] },
+    "failure_mode": { "type": "string" },
+    "status": {
+      "enum": [
+        "open", "verified-fixed", "re-classified", "test-only",
+        "doc-only", "deferred-decision", "closed-by-operator", "re-opened"
+      ]
+    },
+    "owner": { "type": "string" },
+    "evidence": {
+      "type": "object",
+      "required": ["file"],
+      "properties": {
+        "file": { "type": "string" },
+        "base_evidence": { "type": "string" },
+        "note": { "type": "string" }
+      }
+    },
+    "linked": { "type": ["string", "null"] }
+  }
+}
