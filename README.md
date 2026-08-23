@@ -8,7 +8,12 @@
 
 cure-light encodes the three-vector method: **conformance** (does the code deliver
 what the PR claims?), **implementation** (does the shipped code work?), **debt**
-(is the way it's built sustainable?). It is a small OS for the review process itself: pin the pull, hold a
+(is the way it's built sustainable?). A cross-cutting **lens** dimension forces
+coverage of the code-hygiene family (dead code, strict-type hygiene, readability,
+naming) — detected by named lens atoms and accelerated by the repo's
+own deterministic tooling where cheap — the full sweep runs when Vectors 2-3 do,
+and a V1-only shortcut still exercises the mechanical `type`/`dead` preflight
+(pipeline-model.md). It is a small OS for the review process itself: pin the pull, hold a
 pinned-commit manifest, spawn scoped fleets,
 and re-verify on the next head — not the whole pipeline.
 
@@ -20,7 +25,7 @@ cure-light/
 ├── kernel/                   ← the review method (the master skill)
 │   ├── SKILL.md              ← dispatcher: phases, gates, rules
 │   └── references/           ← pipeline-model, intake, the 3 pass contracts,
-│                               closure-verification, evidence-format
+│                               hygiene-lens, closure-verification, evidence-format
 ├── libs/pi-driver/           ← pi binding (notebook + handoff + model-groups)
 │   ├── SKILL.md
 │   └── references/           ← requirements-check, notebook-plan-contract
@@ -82,7 +87,8 @@ the kernel. See `libs/pi-driver/SKILL.md`.
 - **Deferred is not closed.** Recorded, with rationale — never presented as an
   engineering fix.
 - **Statuses / opinion excluded.** Findings need file:line + concrete failure
-  mode; no style nits, no redesign proposals.
+  mode; hygiene hits route to the lens trail (LOW, operator-suppressible), never
+  pollute the bug trail — but the lens *itself* is always checked, never skipped.
 
 ## CHANGELOG
 

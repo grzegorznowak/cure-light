@@ -32,10 +32,12 @@ Rule: the contract is the PR's own words plus the issue's locked decisions — n
 Each vector's fleet splits the contract surface. Example split for a model-group/spawn PR:
 
 - conformance: derivation core · persistence/schema guard · spawn/router gate · main-session+TUI · tests
-- implementation: sealed concepts the review already established (never open-ended)
-- debt: pluggability · boundary ownership · versioning/migrations · projections · perf/operability
+- implementation: sealed concepts the review already established (never open-ended), + **`read` lens ownership**
+- debt: pluggability · boundary ownership · versioning/migrations · projections · perf/operability, + **`dead`/`name` lens ownership**
 
 Slice granularity is chosen so each child reads a bounded file set + the relevant CONTRACT slice, and returns under a defined evidence budget.
+
+The lens matrix (hygiene-lens.md) is compiled here and validated: every active lens must map to ≥1 owner. Deterministic preflight (strict tsc / lint) is scheduled as the cheap sweep for the `type` lens and accelerant for `dead`.
 
 ## 0.4 Operator gate
 
@@ -52,4 +54,8 @@ checkout_policy, auto_draft, pauses
 changed_files: [...]
 contract_path: /tmp/cure-.../CONTRACT.md
 notebook: pipeline-frame-<owner>-<pr> + pr-<n>-review
+lens_matrix: {type: preflight, dead: preflight+v3, read: v2+v3, name: v3}   # see hygiene-lens.md
 ```
+
+Every lens in the matrix must have ≥1 owning pass before Phase 0 proceeds — a
+lens without an owner is a frame error, not a "nothing found" default.

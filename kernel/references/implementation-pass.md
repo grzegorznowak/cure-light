@@ -33,7 +33,16 @@ origin: PR-introduced | pre-existing (base evidence: <base:<path>:<line>)
 ```
 
 - Label `NOT-A-BUG` when a suspected bug is checked and dismissed (cheap, honest).
-- No style nits. No refactor proposals.
+
+## Hygiene lenses owned here
+
+Vector 2 owns the **`read` lens** (readability / statement density) — see [hygiene-lens.md](hygiene-lens.md). Concretely:
+
+- Each split names the `read` checks it exercised and marks `NOT-A-HIT` when clear — a lens not named is a frame error, never silence.
+- A one-line expression packing several side effects, or a branch whose intent is not spottable in a glance = a `read` lens hit (LOW, lens trail). Naming/shape-lies belong to the `name` lens (owned by Vector 3), not `read`.
+- Dense-but-repo-idiomatic code is a `NOT-A-HIT`, not a hit — the repo's own style is the baseline, never an invented one.
+
+**Style rule reconciled**: hygiene findings are *detected* by Vector 2 splits but do not enter the bug table — they route to the lens trail with LOW default severity and are operator-suppressible per instance. What the old rule forbade is *unrouted style noise in bug findings*; it never forbade systematic detection.
 
 ## Aggregation + disposition
 
@@ -42,6 +51,8 @@ The coordinator segments findings into:
 1. **In-scope (PR-introduced)** → candidate PR comment, operator-gated.
 2. **Pre-existing** → candidate gh issue (hardening ticket), operator-gated, explicitly out-of-PR scope.
 3. **Deferred** → recorded on the decisions page with rationale; never presented as fixed.
+
+Hygiene lens hits (from the section above) are aggregated **separately** into the lens trail of the findings page — not merged into the bug table — and each stays operator-gated.
 
 Also produce the **pre-existing vs PR-introduced summary** — the operator needs to see directly which debt the PR itself owes and which it merely inherits.
 

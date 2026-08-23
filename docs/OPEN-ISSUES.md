@@ -30,6 +30,12 @@ The notebook advertises replay convenience only (no CAS, no audit, no cross-mach
 
 There's no auto-draft flow; every `gh pr comment` / `gh issue` waits for operator approval. That's a feature, but it means the pipeline ends awaiting humans. A future version could offer a "wet-batch" mode for trusted repos with clear review-eyes-off.
 
-## 7. Dependency: model-groups plugin presence
+## 7. Dependency: model-groups plugin present
 
 Fleet groups (`flash`, `code-review`, `planner`, ...) exist only if the model-groups plugin is present. Requirement check downgrades to inherit-parent spawning otherwise, but that silently changes fleet parallelism. The conservative reading is: a pi runtime WITHOUT the plugin should run the pipeline in single-pass mode, not pretend it has a fleet.
+
+## 8. Hygiene lens: deterministic preflight is repo-dependent
+
+The `type`/`dead` lenses have a deterministic accelerator (run the repo's own strict tsc / lint on the pinned head), but repos self-host very differently: some have no tsc/build at all, some pin a lax config, some need a long install. The fallback (static sight, flagged `inconclusive-mechanical`) is honest but weaker evidence. Consequence: lens *coverage* is guaranteed (named atoms + lens matrix); only the *determinism* of the mechanical lenses varies. Acceptable at v0.2; a future step could vendor a pinned minimal lint/type narrow for common stacks.
+
+- **Priority**: LOW. Coverage guaranteed regardless; only mechanical strength varies.
