@@ -29,9 +29,31 @@ Intake → Phase 0 → Vector 1 → Vector 2 → Vector 3 → Output → Closure
 2. **Origin classification is mandatory** (pre-existing vs PR-introduced), decided by base-diff.
 3. **Two-axis severity**: impact (HIGH/MED/LOW) × disposition (fix-in-PR / pre-existing-debt / deferred-decision).
 4. **Notebook is the shared memory.** The coordinator writes run frame + findings pages; children return compact evidence records, they do not compete for writes.
-5. **Inconclusive = not pass.** Child timeout/truncation means the finding is unverified, not accepted.
+5. **Inconclusive = no pass.** A child timeout/truncation means the finding is unverified, not accepted.
 6. **Fleets are budgeted.** Per-phase child counts, timeouts, output caps, and a cheap re-review path (delta-only) are mandatory.
 7. **Review is diagnostic.** cure-light proposes; the operator gates every external artifact (gh comment, gh issue).
+
+## The lens dimension (cross-cutting coverage)
+
+Vectors ask **one big question**; lenses ask small, repeatable checks the fleet must not be allowed to skip just because a child got assigned a different angle. A lens has an owner (≥1 pass exercises it), a checklist, a route, and an optional deterministic accelerator. The code-hygiene family — the stage-3 gap from our phase-2 lens comparison — is defined in [hygiene-lens.md](hygiene-lens.md).
+
+Every run manifest renders a **lens matrix** — a closed table of lens × owning passes:
+
+```text
+LENS TABLE (run <head OID>)
+lens   | owner(s)              | mechanical | trail
+type   | deterministic preflight | yes       | lens
+dead   | preflight + v3        | yes       | lens
+read   | v2 split + v3 split   | no        | lens
+name   | v3 split              | no        | lens (NOT-A-HIT when clear)
+```
+
+Rules:
+
+1. **Per-lens coverage is a preflight assertion.** If any lens has no owner, the run does not start — coverage is proven per lens, not per vector.
+2. **A lens outcome is `checked-and-clear` + a trail.** A lens not checked is a frame error, never "nothing found".
+3. **Hygiene hits route to the lens trail**, never the bug/debt table (see hygiene-lens.md). The operator gates each external hit, never the lens.
+4. **The family is extensible.** Adding a lens is an auditable manifest change, not silent scope drift.
 
 ## When NOT to run the full pipeline
 

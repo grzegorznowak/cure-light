@@ -45,3 +45,14 @@ Output to the notebook findings page, not as a fresh review. This is the artifac
 - **Do not present decision-deferrals as fixes.** "Locked as intentional" is a decision, not a fix — record it and surface the decision author to the operator.
 - **Do not resurrect closed-by-operator items** unless the operator reopens them or new evidence clearly falls outside the suppression scope.
 - **Doc/test-only closures are acknowledged as such**, so the operator knows the behavior itself is untouched.
+
+## Lens trail in closure
+
+Hygiene lens hits are classified with the same table; two lens-specific
+notes (see hygiene-lens.md):
+
+- A lens hit that a later head removes is `verified-fixed` only when the lens
+  sweep on the new head cites the old→new lines — `closed-by-operator`
+  suppression does not make it fixed.
+- Non-fix closures (deferred / closed-by-operator) must not flip `lens-checked`
+  to false: the lens remains exercised; only the specific hit was disposed.

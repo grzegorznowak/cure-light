@@ -7,6 +7,8 @@ Every finding in a cure-light run conforms to this shape. It is the interop cont
 ```yaml
 id: <vector-letter><#>            # V1-V3 + seq, e.g. F2-03 or D3-01
 vector: conformance | implementation | debt
+lens: type | dead | read | name | test | security | none   # optional; hygiene family, see hygiene-lens.md
+lens-checked: [<lens>, ...]       # lenses proven exercised on this artifact
 summary: one line
 evidence:
   file: path:line            # primary anchor in the pinned tree
@@ -20,7 +22,10 @@ owner: <implementer | operator | subsystem>
 linked: <gh comment URL | gh issue URL | none>
 ```
 
-`assets/finding-schema.json` is the machine form.
+`assets/finding-schema.json` is the machine form. `lens` and `lens-checked`
+are optional (a conformance finding usually has `lens: none`); when they are
+absent the row still counts toward the vector, but the **lens matrix** (see
+pipeline-model.md) is what proves per-lens coverage of the run.
 
 ## Severity semantics
 
@@ -37,6 +42,7 @@ Decide by **base diff**, never vibes:
 
 - Every finding needs a **concrete failure mode** — not a style opinion.
 - `NOT-A-BUG` results are listed too (checked and dismissed), cheap honesty that keeps the fleet honest.
+- Hygiene hits follow the **lens trail** (hygiene-lens.md): detection mandatory, LOW by default, operator-suppressible per instance — they never pollute the bug table.
 - Evidence must be at the **pinned head**; if a child read a different tree, its output is `inconclusive`.
 
 ## Notebook layout

@@ -15,7 +15,8 @@ Read these references completely before establishing a process:
 4. [references/implementation-pass.md](references/implementation-pass.md) — Vector 2
 5. [references/debt-pass.md](references/debt-pass.md) — Vector 3
 6. [references/closure-verification.md](references/closure-verification.md) — the re-review loop
-7. [references/evidence-format.md](references/evidence-format.md) — finding schema, severity, origin
+7. [references/hygiene-lens.md](references/hygiene-lens.md) — the lens dimension: code-hygiene family, deterministic preflight, lens trail
+8. [references/evidence-format.md](references/evidence-format.md) — finding schema, severity, origin
 
 Read [libs/pi-driver/SKILL.md](../../libs/pi-driver/SKILL.md) only if this runtime provides the pi session notebook; its references define the requirements check and the notebook plan contract.
 
@@ -81,3 +82,4 @@ Publish a closure table. See closure-verification.md.
 - **Never draft external artifacts automatically.** Comments/issues are operator-gated.
 - **Deferred is not closed.** Record it in the decisions page with rationale.
 - **Fleets are budgeted.** Cap children, timeouts, output; serialize notebook writes via the coordinator.
+- **Lens coverage is a preflight assertion.** The run frame must map every active lens to an owning pass (lens matrix, see hygiene-lens.md); a lens without an owner blocks the run.

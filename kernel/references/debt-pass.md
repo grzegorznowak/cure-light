@@ -15,6 +15,18 @@ By **bigger concepts**, drilled down from what Vectors 1–2 already established
 5. **Performance / operability** — unbounded re-derivation, missing caches/invalidation, unbounded fleet cost.
 6. **Vocabulary / source-of-truth** — is there one enum/const, or re-declared prose/schemas that drift?
 
+## Hygiene lenses owned here
+
+Vector 3 co-owns the **`dead`**, **`read`** and **`name`** lenses (see
+[hygiene-lens.md](hygiene-lens.md)) — a dead feature or unused surface is
+*future-change cost*, which is exactly this vector's question:
+
+- `dead` — exported/surfaces the PR leaves un-consumed, dead config/keys, commented-out feature blocks; hit = LOW, but **MED** when removing the symbol would change behavior (a live surface that just looks dead).
+- `read` — statement density at the *concept* level: one axis doing several jobs, a shape that can't be parsed in one glance.
+- `name` — vocabulary drift vs the repo's own source-of-truth term; a name that lies about its shape.
+
+All hygiene hits route to the lens trail (LOW default, operator-suppressible), not the debt table.
+
 Each child receives: contract context, the relevant architecture files + diff, and this stance. Reading is concept-directed, not exhaustive.
 
 ## Child return format
