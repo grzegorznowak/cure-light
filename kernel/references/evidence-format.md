@@ -27,6 +27,10 @@ are optional (a conformance finding usually has `lens: none`); when they are
 absent the row still counts toward the vector, but the **lens matrix** (see
 pipeline-model.md) is what proves per-lens coverage of the run.
 
+A mechanical sweep that cannot run on the pinned head marks its lens
+`inconclusive-mechanical` in the **lens trail** — checked by static sight, not
+compiler output — never a silent skip and never a finding-status by itself.
+
 ## Severity semantics
 
 - **HIGH** — data loss / security / wrong routing / a contract-mandated behavior is contradicted or unverifiable at the core and no backstop exists.

@@ -49,7 +49,7 @@ Under {budget} lines.
 1. Analyze the **pinned head** only; report a tree mismatch as `inconclusive`.
 2. Compare against the **verbatim** contract, never a paraphrase.
 3. Evidence = file:line in the anchored tree, plus base evidence for origin (Vector 2+).
-4. No style nits, no redesign, no unrequested tests.
+4. No **unrouted** style nits, no redesign, no unrequested tests. Style hits go to the lens trail.
 5. Explicitly label `NOT-A-BUG` when a checked suspicion clears — that keeps the coordinator from re-checking.
 6. Return compact records; do not write the notebook (coordinator owns writes).
 

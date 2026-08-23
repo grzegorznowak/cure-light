@@ -20,8 +20,9 @@ because the fleet must not be allowed to skip them.
 
 Every lens has:
 
-1. **An owner.** One or more passes whose split explicitly exercises it. If no
-   pass owns a lens, the run frame is malformed — the coordinator must not proceed.
+1. **An owner.** One or more passes (or the deterministic preflight sweep)
+   whose split explicitly exercises it. If no pass owns a lens, the run frame is
+   malformed — the coordinator must not proceed.
 2. **A checklist** of what counts as a hit and what is explicitly dismissed.
 3. **A route**: where hits go (the lens trail) and their default severity.
 4. **A determinism hint** — whether a mechanical detector can do the check cheaper
@@ -35,13 +36,13 @@ systematically:
 | Lens | Checklist (hit = cite file:line) | Dismiss (NOT-A-HIT) | Default severity | Determinism |
 |---|---|---|---|---|
 | `type` | strict-tsc / lint class: unused locals & params surfacing as compiler errors, unchecked index/parse looseness, unsafe casts, any TS4xxx the repo's own config would flag | checked-and-clean → NOT-A-HIT | LOW | high — run the repo's own compiler/lint |
-| `dead` | dead code & unused surface: unused imports, unused locals/params, unreachable branches, exported symbols the PR leaves un-consumed, dead config/keys, commented-out blocks | a hit proven reachable → escalate to vector track | dead poor LOW, reachable MED | high (unused-symbol sweep) |
+| `dead` | dead code & unused surface: unused imports, unused locals/params, unreachable branches, exported symbols the PR leaves un-consumed, dead config/keys, commented-out blocks | a hit proven reachable → escalated to MED (see lens trail below), never the bug table | dead → LOW, reachable → MED | high (unused-symbol sweep) |
 | `read` | readability / statement density: a one-line block with side effects, >1 behavior packed into a single expression, over-nesting past obvious, magic literals at-use sites, a branch whose intent is not spottable in a glance | a deliberate compact idiom the repo already uses elsewhere | LOW | low (taste) |
 | `name` | vocabulary drift: a newly introduced name colliding with or shadowing the repo's own source-of-truth term, a param/var that lies about its shape | naming that matches the repo's own convention | LOW | low (taste) |
 
-The family is open-ended; a point-of-FIG might add `test` (see conformance
-tests-atom) or `security`. The matrix is rendered in the run frame so a future
-expansion is audited.
+The family is open-ended; a point-of-FIG might add a `test` lens (tie back to
+conformance-pass's *Tests* surface) or a `security` lens. The matrix is rendered
+in the run frame so a future expansion is audited.
 
 ## Deterministic preflight (mechanical accelerator)
 
@@ -49,8 +50,9 @@ For the mechanical lenses (`type`, `dead` in a typed repo) the fleet does not
 guess. Where cheap and self-hosted, the review runs the **repo's own toolchain**
 against the pinned head and cites the output verbatim:
 
-- a TS repo: `tsc --noUnusedLocals --noUnusedParameters --strict` (or the repo's
-  own `tsconfig` strictness), or the project's own lint/format check
+- a TS repo: run its **own** configured strictness (`tsc` with the repo's
+  `tsconfig` flags, including `noUnusedLocals` / `noUnusedParameters` where the
+  repo already sets them), or the project's own lint/format check
   (`eslint`, `biome`, `dprint --check`, ...)
 - a repo without a cheap runner: fall back to static inspection, flagged
   `inconclusive-mechanical` in the lens outcome — never a silent skip.

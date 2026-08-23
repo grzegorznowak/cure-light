@@ -10,8 +10,10 @@ cure-light encodes the three-vector method: **conformance** (does the code deliv
 what the PR claims?), **implementation** (does the shipped code work?), **debt**
 (is the way it's built sustainable?). A cross-cutting **lens** dimension forces
 coverage of the code-hygiene family (dead code, strict-type hygiene, readability,
-naming) on every PR — detected by named lens atoms and accelerated by the repo's
-own deterministic tooling where cheap. It is a small OS for the review process itself: pin the pull, hold a
+naming) — detected by named lens atoms and accelerated by the repo's
+own deterministic tooling where cheap — the full sweep runs when Vectors 2-3 do,
+and a V1-only shortcut still exercises the mechanical `type`/`dead` preflight
+(pipeline-model.md). It is a small OS for the review process itself: pin the pull, hold a
 pinned-commit manifest, spawn scoped fleets,
 and re-verify on the next head — not the whole pipeline.
 

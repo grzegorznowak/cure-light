@@ -36,11 +36,10 @@ origin: PR-introduced | pre-existing (base evidence: <base:<path>:<line>)
 
 ## Hygiene lenses owned here
 
-Vector 2 owns the **`read` lens** (readability / statement density) and co-owns
-**`dead`** with Vector 3 — see [hygiene-lens.md](hygiene-lens.md). Concretely:
+Vector 2 owns the **`read` lens** (readability / statement density) — see [hygiene-lens.md](hygiene-lens.md). Concretely:
 
 - Each split names the `read` checks it exercised and marks `NOT-A-HIT` when clear — a lens not named is a frame error, never silence.
-- A one-line expression packing several side effects, a param/variable that lies about its shape, or a branch whose intent is not spottable in a glance = a `read` lens hit (LOW, lens trail).
+- A one-line expression packing several side effects, or a branch whose intent is not spottable in a glance = a `read` lens hit (LOW, lens trail). Naming/shape-lies belong to the `name` lens (owned by Vector 3), not `read`.
 - Dense-but-repo-idiomatic code is a `NOT-A-HIT`, not a hit — the repo's own style is the baseline, never an invented one.
 
 **Style rule reconciled**: hygiene findings are *detected* by Vector 2 splits but do not enter the bug table — they route to the lens trail with LOW default severity and are operator-suppressible per instance. What the old rule forbade is *unrouted style noise in bug findings*; it never forbade systematic detection.
