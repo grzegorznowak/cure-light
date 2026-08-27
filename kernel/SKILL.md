@@ -16,7 +16,8 @@ Read these references completely before establishing a process:
 5. [references/debt-pass.md](references/debt-pass.md) — Vector 3
 6. [references/closure-verification.md](references/closure-verification.md) — the re-review loop
 7. [references/hygiene-lens.md](references/hygiene-lens.md) — the lens dimension: code-hygiene family, deterministic preflight, lens trail
-8. [references/evidence-format.md](references/evidence-format.md) — finding schema, severity, origin
+8. [references/yagni-pass.md](references/yagni-pass.md) — the optional size/YAGNI pass (fresh-context, post-handoff)
+9. [references/evidence-format.md](references/evidence-format.md) — finding schema, severity, origin
 
 Read [libs/pi-driver/SKILL.md](../../libs/pi-driver/SKILL.md) only if this runtime provides the pi session notebook; its references define the requirements check and the notebook plan contract.
 
@@ -34,7 +35,7 @@ Collect exactly once; never infer defaults for what only the operator can supply
 |---|---|---|
 | `owner/repo` | target repository | `agenticoding/pi-agenticoding` |
 | `pr` | pull request number | `27` |
-| `vectors` | which of the 3 vectors to run | `[conformance, implementation, debt]` |
+| `vectors` | which vectors to run; yagni optional | `[conformance, implementation, debt]` or `+ yagni` |
 | `auto_draft` | whether findings may be drafted as gh comments/issues | `{comments: false, issues: false}` |
 | `pauses` | operator checkpoints | `[after_intake, per_vector, before_post, closure]` |
 | `checkout_policy` | require the local checkout to equal PR head | `require_pr_head` |
@@ -57,6 +58,7 @@ Intake → Requirements check → [operator gate: frame]
   → Vector 1 conformance (flash) → [gate]
   → Vector 2 implementation (code-review) → [gate]
   → Vector 3 debt (code-review) → [gate]
+  → Optional yagni pass (code-review; size/YAGNI — operator-enabled, fresh-context post-handoff) → [gate]
   → Output (operator-gated drafts) → [closure loop on new head]
 ```
 
@@ -83,3 +85,4 @@ Publish a closure table. See closure-verification.md.
 - **Deferred is not closed.** Record it in the decisions page with rationale.
 - **Fleets are budgeted.** Cap children, timeouts, output; serialize notebook writes via the coordinator.
 - **Lens coverage is a preflight assertion.** The run frame must map every active lens to an owning pass (lens matrix, see hygiene-lens.md); a lens without an owner blocks the run.
+- **Optional passes are opt-in.** The yagni pass runs only when the operator enables it; a skipped pass deactivates its lens (matrix shows `off`, exempt from the coverage assertion).

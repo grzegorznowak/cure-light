@@ -2,6 +2,17 @@
 
 ## Unreleased (working tree)
 
+### v0.3.0 — optional yagni pass (stage 3.5): size/YAGNI challenge
+
+**kernel/**
+- NEW `references/yagni-pass.md` — optional, operator-enabled pass (intake checkbox or on-demand after the Vector 3 gate); runs post-handoff in a fresh context on the same pinned manifest. Grounded, not blind: reads CONTRACT + PR context + V1-V3 findings as leads, never proof. Splits by **distinct functionality unit** (reusing the vectors' contract-surface / sealed-concept partition), one parallel child per unit — no line-count trigger. Owns the `yagni` lens (size-weight is an assessment dimension); LOW default, MED ceiling, non-blocking, routes to the lens trail; contracted scope out, pure-unused surface links to `dead`.
+- `pipeline-model.md` — optional-pass section, `yagni` matrix row, active-lens clause (skipped pass deactivates its lens, matrix shows `off`, exempt from coverage assertion), when-NOT bullet.
+- `SKILL.md` — reference list + phase diagram + operating rule (optional passes are opt-in).
+- `evidence-format.md` + `finding-schema.json` — `yagni` added to vector/lens enums (backward-compatible widening); severity + routing notes for yagni rows.
+- `BOOTSTRAP.md` fetches `yagni-pass.md`; `KICKOFF.md` gains the yagni checkbox + fleet group; README + CHANGELOG updated.
+
+Background: operator seed "challenge/justify the physical size in lines changed… candidates for YAGNI" becomes a first-class optional pass; design checked by code-review agent (premise sound, adjusted: one `yagni` lens, leads-not-proof, unit-based split).
+
 ### v0.2.0 — lens dimension (stage 3): code-hygiene family forced on every PR
 
 **kernel/**
