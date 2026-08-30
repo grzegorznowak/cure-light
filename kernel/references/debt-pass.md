@@ -24,6 +24,17 @@ Vector 3 co-owns the **`dead`**, **`read`** and **`name`** lenses (see
 - `dead` — exported/surfaces the PR leaves un-consumed, dead config/keys, commented-out feature blocks; hit = LOW, but **MED** when removing the symbol would change behavior (a live surface that just looks dead).
 - `read` — statement density at the *concept* level: one axis doing several jobs, a shape that can't be parsed in one glance.
 - `name` — vocabulary drift vs the repo's own source-of-truth term; a name that lies about its shape.
+- `quality` — Vector 3 owns the **`quality`** lens outright (see
+  [quality-lens.md](quality-lens.md)): big decision trees that outgrew their
+  shape, coverage-without-assurance, error-handling drift, duplication — all
+  four sub-checks are future-change cost, this vector's question. Every debt
+  split records `tree` / `test` / `error` / `dupe` as hit / NOT-A-HIT /
+  n/a-with-reason.
+
+Routing priority for `quality` candidates: a *correctness / observability*
+failure belongs to Vector 2; a *concrete future-change cost* is a debt finding;
+only residual advisory shape / idiom / suite-strength concerns become
+`quality` rows (link, don't duplicate).
 
 All hygiene hits route to the lens trail (LOW default, operator-suppressible), not the debt table.
 

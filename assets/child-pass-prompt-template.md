@@ -16,8 +16,9 @@ YOUR ANGLE: {surface / sealed concept}. Inspect completely and report per
 {return format in the vector's pass contract}.
 
 YOUR LENSES: {lens list from the lens matrix}. Run each lens checklist from
-kernel/references/hygiene-lens.md; a lens you check and clear is explicitly
-NOT-A-HIT. Hygiene hits go to the lens trail, never the bug table.
+its owning reference — hygiene family: kernel/references/hygiene-lens.md; the
+`quality` lens: kernel/references/quality-lens.md; a lens you check and clear
+is explicitly NOT-A-HIT. Hygiene hits go to the lens trail, never the bug table.
 
 Your contract is the verbatim locked decisions + PR description — never a
 summary of intent. Cite file:line in the pinned tree. Do NOT run tests unless
@@ -40,7 +41,7 @@ Under {budget} lines.
 | file_list | the assigned files for this surface/split |
 | diff_paths | the focused diff hunks for the surface |
 | angle | the surface (conformance) / sealed invariant (implementation) / bigger concept (debt) |
-| lenses | the lens list this split owns, from the run lens matrix (hygiene-lens.md) |
+| lenses | the lens list this split owns, from the run lens matrix (pipeline-model.md; checklists per owning reference: hygiene-lens.md, quality-lens.md) |
 | return | from the pass contract: `VERIFIED/GAP/NONE`, `[F] file:line`, `[D] concept` |
 | budget | output-size cap (lines); enforced; truncation = inconclusive |
 

@@ -7,7 +7,7 @@ Every finding in a cure-light run conforms to this shape. It is the interop cont
 ```yaml
 id: <vector-letter><#>            # V1-V3 + seq, e.g. F2-03 or D3-01 (yagni: Y-01)
 vector: conformance | implementation | debt | yagni
-lens: type | dead | read | name | test | security | yagni | none   # optional; hygiene family, see hygiene-lens.md
+lens: type | dead | read | name | test | security | yagni | quality | none   # optional; see hygiene-lens.md + quality-lens.md
 lens-checked: [<lens>, ...]       # lenses proven exercised on this artifact
 summary: one line
 evidence:
@@ -37,6 +37,7 @@ compiler output — never a silent skip and never a finding-status by itself.
 - **MED** — real user-visible defect or race, or a behavior claim missing the test that would catch its regression; backstopped so not catastrophic.
 - **LOW** — brittle, fragile, or coverage-without-assurance; cosmetic; deferred by design.
 - **Yagni rows (`yagni` lens)**: LOW default, MED ceiling — existence questions are advisory (non-blocking); current harm is V2's, future-change cost is V3's.
+- **Quality rows (`quality` lens)**: LOW default, MED only when the quality problem's *own scale* is material — never HIGH, rated independently of product criticality (a spaghetti tree in a payments feature is not elevated because payments is critical); advisory (non-blocking), lens-trail only.
 
 ## Origin rule (Vector 2+)
 
@@ -49,6 +50,7 @@ Decide by **base diff**, never vibes:
 - `NOT-A-BUG` results are listed too (checked and dismissed), cheap honesty that keeps the fleet honest.
 - Hygiene hits follow the **lens trail** (hygiene-lens.md): detection mandatory, LOW by default, operator-suppressible per instance — they never pollute the bug table.
 - `yagni` rows (yagni pass) follow the same lens trail with the same suppression/closure semantics — suggestion-only, never bug/debt tables.
+- `quality` rows (V3 lens) follow the same lens trail — suggestion-only, rated by the problem's own scale, never bug/debt tables.
 - Evidence must be at the **pinned head**; if a child read a different tree, its output is `inconclusive`.
 
 ## Notebook layout

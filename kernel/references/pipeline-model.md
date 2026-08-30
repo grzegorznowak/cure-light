@@ -41,12 +41,13 @@ Every run manifest renders a **lens matrix** — a closed table of lens × ownin
 
 ```text
 LENS TABLE (run <head OID>)
-lens   | owner(s)              | mechanical | trail
-type   | deterministic preflight | yes       | lens
-dead   | preflight + v3        | yes       | lens
-read   | v2 split + v3 split   | no        | lens
-name   | v3 split              | no        | lens (NOT-A-HIT when clear)
-yagni  | yagni pass (when active) | no      | lens
+lens    | owner(s)              | mechanical | trail
+type    | deterministic preflight | yes       | lens
+dead    | preflight + v3        | yes       | lens
+read    | v2 split + v3 split   | no        | lens
+name    | v3 split              | no        | lens (NOT-A-HIT when clear)
+yagni   | yagni pass (when active) | no    | lens
+quality | v3 split              | no        | lens
 ```
 
 Rules:
@@ -55,6 +56,9 @@ Rules:
 2. **A lens outcome is `checked-and-clear` + a trail.** A lens not checked is a frame error, never "nothing found".
 3. **Hygiene hits route to the lens trail**, never the bug/debt table (see hygiene-lens.md). The operator gates each external hit, never the lens.
 4. **The family is extensible.** Adding a lens is an auditable manifest change, not silent scope drift.
+5. **`quality` is advisory** (quality-lens.md): LOW default, MED only when the
+   quality problem's own scale is material, never HIGH, rated independently of
+   product criticality — suggestion-only on the lens trail.
 
 ## Optional pass: yagni (size / YAGNI)
 
