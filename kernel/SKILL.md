@@ -17,7 +17,8 @@ Read these references completely before establishing a process:
 6. [references/closure-verification.md](references/closure-verification.md) — the re-review loop
 7. [references/hygiene-lens.md](references/hygiene-lens.md) — the lens dimension: code-hygiene family, deterministic preflight, lens trail
 8. [references/yagni-pass.md](references/yagni-pass.md) — the optional size/YAGNI pass (fresh-context, post-handoff)
-9. [references/evidence-format.md](references/evidence-format.md) — finding schema, severity, origin
+9. [references/quality-lens.md](references/quality-lens.md) — the `quality` lens (V3-owned: maintainable shape, suite strength, consistency)
+10. [references/evidence-format.md](references/evidence-format.md) — finding schema, severity, origin
 
 Read [libs/pi-driver/SKILL.md](../../libs/pi-driver/SKILL.md) only if this runtime provides the pi session notebook; its references define the requirements check and the notebook plan contract.
 

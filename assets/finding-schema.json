@@ -6,8 +6,8 @@
   "properties": {
     "id": { "type": "string", "pattern": "^(V[123]|D[0-9]+|Y)-[0-9]+$" },
     "vector": { "enum": ["conformance", "implementation", "debt", "yagni"] },
-    "lens": { "enum": ["type", "dead", "read", "name", "test", "security", "yagni", "none"], "default": "none" },
-    "lens-checked": { "type": "array", "items": { "enum": ["type", "dead", "read", "name", "test", "security", "yagni"] }, "description": "lenses proven exercised on this artifact (lens matrix, see kernel/references/pipeline-model.md)" },
+    "lens": { "enum": ["type", "dead", "read", "name", "test", "security", "yagni", "quality", "none"], "default": "none" },
+    "lens-checked": { "type": "array", "items": { "enum": ["type", "dead", "read", "name", "test", "security", "yagni", "quality"] }, "description": "lenses proven exercised on this artifact (lens matrix, see kernel/references/pipeline-model.md)" },
     "summary": { "type": "string" },
     "severity": { "enum": ["HIGH", "MED", "LOW"] },
     "origin": { "enum": ["PR-introduced", "pre-existing", "n/a"] },

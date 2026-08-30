@@ -33,7 +33,7 @@ Each vector's fleet splits the contract surface. Example split for a model-group
 
 - conformance: derivation core · persistence/schema guard · spawn/router gate · main-session+TUI · tests
 - implementation: sealed concepts the review already established (never open-ended), + **`read` lens ownership**
-- debt: pluggability · boundary ownership · versioning/migrations · projections · perf/operability, + **`dead`/`name` lens ownership**
+- debt: pluggability · boundary ownership · versioning/migrations · projections · perf/operability, + **`dead`/`name`/`quality` lens ownership**
 
 Slice granularity is chosen so each child reads a bounded file set + the relevant CONTRACT slice, and returns under a defined evidence budget.
 
@@ -54,7 +54,7 @@ checkout_policy, auto_draft, pauses
 changed_files: [...]
 contract_path: /tmp/cure-.../CONTRACT.md
 notebook: pipeline-frame-<owner>-<pr> + pr-<n>-review
-lens_matrix: {type: preflight, dead: preflight+v3, read: v2+v3, name: v3}   # see hygiene-lens.md
+lens_matrix: {type: preflight, dead: preflight+v3, read: v2+v3, name: v3, quality: v3}   # see hygiene-lens.md + quality-lens.md
 ```
 
 Every lens in the matrix must have ≥1 owning pass before Phase 0 proceeds — a

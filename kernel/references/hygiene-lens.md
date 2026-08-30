@@ -39,10 +39,12 @@ systematically:
 | `dead` | dead code & unused surface: unused imports, unused locals/params, unreachable branches, exported symbols the PR leaves un-consumed, dead config/keys, commented-out blocks | a hit proven reachable → escalated to MED (see lens trail below), never the bug table | dead → LOW, reachable → MED | high (unused-symbol sweep) |
 | `read` | readability / statement density: a one-line block with side effects, >1 behavior packed into a single expression, over-nesting past obvious, magic literals at-use sites, a branch whose intent is not spottable in a glance | a deliberate compact idiom the repo already uses elsewhere | LOW | low (taste) |
 | `name` | vocabulary drift: a newly introduced name colliding with or shadowing the repo's own source-of-truth term, a param/var that lies about its shape | naming that matches the repo's own convention | LOW | low (taste) |
+| `quality` | maintainable shape + suite strength + consistency: big decision trees that outgrew their shape, coverage-without-assurance, error-handling drift, duplication — four sub-checks with a which-pattern-fits judgment, see [quality-lens.md](quality-lens.md) | a shape whose alternative would be more complex; a demonstrated gap owned by V1/V2/V3-debt (link, don't duplicate) | LOW; MED when the problem's own scale is material | low (taste) |
 
-The family is open-ended; a point-of-FIG might add a `test` lens (tie back to
-conformance-pass's *Tests* surface) or a `security` lens. The matrix is rendered
-in the run frame so a future expansion is audited.
+The family is open-ended; `quality` already carries the suite-strength and
+shape checks, and the reserved `test` / `security` schema slots remain
+available for a future split (e.g. a dedicated security lens). The matrix is
+rendered in the run frame so a future expansion is audited.
 
 ## Deterministic preflight (mechanical accelerator)
 
@@ -57,7 +59,10 @@ against the pinned head and cites the output verbatim:
 - a repo without a cheap runner: fall back to static inspection, flagged
   `inconclusive-mechanical` in the lens outcome — never a silent skip.
 
-Rules:
+Rules — **mechanical preflight only (`type` / `dead`)**; taste lenses
+(`read`, `name`, `quality`) have **no config/tool gate** — they run on the
+fleet's best absolute judgment, and hits are pushback-able per instance (see
+quality-lens.md for `quality`):
 
 1. **Reuse the repo's config**, never invent a stricter one the PR never
    promised. If the repo ships its own strict flags, that is the conformance
@@ -78,6 +83,9 @@ the findings page, not the bug/debt table:
 - A hygiene finding is **LOW by default**; it may be escalated to MED only when a
   "dead-looking" symbol is actually a reachable live surface and its removal would
   change behavior.
+- The **`quality` lens has its own MED exception** (quality-lens.md): rated by
+  the scale of the quality problem itself — never by product criticality —
+  never HIGH, suggestion-only.
 - The operator may suppress individual lens hits (recorded `closed-by-operator`),
   but never the lens itself. Deterministic `type`/`dead` hits are surfaced to the
   implementer with the mechanical citation — opinion is not the basis.

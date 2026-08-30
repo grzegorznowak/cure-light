@@ -23,23 +23,24 @@ These seed the session so it can compile the review process. Fetch them in order
 7. `$RAW_BASE/kernel/references/closure-verification.md`
 8. `$RAW_BASE/kernel/references/hygiene-lens.md` — the lens dimension (code-hygiene family, deterministic preflight, lens trail)
 9. `$RAW_BASE/kernel/references/yagni-pass.md` — the optional size/YAGNI pass (fresh-context, post-handoff)
-10. `$RAW_BASE/kernel/references/evidence-format.md`
+10. `$RAW_BASE/kernel/references/quality-lens.md` — the `quality` lens (V3-owned: maintainable shape, suite strength, consistency)
+11. `$RAW_BASE/kernel/references/evidence-format.md`
 
 ### Pi driver (notebook + handoff + model-groups binding — only if this runtime provides the pi notebook)
 
-11. `$RAW_BASE/libs/pi-driver/SKILL.md`
-12. `$RAW_BASE/libs/pi-driver/references/requirements-check.md`
-13. `$RAW_BASE/libs/pi-driver/references/notebook-plan-contract.md`
+12. `$RAW_BASE/libs/pi-driver/SKILL.md`
+13. `$RAW_BASE/libs/pi-driver/references/requirements-check.md`
+14. `$RAW_BASE/libs/pi-driver/references/notebook-plan-contract.md`
 
 ### Templates / assets (keep for reference during the episode)
 
-14. `$RAW_BASE/templates/KICKOFF.md`
-15. `$RAW_BASE/assets/finding-schema.json`
-16. `$RAW_BASE/assets/child-pass-prompt-template.md`
+15. `$RAW_BASE/templates/KICKOFF.md`
+16. `$RAW_BASE/assets/finding-schema.json`
+17. `$RAW_BASE/assets/child-pass-prompt-template.md`
 
 ### Worked example (optional, read after compiling the process)
 
-17. `$RAW_BASE/docs/example-review.md`
+18. `$RAW_BASE/docs/example-review.md`
 
 ## Fetching rules
 

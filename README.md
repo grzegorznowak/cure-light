@@ -14,7 +14,9 @@ naming) — detected by named lens atoms and accelerated by the repo's
 own deterministic tooling where cheap — the full sweep runs when Vectors 2-3 do,
 and a V1-only shortcut still exercises the mechanical `type`/`dead` preflight
 (pipeline-model.md). An optional **yagni** pass challenges the PR's size and
-speculative surface when the operator enables it (yagni-pass.md). It is a small OS for the review process itself: pin the pull, hold a
+speculative surface when the operator enables it (yagni-pass.md), and a
+V3-owned **quality** lens judges maintainable shape, suite strength, and
+consistency by best absolute judgment (quality-lens.md). It is a small OS for the review process itself: pin the pull, hold a
 pinned-commit manifest, spawn scoped fleets,
 and re-verify on the next head — not the whole pipeline.
 
@@ -26,7 +28,7 @@ cure-light/
 ├── kernel/                   ← the review method (the master skill)
 │   ├── SKILL.md              ← dispatcher: phases, gates, rules
 │   └── references/           ← pipeline-model, intake, the 3 pass contracts,
-│                               hygiene-lens, yagni-pass, closure-verification, evidence-format
+│                               hygiene-lens, yagni-pass, quality-lens, closure-verification, evidence-format
 ├── libs/pi-driver/           ← pi binding (notebook + handoff + model-groups)
 │   ├── SKILL.md
 │   └── references/           ← requirements-check, notebook-plan-contract

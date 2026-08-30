@@ -2,6 +2,20 @@
 
 ## Unreleased (working tree)
 
+### v0.4.0 — quality lens (stage 4): maintainable shape, suite strength, consistency
+
+**kernel/**
+- NEW `references/quality-lens.md` — one V3-owned advisory lens `quality` with four sub-checks: `tree` (big decision trees that outgrew their shape — long if/else-if chains, switches, deep nesting, boolean-encoded state — with a which-pattern-fits-the-vibe judgment: table-driven/functional, state machine, guard clauses, polymorphism), `test` (coverage-without-assurance; residual suite strength only — a demonstrated gap links to V1/V2 instead), `error` (error-handling consistency), `dupe` (duplication vs the repo's own abstractions). Taste lens: **no repo-config/tool gate** — best absolute judgment on the pinned head, per-hit operator/developer pushback via existing suppression + closure machinery.
+- Severity is rated by the **scale of the quality problem itself**, independent of product criticality: LOW default, MED only when the problem's own scale is material, never HIGH, suggestion-only, lens-trail routing.
+- `hygiene-lens.md` — family-table row for `quality`; mechanical-preflight rules explicitly scoped to `type`/`dead` only (taste lenses have no config/tool gate); MED exception wording for quality alongside the reachable-`dead` exception.
+- `debt-pass.md` — V3 owns `quality`; routing priority (correctness/observability → V2, concrete future-change cost → debt finding, residual advisory → quality); every V3 split records `tree`/`test`/`error`/`dupe` as hit / NOT-A-HIT / n/a-with-reason.
+- `pipeline-model.md` + `intake-and-scope.md` — matrix row `quality | v3 split | no | lens`; advisory-severity rule; split + manifest examples.
+- `evidence-format.md` + `finding-schema.json` — `quality` added to lens / lens-checked enums (backward-compatible; reserved `test`/`security` slots untouched).
+- `child-pass-prompt-template.md` — lens checklist dispatch by owning reference (hygiene-lens.md vs quality-lens.md).
+- `SKILL.md` + `BOOTSTRAP.md` + `README.md` — reference lists + lens mention. NO KICKOFF change (not an optional pass).
+
+Background: operator direction "augment Vector 3 with a code quality lens", refined to big decision trees first (rewrite-to-maintainable-pattern judgment), then extended with test strength / error consistency / duplication; design checked by the code-review agent (sound; routing priorities vs V1 Tests surface, V2 test integrity, and V3-debt findings adopted). Post-merge-gate review round (independent code-review + planner reviews, both CHANGES-REQUESTED): severity cells reworded to own-scale materiality only (no "hot path" / "high-risk surface"); `test` checklist restricted to residual suite strength with V1/V2 link-out for claim-not-under-test and demonstrated-regression gaps; observability failure routed to V2 (not V3 debt); per-row outcome token standardized to `n/a-with-reason`.
+
 ### v0.3.0 — optional yagni pass (stage 3.5): size/YAGNI challenge
 
 **kernel/**
