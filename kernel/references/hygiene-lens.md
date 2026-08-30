@@ -87,8 +87,9 @@ the findings page, not the bug/debt table:
 1. **A lens is not a vector.** It never blocks Vector 2/3 gating by itself; it is
    recorded and reported, and its hits are operator-suppressible per instance.
 2. **Per-lens coverage is a preflight assertion.** The run manifest lists each lens
-   and its owning pass (see pipeline-model.md). If any lens lacks an owner, the run
-   does not start.
+   and its owning pass (see pipeline-model.md). If any **active** lens lacks an
+   owner, the run does not start; lenses owned by a skipped optional pass (yagni)
+   are inactive (`off` in the matrix) and need no owner.
 3. **Cheap and always.** Lenses are budget-minimal by design; they are the reason
    the pipeline can promise "every PR gets its hygiene swept" without fleet
    inflation.

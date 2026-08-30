@@ -46,17 +46,28 @@ type   | deterministic preflight | yes       | lens
 dead   | preflight + v3        | yes       | lens
 read   | v2 split + v3 split   | no        | lens
 name   | v3 split              | no        | lens (NOT-A-HIT when clear)
+yagni  | yagni pass (when active) | no      | lens
 ```
 
 Rules:
 
-1. **Per-lens coverage is a preflight assertion.** If any lens has no owner, the run does not start — coverage is proven per lens, not per vector.
+1. **Per-lens coverage is a preflight assertion.** If any **active** lens has no owner, the run does not start — coverage is proven per lens, not per vector. Lenses owned by a skipped optional pass are **inactive** (matrix shows `off`) and need no owner.
 2. **A lens outcome is `checked-and-clear` + a trail.** A lens not checked is a frame error, never "nothing found".
 3. **Hygiene hits route to the lens trail**, never the bug/debt table (see hygiene-lens.md). The operator gates each external hit, never the lens.
 4. **The family is extensible.** Adding a lens is an auditable manifest change, not silent scope drift.
 
+## Optional pass: yagni (size / YAGNI)
+
+Beyond the three vectors sits one **optional, vector-shaped pass**: yagni — is
+the PR's physical size in lines changed justified by its contract, and what is
+YAGNI? It runs only when the operator enables it (intake checkbox or on-demand
+after the Vector 3 gate), post-handoff in a fresh context, on the same pinned
+manifest. It owns the `yagni` lens while active (yagni-pass.md); when skipped,
+that lens is inactive (`off`) and needs no owner. Hits route to the lens trail,
+never the bug/debt table.
+
 ## When NOT to run the full pipeline
 
-- Trivial/merge-bot PRs: run Vector 1 only, single pass.
+- Trivial/merge-bot PRs: run Vector 1 only, single pass — and never the yagni pass.
 - Pre-merge iterations you already reviewed: run the closure loop, not the fleets.
 - Repo unreachable or unindexed: run preflight, take the fallback (git/rg), or stop.

@@ -5,9 +5,9 @@ Every finding in a cure-light run conforms to this shape. It is the interop cont
 ## Finding schema
 
 ```yaml
-id: <vector-letter><#>            # V1-V3 + seq, e.g. F2-03 or D3-01
-vector: conformance | implementation | debt
-lens: type | dead | read | name | test | security | none   # optional; hygiene family, see hygiene-lens.md
+id: <vector-letter><#>            # V1-V3 + seq, e.g. F2-03 or D3-01 (yagni: Y-01)
+vector: conformance | implementation | debt | yagni
+lens: type | dead | read | name | test | security | yagni | none   # optional; hygiene family, see hygiene-lens.md
 lens-checked: [<lens>, ...]       # lenses proven exercised on this artifact
 summary: one line
 evidence:
@@ -36,6 +36,7 @@ compiler output — never a silent skip and never a finding-status by itself.
 - **HIGH** — data loss / security / wrong routing / a contract-mandated behavior is contradicted or unverifiable at the core and no backstop exists.
 - **MED** — real user-visible defect or race, or a behavior claim missing the test that would catch its regression; backstopped so not catastrophic.
 - **LOW** — brittle, fragile, or coverage-without-assurance; cosmetic; deferred by design.
+- **Yagni rows (`yagni` lens)**: LOW default, MED ceiling — existence questions are advisory (non-blocking); current harm is V2's, future-change cost is V3's.
 
 ## Origin rule (Vector 2+)
 
@@ -47,6 +48,7 @@ Decide by **base diff**, never vibes:
 - Every finding needs a **concrete failure mode** — not a style opinion.
 - `NOT-A-BUG` results are listed too (checked and dismissed), cheap honesty that keeps the fleet honest.
 - Hygiene hits follow the **lens trail** (hygiene-lens.md): detection mandatory, LOW by default, operator-suppressible per instance — they never pollute the bug table.
+- `yagni` rows (yagni pass) follow the same lens trail with the same suppression/closure semantics — suggestion-only, never bug/debt tables.
 - Evidence must be at the **pinned head**; if a child read a different tree, its output is `inconclusive`.
 
 ## Notebook layout

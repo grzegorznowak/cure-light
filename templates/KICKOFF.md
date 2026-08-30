@@ -21,6 +21,7 @@
 - [x] Conformance (does code match the PR's own claims?)
 - [x] Implementation bugs (does the shipped code work?)
 - [x] Code debt (is the way it's built sustainable?)
+- [ ] Yagni — optional pass (is the change's size justified? any YAGNI?)
 - [ ] Subset only: <list which>
 
 ## 4. Fleet groups (if this runtime provides the model-groups plugin)
@@ -28,6 +29,7 @@
 - Conformance: `flash` (or inherited)
 - Implementation: `code-review`
 - Debt: `code-review`
+- Yagni (if enabled): `code-review`
 
 ## 5. Auto-draft policy (never auto-post otherwise)
 
