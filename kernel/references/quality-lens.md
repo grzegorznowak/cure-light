@@ -6,16 +6,16 @@ determinism): the fleet applies its best absolute judgment — never a tool, a
 repo-config threshold, or a complexity metric gate — and the operator /
 developer pushes back per hit. Detection is mandatory whenever Vector 3 runs:
 every V3 split records each sub-check below as `hit` / `NOT-A-HIT` /
-`not-applicable-with-reason` (compact per-row trail, so checklist execution is
+`n/a-with-reason` (compact per-row trail, so checklist execution is
 provable, not just the lens).
 
 ## The four sub-checks
 
 | Sub-check | Checklist (hit = cite file:line) | Dismiss (NOT-A-HIT) | Severity guidance |
 |---|---|---|---|
-| `tree` | a decision tree that outgrew its maintainable shape: long `if/else-if` chains or switches dispatching on one discriminator, deep nesting, state encoded as boolean flags. When it fits, name the pattern the logic's vibe calls for: **table-driven / strategy dispatch** (pure data-in → data-out), a **state machine** (events / phases / transitions), **guard clauses** (plain deep nesting), **polymorphism** (type dispatch) | a short chain where the alternative would be more complex; a shape that already matches a better pattern | LOW for a wart; **MED when the tree is material at its own scale** (large, on a hot path, or this PR grew it a lot) |
-| `test` | coverage-without-assurance: vacuous assertions, tests that would pass even if the code were broken, skipped/disabled tests, happy-path-only where the contract has failure paths, mock-reality mismatches | tests that genuinely pin behavior; a *demonstrated* gap links to V1 (claim not under test) or V2 (regression stays green) — link, don't duplicate | LOW; **MED when a vacuous test guards a high-risk surface** |
-| `error` | failure handling that diverges from the diff's own established idiom: swallowed errors, a different error vocabulary/types, missing logging where siblings log | deliberate, documented divergence; a correctness failure belongs to V2, an observability / future-change cost to a V3 debt finding | LOW; **MED when inconsistent handling is widespread across the diff** |
+| `tree` | a decision tree that outgrew its maintainable shape: long `if/else-if` chains or switches dispatching on one discriminator, deep nesting, state encoded as boolean flags. When it fits, name the pattern the logic's vibe calls for: **table-driven / strategy dispatch** (pure data-in → data-out), a **state machine** (events / phases / transitions), **guard clauses** (plain deep nesting), **polymorphism** (type dispatch) | a short chain where the alternative would be more complex; a shape that already matches a better pattern | LOW for a wart; **MED when the tree is material at its own scale** (large, or this PR grew it a lot) |
+| `test` | coverage-without-assurance — *residual suite strength / maintainability*: vacuous assertions, tests too weak to fail if the code were broken (hypothetical weakness; a *demonstrated* regression that stays green → V2). Claim-not-under-test gaps — skipped/disabled tests, happy-path-only where the contract has failure paths, mock-reality mismatches on contract-mandated behavior — are V1 existence gaps; link, don't duplicate | tests that genuinely pin behavior | LOW; **MED when the vacuous coverage is material at its own scale** (systemic, or a substantial share of the PR's changed behavior unpinned) |
+| `error` | failure handling that diverges from the diff's own established idiom: swallowed errors, a different error vocabulary/types, missing logging where siblings log | deliberate, documented divergence; a correctness / observability failure belongs to V2; a concrete future-change cost to a V3 debt finding | LOW; **MED when inconsistent handling is widespread across the diff** |
 | `dupe` | copy-paste of a shape the repo already abstracts, or a new abstraction duplicating an existing one | coincidence (same shape, different meaning); "the repo already abstracts this" is valid evidence but never a hidden style gate | LOW; **MED when duplication is systemic across the diff** |
 
 ## Routing + severity

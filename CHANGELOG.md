@@ -14,7 +14,7 @@
 - `child-pass-prompt-template.md` — lens checklist dispatch by owning reference (hygiene-lens.md vs quality-lens.md).
 - `SKILL.md` + `BOOTSTRAP.md` + `README.md` — reference lists + lens mention. NO KICKOFF change (not an optional pass).
 
-Background: operator direction "augment Vector 3 with a code quality lens", refined to big decision trees first (rewrite-to-maintainable-pattern judgment), then extended with test strength / error consistency / duplication; design checked by the code-review agent (sound; routing priorities vs V1 Tests surface, V2 test integrity, and V3-debt findings adopted).
+Background: operator direction "augment Vector 3 with a code quality lens", refined to big decision trees first (rewrite-to-maintainable-pattern judgment), then extended with test strength / error consistency / duplication; design checked by the code-review agent (sound; routing priorities vs V1 Tests surface, V2 test integrity, and V3-debt findings adopted). Post-merge-gate review round (independent code-review + planner reviews, both CHANGES-REQUESTED): severity cells reworded to own-scale materiality only (no "hot path" / "high-risk surface"); `test` checklist restricted to residual suite strength with V1/V2 link-out for claim-not-under-test and demonstrated-regression gaps; observability failure routed to V2 (not V3 debt); per-row outcome token standardized to `n/a-with-reason`.
 
 ### v0.3.0 — optional yagni pass (stage 3.5): size/YAGNI challenge
 
