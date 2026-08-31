@@ -5,7 +5,7 @@ description: Run a structured three-vector pull-request review — contract-vs-c
 
 # cure-light — PR review pipeline
 
-A **diagnostic review, not a fixer.** cure-light reviews a PR against its own stated contract and the surrounding codebase; it does not modify code. Findings become PR comments / issues only through operator-gated drafting.
+A **diagnostic review, not a fixer.** cure-light reviews a PR against its own stated contract and the surrounding codebase; it does not modify code. Findings surface as a **single review comment**, drafted only through operator-gated finalization.
 
 Read these references completely before establishing a process:
 
@@ -37,7 +37,7 @@ Collect exactly once; never infer defaults for what only the operator can supply
 | `owner/repo` | target repository | `agenticoding/pi-agenticoding` |
 | `pr` | pull request number | `27` |
 | `vectors` | which vectors to run; yagni optional | `[conformance, implementation, debt]` or `+ yagni` |
-| `auto_draft` | whether findings may be drafted as gh comments/issues | `{comments: false, issues: false}` |
+| `draft_comment` | whether the pipeline may draft the single aggregated review comment for operator approval (alias: `auto_draft`) | `false` |
 | `pauses` | operator checkpoints (default: pause after each vector) | `[per_vector]` |
 | `checkout_policy` | require the local checkout to equal PR head | `require_pr_head` |
 
@@ -82,7 +82,7 @@ Publish a closure table. See closure-verification.md.
 - **Review the pinned commit, not the branch tip.** Snapshot everything at intake.
 - **Findings need file:line evidence and a concrete failure mode.** Opinion without evidence does not enter the report.
 - **Pre-existing vs PR-introduced is a first-class classification**, decided by base-diff, not vibes.
-- **Never draft external artifacts automatically.** Comments/issues are operator-gated.
+- **Never draft external artifacts automatically.** The single review comment is operator-gated; the `before_post` gate is mandatory whenever drafting is enabled.
 - **Deferred is not closed.** Record it in the decisions page with rationale.
 - **Fleets are budgeted.** Cap children, timeouts, output; serialize notebook writes via the coordinator.
 - **Lens coverage is a preflight assertion.** The run frame must map every active lens to an owning pass (lens matrix, see hygiene-lens.md); a lens without an owner blocks the run.

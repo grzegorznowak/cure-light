@@ -2,6 +2,8 @@
 
 A condensed walk-through of a real cure-light-style review, to imitate rather than re-read. The PR added model-modality awareness to a spawn system; the review ran the full pipeline against a moving head.
 
+> **Policy note (v0.5.2):** this run predates the one-comment finalization policy — it shows the old per-finding `gh pr comment` + `gh issue` drafting. Under the current policy the same content lands in ONE aggregated review comment: a Findings section plus a "Potential follow-up issues" section the developer opens themselves.
+
 ## The run manifest (condensed)
 
 ```text

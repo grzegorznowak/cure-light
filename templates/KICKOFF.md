@@ -31,16 +31,20 @@
 - Debt: `code-review`
 - Yagni (if enabled): `code-review`
 
-## 5. Auto-draft policy (never auto-post otherwise)
+## 5. Draft policy (never auto-post otherwise)
+
+> Finalization = one aggregated review comment per run (summary, findings,
+> suggested follow-up issues, footer). Potential issues are suggested inside it
+> — the developer opens them; gh issue bodies are never drafted.
 
 ```
-comments: [false]   # gh pr comments for in-scope findings
-issues:   [false]   # gh issues for pre-existing debt
+draft_comment: [false]   # prepare the single review comment for operator approval
 ```
 
 ## 6. Pauses / operator gates
 
 > Default: pause after each vector (`per_vector`). Tick any extra checkpoints you want.
+> The `before_post` gate is **required** whenever `draft_comment` is enabled.
 
 ```
 - [ ] after intake (frame confirmation)
@@ -65,7 +69,7 @@ issues:   [false]   # gh issues for pre-existing debt
 > Fetch the manifest, follow its instructions exactly: fetch every listed file
 > as raw markdown (no summarization, preserve bytes), report each file's line
 > count, run the quick requirements check, ask the intake fields once (owner/
-> repo, PR number, vectors, auto-draft policy), compile the run plan into the
+> repo, PR number, vectors, draft policy), compile the run plan into the
 > notebook, and — because this runtime provides the pi notebook + handoff —
 > seal the compiled frame and hand off so the next context kicks off Phase 0
 > then Vector 1. Report the requirements result and compiled plan back before

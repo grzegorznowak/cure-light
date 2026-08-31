@@ -48,8 +48,8 @@ Vector 2 owns the **`read` lens** (readability / statement density) — see [hyg
 
 The coordinator segments findings into:
 
-1. **In-scope (PR-introduced)** → candidate PR comment, operator-gated.
-2. **Pre-existing** → candidate gh issue (hardening ticket), operator-gated, explicitly out-of-PR scope.
+1. **In-scope (PR-introduced)** → candidate rows for the single review comment's Findings section.
+2. **Pre-existing** → candidate rows for the single review comment's "Potential follow-up issues" section (suggested to the developer, explicitly out-of-PR scope).
 3. **Deferred** → recorded on the decisions page with rationale; never presented as fixed.
 
 Hygiene lens hits (from the section above) are aggregated **separately** into the lens trail of the findings page — not merged into the bug table — and each stays operator-gated.
@@ -59,5 +59,5 @@ Also produce the **pre-existing vs PR-introduced summary** — the operator need
 ## Failure to avoid
 
 - **Re-verifying Vector 1.** Vector 2 assumes conformance status is known; it hunts bugs, not contract gaps.
-- **Missing the origin.** A pre-existing issue mislabeled as PR-introduced floods the PR comment; a PR-introduced one mislabeled as pre-existing lets the PR merge with a regression.
+- **Missing the origin.** A pre-existing issue mislabeled as PR-introduced floods the review comment; a PR-introduced one mislabeled as pre-existing lets the PR merge with a regression.
 - **Asserting bugs without reproduction path.** HIGH findings need the concrete failure sequence.

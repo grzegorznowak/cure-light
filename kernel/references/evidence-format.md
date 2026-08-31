@@ -19,7 +19,7 @@ disposition: fix-in-PR | pre-existing-debt | deferred-decision | track-separatel
 failure_mode: <concrete user-visible or future failure>
 status: open | verified-fixed | re-classified | test-only | doc-only | deferred-decision | closed-by-operator | re-opened
 owner: <implementer | operator | subsystem>
-linked: <gh comment URL | gh issue URL | none>
+linked: <external follow-up URL | none>
 ```
 
 `assets/finding-schema.json` is the machine form. `lens` and `lens-checked`
@@ -63,16 +63,29 @@ The coordinator owns writes. Children return compact records; they never race th
 
 ## External routing
 
-- **In-scope PR-introduced** → candidate `gh pr comment` (operator-gated; a self-contained actionable comment with evidence, never a raw dump).
-- **Pre-existing** → candidate `gh issue` (operator-gated; mark "pre-existing, out of this PR's scope" in the body).
-- **Never auto-draft.** The operator approves the posting policy at intake and can veto any specific item.
-- **Attribution footer.** Every operator-approved draft body ends with the cure-light attribution footer, composed **solely from run-manifest values**:
+Finalization is **one aggregated review comment per run** — never per-finding comments, never separate issue drafts. The pipeline drafts it only when the intake field `draft_comment` is `true`; with `false`, the run is review-only: findings and suggested issues stay in the notebook, and a draft is prepared only on explicit request.
+
+The single review comment contains:
+
+```text
+## Summary                     — owner/repo pr# @ head OID, vectors run
+## Findings                    — in-scope, PR-introduced: file:line evidence, severity, origin
+## Potential follow-up issues  — pre-existing debt, phrased as suggestions (marked
+                                "pre-existing, out of this PR's scope") for the
+                                developer to open themselves
+[attribution footer — see below]
+```
+
+- **Never auto-post.** The single draft is operator-gated at the `before_post` pause — mandatory whenever `draft_comment` is enabled — and the operator may edit, split, or veto it.
+- **Lens-trail rows stay in the notebook** (hygiene / quality / yagni): never part of the comment unless the operator explicitly requests them.
+- **Issues are suggested, not drafted.** cure-light never composes `gh issue` bodies; the developer opens follow-up issues from the "Potential follow-up issues" section. A `linked` value may be added later, when a developer or operator has created the issue.
+- **Attribution footer.** The single review comment ends with the cure-light attribution footer, composed **solely from run-manifest values**:
 
   ```text
   _Reviewed with [cure-light](https://github.com/grzegorznowak/cure-light) @ <cure_light_source_head_oid short form> — pinned PR head <headRefOid>_
   ```
 
   - `cure_light_source_head_oid` (intake-and-scope.md, §Output) is the cure-light source checkout's HEAD at intake — the "version at the time of reviewing", frozen once so it survives handoffs. Never re-derived per vector (no live `git rev-parse`, `gh` lookup, or CHANGELOG semver).
-  - The footer appears only on drafted external artifacts — never on notebook pages.
+  - The footer appears only on the review comment — never on notebook pages.
   - If the source commit could not be established at intake, **omit the footer rather than fabricate one**.
   - A new-head review state (closure loop) uses its own pinned `headRefOid` in the footer.

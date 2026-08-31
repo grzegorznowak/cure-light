@@ -64,7 +64,7 @@ These seed the session so it can compile the review process. Fetch them in order
 > Fetch the manifest, then follow its instructions exactly: fetch the listed
 > files as raw markdown (no summarization, preserve bytes), report each file's
 > line count, run the quick requirements check, ask the intake fields once
-> (owner/repo, PR number, vectors, auto-draft policy — from KICKOFF.md), compile
+> (owner/repo, PR number, vectors, draft policy — from KICKOFF.md), compile
 > the run plan into the notebook, and — because this runtime provides the pi
 > notebook + handoff — seal the compiled frame and hand off so the next context
 > kicks off Phase 0 (pin + contract) then Vector 1. Report the requirements

@@ -2,6 +2,19 @@
 
 ## Unreleased (working tree)
 
+### v0.5.2 — finalization: one aggregated review comment
+
+**kernel/ + templates/ + libs/**
+- Finalization is now **one aggregated review comment per run** — never per-finding comments, never separate `gh issue` drafts. Structure: Summary / Findings (in-scope, actionable) / "Potential follow-up issues" (pre-existing debt suggested to the developer, who opens them) / attribution footer.
+- Intake field renamed `auto_draft` → `draft_comment` (boolean; `auto_draft` accepted as alias). `issues` half dropped — issues are suggested inside the comment, never drafted.
+- `before_post` gate is **required** whenever drafting is enabled (the single comment is the only external artifact).
+- Lens-trail rows (hygiene/quality/yagni) stay in the notebook — never external unless the operator requests them in the comment.
+- `linked` finding field reworded to `external follow-up URL | none` (an issue URL may be added later by the developer/operator; cure-light never drafts issues).
+- Closure: **no auto-redraft** — notebook delta only; an operator-requested update is a single delta comment gated at `before_post` with the new head OID in the footer.
+- Consistency: pipeline-model (rule 7 + lens rule 3), implementation-pass + yagni-pass aggregation wording, closure-verification, SKILL.md, KICKOFF §5/§6, requirements-check, intake-and-scope manifest, OPEN-ISSUES #6, README, docs/example-review.md (labeled historical).
+
+Background: operator direction — "one review comment and only mention the potential new issues to open to the developer so they can do it themselves"; design checked by an independent code-review agent (adopted: mandatory before_post when drafting, `draft_comment` rename, closure no-redraft, linked-field reword, lens-hits-never-external).
+
 ### v0.5.1 — intake defaults: per-vector pauses
 
 **templates/** + **kernel/**

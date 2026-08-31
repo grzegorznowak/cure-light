@@ -16,7 +16,7 @@ cure-light reviews a pull request through **three independent vectors**. Each an
 ## Sequenced, gated
 
 ```text
-Intake → Phase 0 → Vector 1 → Vector 2 → Vector 3 → Output → Closure loop (on new head)
+Intake → Phase 0 → Vector 1 → Vector 2 → Vector 3 → Output (single review comment) → Closure loop (on new head)
 ```
 
 - Vector 2 runs only when Vector 1 has a clean/accepted disposition (or the operator explicitly allows skipping).
@@ -31,7 +31,7 @@ Intake → Phase 0 → Vector 1 → Vector 2 → Vector 3 → Output → Closure
 4. **Notebook is the shared memory.** The coordinator writes run frame + findings pages; children return compact evidence records, they do not compete for writes.
 5. **Inconclusive = no pass.** A child timeout/truncation means the finding is unverified, not accepted.
 6. **Fleets are budgeted.** Per-phase child counts, timeouts, output caps, and a cheap re-review path (delta-only) are mandatory.
-7. **Review is diagnostic.** cure-light proposes; the operator gates every external artifact (gh comment, gh issue).
+7. **Review is diagnostic.** cure-light proposes; the operator gates the single external review comment (see evidence-format.md, External routing).
 
 ## The lens dimension (cross-cutting coverage)
 
@@ -54,7 +54,7 @@ Rules:
 
 1. **Per-lens coverage is a preflight assertion.** If any **active** lens has no owner, the run does not start — coverage is proven per lens, not per vector. Lenses owned by a skipped optional pass are **inactive** (matrix shows `off`) and need no owner.
 2. **A lens outcome is `checked-and-clear` + a trail.** A lens not checked is a frame error, never "nothing found".
-3. **Hygiene hits route to the lens trail**, never the bug/debt table (see hygiene-lens.md). The operator gates each external hit, never the lens.
+3. **Hygiene hits route to the lens trail**, never the bug/debt table (see hygiene-lens.md). Lens hits are never external: they stay in the notebook unless the operator requests them inside the review comment.
 4. **The family is extensible.** Adding a lens is an auditable manifest change, not silent scope drift.
 5. **`quality` is advisory** (quality-lens.md): LOW default, MED only when the
    quality problem's own scale is material, never HIGH, rated independently of

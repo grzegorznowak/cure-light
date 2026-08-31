@@ -2,7 +2,7 @@
 
 > A **diagnostic** PR review pipeline: it reviews a pull request against its own
 > stated contract, the surrounding code, and how the feature is built — it does
-> not modify code. Findings become PR comments / issues only through operator-
+> not modify code. Findings surface as a single review comment, only through operator-
 > gated drafting and, on the implementer's cut take, re-verified through a
 > closure loop.
 
@@ -51,7 +51,7 @@ Paste into the fresh session (also `templates/KICKOFF.md`):
 > Fetch the manifest, follow its instructions exactly: fetch every listed file
 > as raw markdown (no summarization, preserve bytes), report each file's line
 > count, run the quick requirements check, ask the intake fields once (owner/
-> repo, PR number, vectors, auto-draft policy), compile the run plan into the
+> repo, PR number, vectors, draft policy), compile the run plan into the
 > notebook, and — because this runtime provides the pi notebook + handoff —
 > seal the compiled frame and hand off so the next context kicks off Phase 0
 > then Vector 1. Report the requirements result and compiled plan back before
