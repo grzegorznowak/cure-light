@@ -14,9 +14,9 @@ Vector 3 flagged four divergent "what can this group do" semantics (validation a
 
 - **Priority**: LOW (perf); tracked as a follow-up, not part of any review finding.
 
-## 3. re-review over a moving head is inherently racy
+## 3. A pinned worktree reduces, but does not eliminate, moving-head risk
 
-If head moves between the manifest capture and a fleet child reading the tree, evidence mixes SHAs. The current guard = "inconclusive" on mismatch + new-run-per-head. Residual: an agent could read the wrong tree if it doesn't verify. Actual improvement path: make the child prompt's first action a `git log` check (currently recommended, not enforced).
+If head moves between the manifest capture and a fleet child reading the tree, evidence mixes SHAs. The current guard = "inconclusive" on mismatch + new-run-per-head. Phase 0 now recommends reviewing in a dedicated worktree pinned at the manifest's head OID (intake-and-scope.md §0.1): a remote PR-head move cannot then change the tree that correctly addressed children read, which prevents checkout-drift and mixed-SHA evidence for that run. Residuals: the worktree does not ensure a child uses it, nor detect a later remote move — children still verify their assigned tree's HEAD before analysis (a `git log` check, currently recommended, not enforced), mismatches are `inconclusive`, and a newly observed PR head starts a new review state with an old→new delta. The worktree is optional; the clone/checkout fallback remains exposed to concurrent checkout movement.
 
 ## 4. closed-by-operator scope
 

@@ -10,6 +10,12 @@ Before any analysis:
 - [ ] `gh repo view <owner>/<repo>` reachable.
 - [ ] `gh pr view <pr> --json headRefOid,baseRefOid,state,title` — PR exists and is OPEN; capture `headRefOid` + `baseRefOid` verbatim.
 - [ ] Local checkout: either already present or cloneable. **If present, verify `git log -1` == headRefOid.** If it differs, fetch and checkout the pinned head. If the operator policy is `require_pr_head`, refuse to review a diverged tree.
+- [ ] (recommended) Review in a dedicated worktree, so the review never disturbs the developer's working tree:
+      1. Fetch the pinned head first (`git fetch origin <headRefOid>`); if the object is not fetchable, fall back to the local-checkout step above.
+      2. `git worktree add <scratch>/tree <headRefOid>` — detached HEAD at the pinned head, in a temp location outside the main checkout (e.g. `<scratch>` = the review scratch dir, `/tmp/cure-<owner>-<pr>/tree`).
+      3. Use `<scratch>/tree` as the coordinator and child review root for this run.
+      This **supplements, not relaxes**, the pinned-head rule: a worktree created at `headRefOid` satisfies `require_pr_head` by construction, but if the worktree cannot be created (or the operator declines it), fall back to the clone/checkout flow — the recommendation never blocks a review.
+      Lifecycle: keep the worktree for the whole run; on the closure loop, capture the new head first, then re-point the tree to it (fetch + checkout inside the worktree); remove it once the run and closure are complete (`git worktree remove <scratch>/tree`).
 - [ ] (pi) `notebook_index` responds.
 - [ ] (pi, optional) chunkhound index readiness; fallback = bash/rg/grep. Missing index never blocks.
 
@@ -55,7 +61,10 @@ changed_files: [...]
 contract_path: /tmp/cure-.../CONTRACT.md
 notebook: pipeline-frame-<owner>-<pr> + pr-<n>-review
 lens_matrix: {type: preflight, dead: preflight+v3, read: v2+v3, name: v3, quality: v3}   # see hygiene-lens.md + quality-lens.md
+cure_light_source_head_oid: <cure-light source HEAD at intake>   # review provenance, frozen once (see evidence-format.md)
 ```
+
+The provenance field `cure_light_source_head_oid` is captured **once, at intake**, from the cure-light source checkout (`git -C <cure-light clone> rev-parse HEAD`). It is the "version at the time of reviewing": every drafted external artifact composes its attribution footer from this manifest value alone, never re-derived per vector (see evidence-format.md, External routing).
 
 Every lens in the matrix must have ≥1 owning pass before Phase 0 proceeds — a
 lens without an owner is a frame error, not a "nothing found" default.
