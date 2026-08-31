@@ -2,6 +2,14 @@
 
 ## Unreleased (working tree)
 
+### v0.5.1 — intake defaults: per-vector pauses
+
+**templates/** + **kernel/**
+- `KICKOFF.md` — §6 pause checkboxes now default to "after each vector" only; extra checkpoints (after intake / before posting / after closure) are opt-in ticks. SKILL.md intake table example updated to `[per_vector]`.
+- Auto-draft policy default unchanged (`comments: false, issues: false`).
+
+Background: operator direction — pauses should gate per vector by default; intake question clarified in plain language (auto-draft means "prepare drafts for approval", never auto-post).
+
 ### v0.5.0 — pipeline mechanics: worktree review suggestion + attribution footer
 
 **kernel/**
