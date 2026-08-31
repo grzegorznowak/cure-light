@@ -39,7 +39,7 @@ finding | prior evidence (old file:line) | new evidence/tests (new file:line) | 
 
 Output to the notebook findings page, not as a fresh review. This is the artifact the operator reads to decide merge.
 
-**No auto-redraft.** No external comment is re-drafted automatically. If the operator requests an update, it is a **single delta comment** — only new/changed dispositions — gated at `before_post`, with the new head OID in the attribution footer. Previously posted aggregate findings are not duplicated.
+**Closure publication.** By default, after closure verification, update the single review comment **in place**: fold in new or changed dispositions and note the new pinned head OID in its attribution footer. The `before_post` gate still applies. Post a separate fresh comment only when the operator prefers one.
 
 ## 6. Honesty rules
 

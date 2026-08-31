@@ -45,7 +45,7 @@ Ask once. If an operator already answered via a filled `KICKOFF.md`, honor it ve
 
 ### 2. Freeze the review frame
 
-Pin the subject BEFORE any analysis: PR head OID, base OID, and the changed-file list captured at intake. Every fleet child receives the same pinned manifest. Reject mixed-SHA evidence. A PR head move mid-review starts a NEW run, linked by `git diff old_head..new_head` — never re-run in place.
+Pin the subject BEFORE any analysis: PR head OID, base OID, and the changed-file list captured at intake. Every fleet child receives the same pinned manifest. Reject mixed-SHA evidence. A PR head move mid-review starts a new review state, linked by `git diff old_head..new_head` and handled by the closure loop — never re-run in place.
 
 ### 3. Compile the process
 

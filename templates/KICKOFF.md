@@ -44,12 +44,11 @@ draft_comment: [false]   # prepare the single review comment for operator approv
 ## 6. Pauses / operator gates
 
 > Default: pause after each vector (`per_vector`). Tick any extra checkpoints you want.
-> The `before_post` gate is **required** whenever `draft_comment` is enabled.
+> `before_post` is **enforced** — not optional — whenever `draft_comment` is enabled.
 
 ```
 - [ ] after intake (frame confirmation)
 - [x] after each vector
-- [ ] before posting any external artifact
 - [ ] after closure re-review
 ```
 

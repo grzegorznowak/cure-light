@@ -48,9 +48,8 @@ Vector 2 owns the **`read` lens** (readability / statement density) — see [hyg
 
 The coordinator segments findings into:
 
-1. **In-scope (PR-introduced)** → candidate rows for the single review comment's Findings section.
-2. **Pre-existing** → candidate rows for the single review comment's "Potential follow-up issues" section (suggested to the developer, explicitly out-of-PR scope).
-3. **Deferred** → recorded on the decisions page with rationale; never presented as fixed.
+1. **In-scope / pre-existing** → route per evidence-format.md (External routing): rows for the single review comment's Findings or "Potential follow-up issues" sections.
+2. **Deferred** → recorded on the decisions page with rationale; never presented as fixed.
 
 Hygiene lens hits (from the section above) are aggregated **separately** into the lens trail of the findings page — not merged into the bug table — and each stays operator-gated.
 

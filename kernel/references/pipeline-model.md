@@ -54,7 +54,7 @@ Rules:
 
 1. **Per-lens coverage is a preflight assertion.** If any **active** lens has no owner, the run does not start — coverage is proven per lens, not per vector. Lenses owned by a skipped optional pass are **inactive** (matrix shows `off`) and need no owner.
 2. **A lens outcome is `checked-and-clear` + a trail.** A lens not checked is a frame error, never "nothing found".
-3. **Hygiene hits route to the lens trail**, never the bug/debt table (see hygiene-lens.md). Lens hits are never external: they stay in the notebook unless the operator requests them inside the review comment.
+3. **Hygiene hits route to the lens trail**, never the bug/debt table (see hygiene-lens.md). Lens hits are never external: they stay in the notebook (see evidence-format.md, External routing).
 4. **The family is extensible.** Adding a lens is an auditable manifest change, not silent scope drift.
 5. **`quality` is advisory** (quality-lens.md): LOW default, MED only when the
    quality problem's own scale is material, never HIGH, rated independently of

@@ -76,8 +76,8 @@ The single review comment contains:
 [attribution footer — see below]
 ```
 
-- **Never auto-post.** The single draft is operator-gated at the `before_post` pause — mandatory whenever `draft_comment` is enabled — and the operator may edit, split, or veto it.
-- **Lens-trail rows stay in the notebook** (hygiene / quality / yagni): never part of the comment unless the operator explicitly requests them.
+- **Never auto-post.** The single draft is operator-gated at the `before_post` pause — mandatory whenever `draft_comment` is enabled — and the operator may edit or veto it.
+- **Lens-trail rows stay in the notebook** (hygiene / quality / yagni) and are never included in the comment.
 - **Issues are suggested, not drafted.** cure-light never composes `gh issue` bodies; the developer opens follow-up issues from the "Potential follow-up issues" section. A `linked` value may be added later, when a developer or operator has created the issue.
 - **Attribution footer.** The single review comment ends with the cure-light attribution footer, composed **solely from run-manifest values**:
 

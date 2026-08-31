@@ -28,7 +28,7 @@ The notebook advertises replay convenience only (no CAS, no audit, no cross-mach
 
 ## 6. Posting is operator-gated, not automated
 
-There's no auto-draft flow; the single review comment waits for operator approval (`before_post` is mandatory whenever drafting is enabled). That's a feature, but it means the pipeline ends awaiting humans. A future version could offer a "wet-batch" mode for trusted repos with clear review-eyes-off.
+There's no auto-post flow; the single review comment waits for operator approval (`before_post` is mandatory whenever drafting is enabled). That's a feature, but it means the pipeline ends awaiting humans. A future version could offer a "wet-batch" mode for trusted repos with clear review-eyes-off.
 
 ## 7. Dependency: model-groups plugin present
 
