@@ -2,7 +2,7 @@
 
 > A **diagnostic** PR review pipeline: it reviews a pull request against its own
 > stated contract, the surrounding code, and how the feature is built — it does
-> not modify code. Findings become PR comments / issues only through operator-
+> not modify code. Findings surface as a single review comment, only through operator-
 > gated drafting and, on the implementer's cut take, re-verified through a
 > closure loop.
 

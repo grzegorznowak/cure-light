@@ -39,6 +39,8 @@ finding | prior evidence (old file:line) | new evidence/tests (new file:line) | 
 
 Output to the notebook findings page, not as a fresh review. This is the artifact the operator reads to decide merge.
 
+**Closure publication.** By default, after closure verification, update the single review comment **in place**: fold in new or changed dispositions and note the new pinned head OID in its attribution footer. The `before_post` gate still applies. Post a separate fresh comment only when the operator prefers one.
+
 ## 6. Honesty rules
 
 - **Unchanged code cannot be green.** A "fixed" claim with no diff = re-open.

@@ -47,7 +47,7 @@ The lens matrix (hygiene-lens.md) is compiled here and validated: every active l
 
 ## 0.4 Operator gate
 
-Surface the manifest (head/base OID, vectors, splits, groups, gates, auto-draft policy) to the operator for confirmation **before Phase 0 mutates anything external**.
+Surface the manifest (head/base OID, vectors, splits, groups, gates, draft policy) to the operator for confirmation **before Phase 0 mutates anything external**.
 
 ## Output
 
@@ -56,7 +56,7 @@ The run manifest (also written to the notebook page, see libs/pi-driver/notebook
 ```text
 run: owner/repo pr# @ headRefOid (base baseRefOid)
 vectors: [..]  groups: {flash, code-review}
-checkout_policy, auto_draft, pauses
+checkout_policy, draft_comment, pauses
 changed_files: [...]
 contract_path: /tmp/cure-.../CONTRACT.md
 notebook: pipeline-frame-<owner>-<pr> + pr-<n>-review
@@ -64,7 +64,7 @@ lens_matrix: {type: preflight, dead: preflight+v3, read: v2+v3, name: v3, qualit
 cure_light_source_head_oid: <cure-light source HEAD at intake>   # review provenance, frozen once (see evidence-format.md)
 ```
 
-The provenance field `cure_light_source_head_oid` is captured **once, at intake**, from the cure-light source checkout (`git -C <cure-light clone> rev-parse HEAD`). It is the "version at the time of reviewing": every drafted external artifact composes its attribution footer from this manifest value alone, never re-derived per vector (see evidence-format.md, External routing).
+The provenance field `cure_light_source_head_oid` is captured **once, at intake**, from the cure-light source checkout (`git -C <cure-light clone> rev-parse HEAD`). It is the "version at the time of reviewing": the single review comment composes its attribution footer from this manifest value alone, never re-derived per vector (see evidence-format.md, External routing).
 
 Every lens in the matrix must have ≥1 owning pass before Phase 0 proceeds — a
 lens without an owner is a frame error, not a "nothing found" default.

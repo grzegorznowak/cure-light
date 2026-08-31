@@ -64,8 +64,7 @@ instance, closure-classifiable) — never the bug/debt table.
 
 ## Aggregation
 
-Verdict per unit → trail rows; CHALLENGED chunks become candidate PR comments
-(operator-gated; auto-draft policy unchanged). Dedupe vs the V1 claim matrix
+Verdict per unit → trail rows; CHALLENGED chunks remain lens-trail rows, never comments (draft_comment policy unchanged). Dedupe vs the V1 claim matrix
 (link, don't re-adjudicate), vs V3 (boundary: V3 asks what the *next* change
 pays; this pass asks whether a paying change will ever come and whether the
 contract promises it), and vs `dead` trail rows (pure-unused links there).

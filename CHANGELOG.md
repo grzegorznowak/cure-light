@@ -2,6 +2,12 @@
 
 ## Unreleased (working tree)
 
+### v0.5.2 — finalization: one aggregated review comment
+
+- Output drafts **one aggregated review comment** per run (Summary / Findings / "Potential follow-up issues" / footer); issues are suggested to the developer, never drafted as `gh issue` bodies.
+- Intake field `auto_draft` → `draft_comment` (boolean; alias accepted). `before_post` is enforced whenever drafting is enabled; lens-trail rows are never included in the comment; `linked` reworded to `external follow-up URL | none`.
+- Closure updates the review comment **in place** by default (new/changed dispositions + new head OID in the footer); a separate comment only when the operator prefers one.
+
 ### v0.5.1 — intake defaults: per-vector pauses
 
 **templates/** + **kernel/**

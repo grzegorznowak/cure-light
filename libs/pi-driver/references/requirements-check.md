@@ -6,7 +6,7 @@ Run BEFORE the fleet spends anything. Each line is a hard gate with a fallback o
 
 | # | Check | Command(s) | Fail → |
 |---|---|---|---|
-| 1 | gh authenticated, repo scope | `gh auth status` | STOP (review needs comment/issue drafting) |
+| 1 | gh authenticated, repo scope | `gh auth status` | STOP (review needs review-comment drafting) |
 | 2 | target repo reachable | `gh repo view <owner>/<repo>` | STOP |
 | 3 | PR exists, OPEN, head+base OID captured | `gh pr view <pr> --json headRefOid,baseRefOid,state,title` | STOP or ask |
 | 4 | local checkout present OR cloneable | `git -C <dir> rev-parse` ; else `git clone` | clone; if no network access to repo, STOP |
