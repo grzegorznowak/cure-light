@@ -40,11 +40,13 @@ issues:   [false]   # gh issues for pre-existing debt
 
 ## 6. Pauses / operator gates
 
+> Default: pause after each vector (`per_vector`). Tick any extra checkpoints you want.
+
 ```
-- [x] after intake (frame confirmation)
+- [ ] after intake (frame confirmation)
 - [x] after each vector
-- [x] before posting any external artifact
-- [x] after closure re-review
+- [ ] before posting any external artifact
+- [ ] after closure re-review
 ```
 
 ## 7. Checkout policy

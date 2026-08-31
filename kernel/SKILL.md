@@ -38,7 +38,7 @@ Collect exactly once; never infer defaults for what only the operator can supply
 | `pr` | pull request number | `27` |
 | `vectors` | which vectors to run; yagni optional | `[conformance, implementation, debt]` or `+ yagni` |
 | `auto_draft` | whether findings may be drafted as gh comments/issues | `{comments: false, issues: false}` |
-| `pauses` | operator checkpoints | `[after_intake, per_vector, before_post, closure]` |
+| `pauses` | operator checkpoints (default: pause after each vector) | `[per_vector]` |
 | `checkout_policy` | require the local checkout to equal PR head | `require_pr_head` |
 
 Ask once. If an operator already answered via a filled `KICKOFF.md`, honor it verbatim.
