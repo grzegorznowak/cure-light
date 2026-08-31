@@ -2,6 +2,16 @@
 
 ## Unreleased (working tree)
 
+### v0.5.0 — pipeline mechanics: worktree review suggestion + attribution footer
+
+**kernel/**
+- `intake-and-scope.md` — §0.1 (recommended) reviews in a dedicated git worktree: `git worktree add <scratch>/tree <headRefOid>`, detached HEAD at the pinned head, temp location outside the main checkout (e.g. the review scratch dir). The review never disturbs the developer's working tree, and `require_pr_head` is satisfied by construction. Recommendation only — clone/checkout stays the documented fallback, never blocks; supplements, not relaxes, the pinned-head rule. Lifecycle: keep for the run, capture the new head then re-point the tree on the closure loop, remove after closure.
+- `intake-and-scope.md` — run manifest gains `cure_light_source_head_oid`: the cure-light source checkout's HEAD captured once at intake, frozen for the run.
+- `evidence-format.md` — External routing: every operator-approved draft body ends with the attribution footer `_Reviewed with [cure-light](https://github.com/grzegorznowak/cure-light) @ <source OID> — pinned PR head <headRefOid>_`, composed solely from run-manifest values (never re-derived per vector); omitted — never fabricated — when the source commit is unestablishable; drafts only, never notebook pages.
+- `docs/OPEN-ISSUES.md` — #3 rewritten: a pinned worktree reduces but does not eliminate moving-head risk (checkout-drift prevented for the run; child-side HEAD verification still required; fallback remains exposed to concurrent checkout movement).
+
+Background: operator direction — two small pipeline-mechanics mods (suggest worktree-based reviews; attribute reviews with a cure-light footer). Design answered via plain-language questions and checked by an independent code-review agent (adopted: precise worktree ordering + closure re-point/removal, "supplements not relaxes" require_pr_head, provenance field name, no-fabrication caveat).
+
 ### v0.4.0 — quality lens (stage 4): maintainable shape, suite strength, consistency
 
 **kernel/**

@@ -66,3 +66,13 @@ The coordinator owns writes. Children return compact records; they never race th
 - **In-scope PR-introduced** → candidate `gh pr comment` (operator-gated; a self-contained actionable comment with evidence, never a raw dump).
 - **Pre-existing** → candidate `gh issue` (operator-gated; mark "pre-existing, out of this PR's scope" in the body).
 - **Never auto-draft.** The operator approves the posting policy at intake and can veto any specific item.
+- **Attribution footer.** Every operator-approved draft body ends with the cure-light attribution footer, composed **solely from run-manifest values**:
+
+  ```text
+  _Reviewed with [cure-light](https://github.com/grzegorznowak/cure-light) @ <cure_light_source_head_oid short form> — pinned PR head <headRefOid>_
+  ```
+
+  - `cure_light_source_head_oid` (intake-and-scope.md, §Output) is the cure-light source checkout's HEAD at intake — the "version at the time of reviewing", frozen once so it survives handoffs. Never re-derived per vector (no live `git rev-parse`, `gh` lookup, or CHANGELOG semver).
+  - The footer appears only on drafted external artifacts — never on notebook pages.
+  - If the source commit could not be established at intake, **omit the footer rather than fabricate one**.
+  - A new-head review state (closure loop) uses its own pinned `headRefOid` in the footer.
