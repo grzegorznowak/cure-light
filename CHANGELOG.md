@@ -2,6 +2,19 @@
 
 ## Unreleased (working tree)
 
+### v0.5.6 — rail presence probe fix: operator-confirmed `/ch-status`
+
+**kernel/**
+- `chhound-driver.md` — presence is now a **two-step check**: (1) install detection the coordinator can actually run — pi-chhound in the pi settings `packages` / extension dirs + `chunkhound` CLI on PATH; (2) operator rail confirmation — the coordinator instructs the operator to run `/ch-status` and report the output at the frame gate (authoritative for the session). The rail's `/ch` commands are **operator-side slash commands**: not model-invokable, UI-output only. Phase-0 recipe + re-pull note the operator/coordinator division (operator runs the `/ch` commands; coordinator captures with `git` and verifies with `chh_*` tools); step-3 verify split: operator footer + coordinator `chh_pr<n>_daemon_status` (tool-list registration alone is not a response).
+- `SKILL.md` + `intake-and-scope.md` — "presence probes (`/ch-status`)" wording → install checks + operator `/ch-status` at the frame gate; sandbox-selection summaries say "rail confirmed" (installed + operator report), never bare "plugin present"; §0.1 pull bullet marks `/chworktree` + `/ch-mcp` as **operator-run** with coordinator verification of the `chh_*` tools.
+
+**libs/pi-driver/** + **templates/** + **README**
+- `requirements-check.md` — row 4 check/command cells: `/ch-status` (unexecutable by the model) → install detection (pi settings / extension dirs + `chunkhound` on PATH); row 4 plans the chunkhound sandbox only **pending the operator's `/ch-status` confirmation at the frame gate** (unconfirmed → plain detached worktree); row 4 semantics note: two-step check, planned mechanism stays a plan not a guarantee; row 5 command cell splits operator (`/ch-mcp`) vs coordinator (`chh_pr<n>_daemon_status`), "when operator-confirmed".
+- `KICKOFF.md` §7 — expectation note: when the rail is detected, the agent asks the operator to run `/ch-status` once at the frame gate (checkbox semantics unchanged).
+- `README.md` quick-requirements paragraph — mechanism phrase: "plugin present" → "plugin detected and rail operator-confirmed via `/ch-status` at the frame gate".
+
+Background: operator direction — a live boot recorded "fallback planned (plain detached worktree)" although the pi-chhound plugin was installed: the presence probe told the coordinator to run `/ch-status`, which is an operator-side slash command the model can never invoke (and whose `ui.notify` output does not reach the model unless reported). Fix = model-executable install detection + explicit operator instruction at the frame gate (option A). Draft checked by an independent #code-review facts+consistency pass (HIGH + 2 MED fixed); PR reviewed by a #code-review size/simplicity pass (wording simplifications applied in the review-fix round).
+
 ### v0.5.5 — subject-first: no pre-subject orientation
 
 **kernel/**

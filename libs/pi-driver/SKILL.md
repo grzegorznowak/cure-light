@@ -25,7 +25,7 @@ After fetching the kernel (BOOTSTRAP step 9–11), read this skill and its two r
 ## Runtime assumptions (verify, don't assume)
 
 - The **model-groups plugin** may or may not be present. Fleet groups (`flash`, `code-review`, …) exist only when it is. Check `pi.tools`/group list once; if absent, fall back to inherit-parent spawning (child inherits the parent model) or the `planner`/`coder` groups, and state the fallback in the frame.
-- The **chhound** rail (pi-chhound plugin) may or may not be present. When present (`/ch-status` responds), Phase 0 pulls the subject as a chunkhound PR sandbox and `/ch-mcp` exposes `chh_*` tools (kernel/references/chhound-driver.md) — the research rail for coordinator and children. When absent, git + bash + the repo itself are the always-available evidence base. Never block on a missing/broken rail — fall back to `git diff`/`rg`.
+- The **chhound** rail (pi-chhound plugin) may or may not be available. When rail-confirmed (install detected at boot + the operator's `/ch-status` report at the frame gate — chhound-driver.md), Phase 0 pulls the subject as a chunkhound PR sandbox and the operator's `/ch-mcp` exposes the `chh_*` tools to the session — the research rail for coordinator and children. Otherwise, git + bash + the repo itself are the always-available evidence base. Never block on a missing/broken rail — fall back to `git diff`/`rg`.
 - **notebook** is the shared memory, not a database: no CAS, no audit — the plan contract is about page naming and ownership, not durability guarantees.
 
 ## Durability note (mirrors PhormOS)

@@ -8,7 +8,7 @@ cure-light reviews the tree it **pulls**, not the remote tip. Whatever SHA the p
 
 ## 0.1 Pull the subject (preflight, ground truth)
 
-**Subject-first.** Until the subject is pulled, nothing in the target repo's local checkouts is read or used for orientation — per review state (a deliberate re-pull starts a new state under the same rule). Pre-pull access is remote-only (`gh repo view` / `gh pr view` / `gh pr diff --name-only`) plus presence probes (`/ch-status`); the only pre-pull local git command is the cure-light source provenance capture (§Output below). The pulled subject is the first tree cure-light reads for context or evidence.
+**Subject-first.** Until the subject is pulled, nothing in the target repo's local checkouts is read or used for orientation — per review state (a deliberate re-pull starts a new state under the same rule). Pre-pull access is remote-only (`gh repo view` / `gh pr view` / `gh pr diff --name-only`) plus presence probes (pi-chhound install checks; the operator's `/ch-status` report at the frame gate confirms the rail); the only pre-pull local git command is the cure-light source provenance capture (§Output below). The pulled subject is the first tree cure-light reads for context or evidence.
 
 At Phase 0:
 
@@ -16,7 +16,7 @@ At Phase 0:
 - [ ] `gh repo view <owner>/<repo>` reachable.
 - [ ] `gh pr view <pr> --json headRefOid,baseRefOid,state,title` — PR exists and is OPEN; capture `baseRefOid` + the remote `headRefOid` as **informational context** (what gh reports now; NOT the subject).
 - [ ] Pull the subject tree:
-      - **pi-chhound present** (`/ch-status` responds) → chunkhound PR sandbox per [chhound-driver.md](chhound-driver.md): `/chworktree https://github.com/<owner>/<repo>/pull/<n> --dest <unique-dir>`, then `/ch-mcp <printed-path> --prefix chh_pr<n>`. The sandbox dir is the subject.
+      - **pi-chhound rail confirmed** (install detected at boot; operator `/ch-status` report at the frame gate) → chunkhound PR sandbox per [chhound-driver.md](chhound-driver.md): the **operator** runs `/chworktree https://github.com/<owner>/<repo>/pull/<n> --dest <unique-dir>` and `/ch-mcp <printed-path> --prefix chh_pr<n>`; the coordinator verifies the `chh_*` tools respond. The sandbox dir is the subject.
       - **else** → plain detached worktree at the PR's current head, sourced as:
             - developer has an existing local clone of the target repo → source from that clone (fetch, then `git worktree add --detach <scratch>/tree <current headRefOid>`). Plumbing only — the clone is the git object source; its working tree is never read as context or evidence.
             - no local clone → clone the target repo into the review scratch dir (`git clone <target-url> <scratch>/tree`), fetch, then `git -C <scratch>/tree checkout --detach <current headRefOid>` — the clone is the subject.
