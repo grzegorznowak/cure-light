@@ -29,7 +29,7 @@ Row 4 semantics: presence is a **plan**, never a sandbox guarantee — `/ch-stat
 ## Stop conditions
 
 - gh auth or repo unreachable → stop; the review has no output channel and no evidence base.
-- (Phase 0) the subject tree cannot be pulled at all → stop; no evidence base (intake-and-scope.md §0.1). Pre-pull there is deliberately no tree — the pull is the first local touch of the target repo.
+- (Phase 0) the subject tree cannot be pulled at all → stop; no evidence base (intake-and-scope.md §0.1). Pre-pull there is deliberately no subject tree — a missing tree stops the run only when the Phase-0 pull itself fails.
 - (Phase 0, row 8) the pulled tree still cannot diff base..subject after a fetch retry → stop; origin classification needs the base diff, and `gh pr diff` never substitutes it.
 - (chhound rail) plugin present but sandbox/connect/index broken → recorded fallback (plain worktree + git/rg), never a stop by itself.
 
