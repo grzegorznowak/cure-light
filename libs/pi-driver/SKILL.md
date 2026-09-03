@@ -18,7 +18,7 @@ After fetching the kernel (BOOTSTRAP step 9–11), read this skill and its two r
 
 1. Run the **quick requirements check** — `references/requirements-check.md`.
 2. Ask the intake fields once (owner/repo, pr, vectors, draft_comment, pauses) — from the kernel's initialization contract.
-3. **Compile the run frame** to the notebook per `references/notebook-plan-contract.md`: `pipeline-frame-<owner>-<pr>` (frozen options + subject path/OID + base OID) + `pr-<n>-review` (findings skeleton).
+3. **Compile the run frame** to the notebook per `references/notebook-plan-contract.md`: `pipeline-frame-<owner>-<pr>` (frozen options + **planned subject mechanism** — chhound sandbox | plain worktree; no tree fields yet) + `pr-<n>-review` (findings skeleton). `subject_path` / `subject_oid` are recorded into the frame at the Phase 0 gate, once the pull lands.
 4. **Seal then handoff** when `handoff` is available: write the compiled frame + the kickoff instruction so the next context resumes from the sealed compile without re-reading the kernel. Only call `handoff` if this runtime actually provides it.
 5. If no `handoff`: continue in-session (the notebook pages still carry the state).
 

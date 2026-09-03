@@ -66,10 +66,13 @@ Paste into the fresh session (also `templates/KICKOFF.md`):
 ## The quick requirements check (pi)
 
 `libs/pi-driver/references/requirements-check.md` verifies: gh auth, target repo
-reach, PR base + remote head OIDs, subject pullable (chhound sandbox or worktree),
-notebook writable, fleet groups present
-([model-groups](https://github.com/agenticoding/pi-agenticoding)), git diff works,
-chhound rail optional.
+reach, PR base + remote head OIDs, the planned subject mechanism (chhound sandbox
+when the [pi-chhound](https://github.com/grzegorznowak/pi-chunkhound) plugin is present,
+plain detached worktree otherwise), notebook writable, fleet groups present
+([model-groups](https://github.com/agenticoding/pi-agenticoding)).
+Subject-tree rows (sandbox connect, git diff base..subject on the pulled tree,
+index health) defer to the Phase 0 gate — before the subject pull, nothing local
+in the target repo is read or used for orientation.
 Fall back (git/rg, plain worktree, inherit-parent spelling) or **stop before
 fleet cost** when a hard requirement fails — the review never spends a fleet on
 an unverified subject.
