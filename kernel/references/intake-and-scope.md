@@ -26,12 +26,11 @@ If any hard requirement fails: state the fallback (git/rg instead of chhound; pl
 ## 0.2 Capture the contract
 
 The contract lives in the **run store**: when the runtime's requirements check
-confirms the notebook, Phase 0 writes it to the
-notebook page `contract-<owner>-<pr>` (one per review state, named like the
-frame page of that state); otherwise create `CONTRACT.md` in a scratch review
-dir (e.g. `/tmp/cure-<owner>-<pr>/`). The run manifest records `contract_ref`
-— the page name, or the disk path in fallback runs. A contract that would
-outgrow the page budget falls back to disk and says so in the frame.
+confirms the notebook, Phase 0 writes it to the notebook page
+`contract-<owner>-<pr>` (one per review state, named like the frame page of
+that state); otherwise create `CONTRACT.md` in a scratch review dir (e.g.
+`/tmp/cure-<owner>-<pr>/`). The run manifest records `contract_ref` — the page
+name, or the disk path in fallback runs.
 
 The contract holds:
 1. PR **description** — the claims the implementer makes (feature list, validation counts, behavior promises).
@@ -71,7 +70,7 @@ vectors: [..]  groups: {flash, code-review}
 draft_comment, pauses
 changed_files: [...]
 contract_ref: contract-<owner>-<pr>   # notebook page (pi); disk path in fallback runs
-notebook: pipeline-frame-<owner>-<pr> + contract-<owner>-<pr> + pr-<n>-review   # per review state
+notebook (when available): pipeline-frame-<owner>-<pr> + contract-<owner>-<pr> + pr-<n>-review   # per review state
 lens_matrix: {type: preflight, dead: preflight+v3, read: v2+v3, name: v3, quality: v3}   # see hygiene-lens.md + quality-lens.md
 cure_light_source_head_oid: <cure-light source HEAD at intake>   # review provenance, frozen once (see evidence-format.md)
 ```

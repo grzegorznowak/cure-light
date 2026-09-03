@@ -14,7 +14,7 @@ By **contract surface**, not by file. One child per surface (adjust to the PR's 
 4. **Main-session + TUI** — prompt injection format, editor flow, warnings, display.
 5. **Tests** — which contract-mandated behaviors are actually under test, and which claims rely on tests that don't exercise them.
 
-Each child receives: the CONTRACT.js slice for its surface, the assigned file list, the focused diff, and this stance.
+Each child receives: the relevant contract section for its surface (the run manifest's `contract_ref`), the assigned file list, the focused diff, and this stance.
 
 ## Child return format (compact, evidence-bound)
 
