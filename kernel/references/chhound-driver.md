@@ -4,7 +4,7 @@ When the pi runtime provides the **pi-chhound** plugin (installed, rail operator
 chunkhound **PR sandbox**: a git worktree with its **own chunkhound index** — baseline
 anchored at the PR's base branch, incremental top-up of the PR's own diff. The sandbox's
 index is the primary *discovery* rail for the coordinator and fleet children; everything
-else in the pipeline is unchanged. Plugin absent or broken → the plain detached worktree
+else in the pipeline is unchanged. Rail unconfirmed or broken → the plain detached worktree
 (intake-and-scope.md §0.1) and git/rg research — the rail never blocks a review.
 
 The rail's commands — `/ch-status`, `/chworktree`, `/ch-mcp` — are **operator-side slash
@@ -16,9 +16,8 @@ when the operator reports it. Presence is therefore checked in two steps:
    `chunkhound` CLI is on PATH.
 2. **Rail confirmation (operator, at the frame gate)** — when the install detection is
    positive, the coordinator instructs the operator to run `/ch-status` and report the
-   output: the authoritative check that the rail is live in this session (it also shows
-   the embedding/LLM configuration the research tools need). No confirmed rail → the
-   plain-worktree plan stands.
+   output: the authoritative check that the rail is live in this session. No confirmed
+   rail → the plain-worktree plan stands.
 
 Nothing here is a hard requirement; each step has a recorded fallback.
 
@@ -71,7 +70,7 @@ baseline and top-up can lag the checkout — so:
 
 ## Fallbacks (never block)
 
-- Plugin absent (install detection negative, or the operator's `/ch-status` report shows no rail) → plain-worktree pull (intake-and-scope.md §0.1).
+- Rail unconfirmed (install detection negative, or the operator's `/ch-status` report shows no rail) → plain-worktree pull (intake-and-scope.md §0.1).
 - Connect fails / daemon dies: reconnect once; else record the fallback in the run frame
   and use git/rg.
 - `chh_*` tools missing in a child session: fall back to git/rg and note it in the child's
