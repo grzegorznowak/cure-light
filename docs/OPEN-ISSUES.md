@@ -14,9 +14,9 @@ Vector 3 flagged four divergent "what can this group do" semantics (validation a
 
 - **Priority**: LOW (perf); tracked as a follow-up, not part of any review finding.
 
-## 3. A pinned worktree reduces, but does not eliminate, moving-head risk
+## 3. Moving-head race — RESOLVED by design (v0.5.3)
 
-If head moves between the manifest capture and a fleet child reading the tree, evidence mixes SHAs. The current guard = "inconclusive" on mismatch + new-run-per-head. Phase 0 now recommends reviewing in a dedicated worktree pinned at the manifest's head OID (intake-and-scope.md §0.1): a remote PR-head move cannot then change the tree that correctly addressed children read, which prevents checkout-drift and mixed-SHA evidence for that run. Residuals: the worktree does not ensure a child uses it, nor detect a later remote move — children still verify their assigned tree's HEAD before analysis (a `git log` check, currently recommended, not enforced), mismatches are `inconclusive`, and a newly observed PR head starts a new review state with an old→new delta. The worktree is optional; the clone/checkout fallback remains exposed to concurrent checkout movement.
+Closed by the subject model: cure-light reviews a dedicated **pulled tree** (chunkhound sandbox or plain worktree) that nothing mutates mid-run; the pull's SHA is captured once at Phase 0 (`subject_oid`) and is the version under review — reviewing the latest is the point, not a risk. New commits only enter through a deliberate, operator-gated re-pull that starts a new review state, and every finding row carries the `subject_oid` its evidence was read from. The old race (a tree moving under an active review) cannot occur by construction. Residual: children still record `subject_oid` per row; a tree differing from the state's subject is `inconclusive` (evidence-format.md).
 
 ## 4. closed-by-operator scope
 
@@ -36,6 +36,6 @@ Fleet groups (`flash`, `code-review`, `planner`, ...) exist only if the model-gr
 
 ## 8. Hygiene lens: deterministic preflight is repo-dependent
 
-The `type`/`dead` lenses have a deterministic accelerator (run the repo's own strict tsc / lint on the pinned head), but repos self-host very differently: some have no tsc/build at all, some pin a lax config, some need a long install. The fallback (static sight, flagged `inconclusive-mechanical`) is honest but weaker evidence. Consequence: lens *coverage* is guaranteed (named atoms + lens matrix); only the *determinism* of the mechanical lenses varies. Acceptable at v0.2; a future step could vendor a pinned minimal lint/type narrow for common stacks.
+The `type`/`dead` lenses have a deterministic accelerator (run the repo's own strict tsc / lint on the subject tree), but repos self-host very differently: some have no tsc/build at all, some pin a lax config, some need a long install. The fallback (static sight, flagged `inconclusive-mechanical`) is honest but weaker evidence. Consequence: lens *coverage* is guaranteed (named atoms + lens matrix); only the *determinism* of the mechanical lenses varies. Acceptable at v0.2; a future step could vendor a pinned minimal lint/type narrow for common stacks.
 
 - **Priority**: LOW. Coverage guaranteed regardless; only mechanical strength varies.

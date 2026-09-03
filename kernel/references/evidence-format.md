@@ -11,7 +11,7 @@ lens: type | dead | read | name | test | security | yagni | quality | none   # o
 lens-checked: [<lens>, ...]       # lenses proven exercised on this artifact
 summary: one line
 evidence:
-  file: path:line            # primary anchor in the pinned tree
+  file: path:line            # primary anchor in the subject tree
   code: <verbatim or exact shape>
 severity: HIGH | MED | LOW
 origin: PR-introduced | pre-existing   # Vector 2+ ; conformance is PR-only by definition
@@ -19,6 +19,7 @@ disposition: fix-in-PR | pre-existing-debt | deferred-decision | track-separatel
 failure_mode: <concrete user-visible or future failure>
 status: open | verified-fixed | re-classified | test-only | doc-only | deferred-decision | closed-by-operator | re-opened
 owner: <implementer | operator | subsystem>
+subject_oid: <tree OID this row's evidence was read from>   # optional in schema; the coordinator fills it on every new/updated row
 linked: <external follow-up URL | none>
 ```
 
@@ -27,7 +28,12 @@ are optional (a conformance finding usually has `lens: none`); when they are
 absent the row still counts toward the vector, but the **lens matrix** (see
 pipeline-model.md) is what proves per-lens coverage of the run.
 
-A mechanical sweep that cannot run on the pinned head marks its lens
+`subject_oid` is schema-optional for backward compatibility but **rule-required**
+for every new or updated row: it records which review-state tree the row's
+evidence was read from, so a findings page spanning several review states never
+mixes trees silently. The coordinator fills it from the state's manifest.
+
+A mechanical sweep that cannot run on the subject tree marks its lens
 `inconclusive-mechanical` in the **lens trail** — checked by static sight, not
 compiler output — never a silent skip and never a finding-status by itself.
 
@@ -51,7 +57,7 @@ Decide by **base diff**, never vibes:
 - Hygiene hits follow the **lens trail** (hygiene-lens.md): detection mandatory, LOW by default, operator-suppressible per instance — they never pollute the bug table.
 - `yagni` rows (yagni pass) follow the same lens trail with the same suppression/closure semantics — suggestion-only, never bug/debt tables.
 - `quality` rows (V3 lens) follow the same lens trail — suggestion-only, rated by the problem's own scale, never bug/debt tables.
-- Evidence must be at the **pinned head**; if a child read a different tree, its output is `inconclusive`.
+- Evidence is read from the state's **subject tree** at its recorded `subject_oid` (intake-and-scope.md §0.1). Every row carries `subject_oid`; if a child read a different tree, its output is `inconclusive`.
 
 ## Notebook layout
 
@@ -82,10 +88,10 @@ The single review comment contains:
 - **Attribution footer.** The single review comment ends with the cure-light attribution footer, composed **solely from run-manifest values**:
 
   ```text
-  _Reviewed with [cure-light](https://github.com/grzegorznowak/cure-light) @ <cure_light_source_head_oid short form> — pinned PR head <headRefOid>_
+  _Reviewed with [cure-light](https://github.com/grzegorznowak/cure-light) @ <cure_light_source_head_oid short form> — reviewed subject <subject_oid>_
   ```
 
   - `cure_light_source_head_oid` (intake-and-scope.md, §Output) is the cure-light source checkout's HEAD at intake — the "version at the time of reviewing", frozen once so it survives handoffs. Never re-derived per vector (no live `git rev-parse`, `gh` lookup, or CHANGELOG semver).
   - The footer appears only on the review comment — never on notebook pages.
   - If the source commit could not be established at intake, **omit the footer rather than fabricate one**.
-  - A new-head review state (closure loop) uses its own pinned `headRefOid` in the footer.
+  - A new review state (deliberate re-pull, closure loop) uses its own `subject_oid` in the footer.

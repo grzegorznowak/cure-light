@@ -52,11 +52,10 @@ draft_comment: [false]   # prepare the single review comment for operator approv
 - [ ] after closure re-review
 ```
 
-## 7. Checkout policy
+## 7. Chhound rail (only when the pi-chhound plugin is present)
 
 ```
-- [x] require_pr_head (review only the pinned head OID)
-- [ ] allow current working tree
+- [x] chunkhound PR sandbox as the review subject (recommended; plain worktree otherwise)
 ```
 
 ---
@@ -71,7 +70,7 @@ draft_comment: [false]   # prepare the single review comment for operator approv
 > repo, PR number, vectors, draft policy), compile the run plan into the
 > notebook, and — because this runtime provides the pi notebook + handoff —
 > seal the compiled frame and hand off so the next context kicks off Phase 0
-> then Vector 1. Report the requirements result and compiled plan back before
+> (pull subject + contract) then Vector 1. Report the requirements result and compiled plan back before
 > proceeding. No clone or install.
 
 ## What happens next (expectation set)

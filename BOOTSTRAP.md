@@ -24,23 +24,24 @@ These seed the session so it can compile the review process. Fetch them in order
 8. `$RAW_BASE/kernel/references/hygiene-lens.md` — the lens dimension (code-hygiene family, deterministic preflight, lens trail)
 9. `$RAW_BASE/kernel/references/yagni-pass.md` — the optional size/YAGNI pass (fresh-context, post-handoff)
 10. `$RAW_BASE/kernel/references/quality-lens.md` — the `quality` lens (V3-owned: maintainable shape, suite strength, consistency)
-11. `$RAW_BASE/kernel/references/evidence-format.md`
+11. `$RAW_BASE/kernel/references/chhound-driver.md` — the chunkhound research rail (pi-chhound plugin): sandbox pull, MCP connect, tool names, discovery-only rule
+12. `$RAW_BASE/kernel/references/evidence-format.md`
 
 ### Pi driver (notebook + handoff + model-groups binding — only if this runtime provides the pi notebook)
 
-12. `$RAW_BASE/libs/pi-driver/SKILL.md`
-13. `$RAW_BASE/libs/pi-driver/references/requirements-check.md`
-14. `$RAW_BASE/libs/pi-driver/references/notebook-plan-contract.md`
+13. `$RAW_BASE/libs/pi-driver/SKILL.md`
+14. `$RAW_BASE/libs/pi-driver/references/requirements-check.md`
+15. `$RAW_BASE/libs/pi-driver/references/notebook-plan-contract.md`
 
 ### Templates / assets (keep for reference during the episode)
 
-15. `$RAW_BASE/templates/KICKOFF.md`
-16. `$RAW_BASE/assets/finding-schema.json`
-17. `$RAW_BASE/assets/child-pass-prompt-template.md`
+16. `$RAW_BASE/templates/KICKOFF.md`
+17. `$RAW_BASE/assets/finding-schema.json`
+18. `$RAW_BASE/assets/child-pass-prompt-template.md`
 
 ### Worked example (optional, read after compiling the process)
 
-18. `$RAW_BASE/docs/example-review.md`
+19. `$RAW_BASE/docs/example-review.md`
 
 ## Fetching rules
 
@@ -67,5 +68,5 @@ These seed the session so it can compile the review process. Fetch them in order
 > (owner/repo, PR number, vectors, auto-draft policy — from KICKOFF.md), compile
 > the run plan into the notebook, and — because this runtime provides the pi
 > notebook + handoff — seal the compiled frame and hand off so the next context
-> kicks off Phase 0 (pin + contract) then Vector 1. Report the requirements
+> kicks off Phase 0 (pull subject + contract) then Vector 1. Report the requirements
 > result and the compiled plan back before proceeding. No clone or install.

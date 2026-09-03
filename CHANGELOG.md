@@ -2,6 +2,17 @@
 
 ## Unreleased (working tree)
 
+### v0.5.3 — chhound research rail + subject model
+
+**kernel/**
+- NEW `references/chhound-driver.md` — the chunkhound research rail (pi-chhound plugin): when the plugin is present, Phase 0 pulls the review subject as a chunkhound **PR sandbox** (own index: base-branch baseline + PR-diff top-up), connects it over MCP with a deterministic `--prefix chh_pr<n>`, and documents the tool names (`chh_pr<n>_code_research|search|daemon_status|websearch|fetchurl`) with the mandatory **discovery-only rule** (every cited line re-read in the subject checkout; daemon_status proves health only). MCP lifecycle: one live bridge per sandbox, disconnect before connecting a fresh one; fresh sandbox per review state (unique `--dest`). Plugin absent/broken → plain worktree + git/rg, never blocks.
+- **Subject model**: the tree cure-light pulls IS the review subject — whatever SHA the pull has at Phase 0 is the version reviewed (reviewing the latest is the point, not a risk); `subject_oid`/`subject_path` replace the pinned-at-intake `headRefOid` ceremony (remote head kept as informational context). The tree is stable for the whole review state; new commits enter only via a deliberate, operator-gated **re-pull** = new review state (fresh sandbox, strict transition, closure re-validates old findings against the new tree). `require_pr_head` checkout policy dropped. OPEN-ISSUES #3 (moving-head race) closed resolved-by-design.
+- `evidence-format.md` + `finding-schema.json` — optional `subject_oid` field (rule-required on every new/updated row: which state's tree the evidence was read from); backward-compatible.
+- `child-pass-prompt-template.md` — subject path/OID slots, chhound tool guidance block (which tool when, discovery-only, fallback never blocks).
+- Consistency: pipeline-model (rule 1), closure-verification (re-pull delta last-reviewed..new), intake-and-scope (subject rule + manifest), hygiene/quality/yagni lens references, requirements-check (rows 3-5, 8-9), notebook-plan-contract (frames per state), pi-driver SKILL, KICKOFF §7 (checkout policy → chhound rail), BOOTSTRAP fetch list, README, example-review note.
+
+Background: operator direction — integrate tightly with the pi-chhound plugin at the operational level (instruct the operator to create a `/chworktree` PR sandbox for the review and point it at it, incl. the MCP tool names) and at the prompt level (children told what the tools are and when). Surfaced the subject-model revision (review the latest pulled version, controlled pull → review → deliberate re-pull); design checked by two independent #code-review passes (state-boundary invariant, freshness honesty, MCP lifecycle, provenance field).
+
 ### v0.5.2 — finalization: one aggregated review comment
 
 - Output drafts **one aggregated review comment** per run (Summary / Findings / "Potential follow-up issues" / footer); issues are suggested to the developer, never drafted as `gh issue` bodies.

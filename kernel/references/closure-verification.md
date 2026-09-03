@@ -2,12 +2,15 @@
 
 Triggered when the operator says the implementer "worked on the review" (or any instruction implying the PR advanced). This is **delta review**, not a pipeline re-run.
 
-## 1. Detect the new head
+## 1. Capture the new subject
+
+Closure runs after a deliberate re-pull (the operator re-pulls the PR — fresh chunkhound sandbox or plain worktree, see chhound-driver.md / intake-and-scope.md §0.1). Capture the new subject OID before trusting any diff:
 
 ```text
-gh pr view <pr> --json headRefOid   → compare with the run manifest's headRefOid
+git -C <new-subject-path> rev-parse HEAD   → the new state's subject_oid
 ```
-If unchanged → say so (no work has been pushed) or wait. If changed → new head = new review state, linked to the old run by `git diff old_head..new_head`. Local checkout: verify it advanced to the new OID before trusting any diff.
+
+The delta is `git diff <last-reviewed subject_oid>..<new subject_oid>` — old findings re-validated against the new tree, never against an assumed remote tip. If the subject did not change, say so (no work has been pulled) or wait.
 
 ## 2. Map findings → touched paths
 
@@ -39,7 +42,9 @@ finding | prior evidence (old file:line) | new evidence/tests (new file:line) | 
 
 Output to the notebook findings page, not as a fresh review. This is the artifact the operator reads to decide merge.
 
-**Closure publication.** By default, after closure verification, update the single review comment **in place**: fold in new or changed dispositions and note the new pinned head OID in its attribution footer. The `before_post` gate still applies. Post a separate fresh comment only when the operator prefers one.
+Re-validated rows update their `subject_oid` to the new subject — a row's `subject_oid` is the tree its current evidence was read from (evidence-format.md).
+
+**Closure publication.** By default, after closure verification, update the single review comment **in place**: fold in new or changed dispositions and note the new subject OID in its attribution footer. The `before_post` gate still applies. Post a separate fresh comment only when the operator prefers one.
 
 ## 6. Honesty rules
 

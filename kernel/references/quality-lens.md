@@ -32,9 +32,9 @@ provable, not just the lens).
 ## Determinism: judgment, not gates
 
 `quality` is a taste lens — no mechanical accelerator, **no repo-config gate**.
-The reviewer applies best absolute judgment on the pinned head; the mechanical
+The reviewer applies best absolute judgment on the subject tree; the mechanical
 preflight rules in [hygiene-lens.md](hygiene-lens.md) bind only the `type` /
-`dead` sweep. Evidence is file:line in the pinned tree plus the base..head
+`dead` sweep. Evidence is file:line in the subject tree plus the base..subject
 diff; origin by base-diff like every vector.
 
 ## Boundaries (dedupe map)
