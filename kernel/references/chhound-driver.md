@@ -1,16 +1,31 @@
 # chhound-driver.md — the chunkhound research rail (pi-chhound plugin)
 
-When the pi runtime provides the **pi-chhound** plugin, the review subject is pulled as a
+When the pi runtime provides the **pi-chhound** plugin (installed, rail operator-confirmed — see presence below), the review subject is pulled as a
 chunkhound **PR sandbox**: a git worktree with its **own chunkhound index** — baseline
 anchored at the PR's base branch, incremental top-up of the PR's own diff. The sandbox's
 index is the primary *discovery* rail for the coordinator and fleet children; everything
 else in the pipeline is unchanged. Plugin absent or broken → the plain detached worktree
 (intake-and-scope.md §0.1) and git/rg research — the rail never blocks a review.
 
-Check presence with `/ch-status` (plugin installed + chunkhound CLI on PATH). Nothing here
-is a hard requirement; each step has a recorded fallback.
+The rail's commands — `/ch-status`, `/chworktree`, `/ch-mcp` — are **operator-side slash
+commands**: the coordinator cannot run them, and their UI output reaches the model only
+when the operator reports it. Presence is therefore checked in two steps:
 
-## Phase 0 recipe (plugin present)
+1. **Install detection (coordinator, at boot)** — model-executable, no `/ch` invocation:
+   pi-chhound appears in the pi settings `packages` (or an extension dir) and the
+   `chunkhound` CLI is on PATH.
+2. **Rail confirmation (operator, at the frame gate)** — when the install detection is
+   positive, the coordinator instructs the operator to run `/ch-status` and report the
+   output: the authoritative check that the rail is live in this session (it also shows
+   the embedding/LLM configuration the research tools need). No confirmed rail → the
+   plain-worktree plan stands.
+
+Nothing here is a hard requirement; each step has a recorded fallback.
+
+## Phase 0 recipe (rail confirmed)
+
+The operator executes the `/ch` commands below (slash commands); the coordinator verifies
+with model-side checks — capture commands, `chh_*` tool responses, fallback rules.
 
 1. **Create the sandbox** (one-go, non-interactive):
    `/chworktree https://github.com/<owner>/<repo>/pull/<n> --dest <dir>`
@@ -23,7 +38,9 @@ is a hard requirement; each step has a recorded fallback.
    gh-reported remote head; record the difference in the manifest as informational context.
 3. **Connect the index**: `/ch-mcp <path-or-storage-id printed by /chworktree> --prefix chh_pr<n>`
    (`pull/<n>` is not a reliable selector — use the printed path/id). The fixed `--prefix`
-   makes tool names deterministic. Verify: footer `🔌 ch-mcp: 1 connected` + `/ch-status`.
+   makes tool names deterministic. The operator verifies the footer `🔌 ch-mcp: 1
+   connected`; the coordinator confirms the prefixed tools respond (`chh_pr<n>_daemon_status`
+   — a tool-list registration alone does not prove a response).
 4. **MCP lifecycle**: one live bridge per sandbox. Before connecting a fresh sandbox for
    the same PR, disconnect the old one: `/ch-mcp <old-id> --disconnect`. Two live bridges
    with the same prefix would be ambiguous.
@@ -54,7 +71,7 @@ baseline and top-up can lag the checkout — so:
 
 ## Fallbacks (never block)
 
-- Plugin absent: `/ch-status` errors → plain-worktree pull (intake-and-scope.md §0.1).
+- Plugin absent (install detection negative, or the operator's `/ch-status` report shows no rail) → plain-worktree pull (intake-and-scope.md §0.1).
 - Connect fails / daemon dies: reconnect once; else record the fallback in the run frame
   and use git/rg.
 - `chh_*` tools missing in a child session: fall back to git/rg and note it in the child's
@@ -63,7 +80,9 @@ baseline and top-up can lag the checkout — so:
 ## Re-pull (new review state)
 
 New commits on the PR are **not an error** — the operator decides at a gate. A re-pull is
-a **strict state transition**: after all children of the current state have settled,
+a **strict state transition** (same operator/coordinator division as Phase 0: the operator
+runs the `/ch` commands; the coordinator captures and verifies): after all children of the
+current state have settled,
 
 1. fresh sandbox: `/chworktree <PR-URL> --dest <new-unique-dir>` (or plain worktree),
 2. disconnect the old bridge (`/ch-mcp <old-id> --disconnect`),

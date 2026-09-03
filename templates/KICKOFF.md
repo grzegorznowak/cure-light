@@ -58,6 +58,10 @@ draft_comment: [false]   # prepare the single review comment for operator approv
 - [x] chunkhound PR sandbox as the review subject (recommended; plain worktree otherwise)
 ```
 
+If checked and the rail is detected as installed, expect one request: run `/ch-status` at
+the frame gate and report the output — the rail's `/ch` commands are operator-side, not
+model tools.
+
 ---
 
 ## Bootstrap prompt (paste into the first session)

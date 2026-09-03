@@ -45,7 +45,7 @@ Ask once. If an operator already answered via a filled `KICKOFF.md`, honor it ve
 
 ### 2. Pull the review subject
 
-Pull the tree under review BEFORE any analysis or orientation in the target repo's checkouts: a chunkhound PR sandbox when the plugin is present, else a plain detached worktree (intake-and-scope.md §0.1). Until the pull, pre-pull work is remote-only (`gh repo view` / `gh pr view` / `gh pr diff --name-only`) plus presence probes (`/ch-status`); the only pre-pull local git command is the cure-light source provenance capture (intake-and-scope.md, §Output). Whatever SHA the pull has is the **subject** — capture it (`subject_oid` / `subject_path`) into the run manifest at Phase 0. Every fleet child of this review state receives the same subject path + OID. The tree is stable for the whole state; only a deliberate re-pull at an operator gate starts a new review state — which obeys the same subject-first rule (never re-pull in place).
+Pull the tree under review BEFORE any analysis or orientation in the target repo's checkouts: a chunkhound PR sandbox when the rail is confirmed (installed + the operator's `/ch-status` report at the frame gate), else a plain detached worktree (intake-and-scope.md §0.1). Until the pull, pre-pull work is remote-only (`gh repo view` / `gh pr view` / `gh pr diff --name-only`) plus presence probes (pi-chhound install checks; the operator runs `/ch-status` at the frame gate); the only pre-pull local git command is the cure-light source provenance capture (intake-and-scope.md, §Output). Whatever SHA the pull has is the **subject** — capture it (`subject_oid` / `subject_path`) into the run manifest at Phase 0. Every fleet child of this review state receives the same subject path + OID. The tree is stable for the whole state; only a deliberate re-pull at an operator gate starts a new review state — which obeys the same subject-first rule (never re-pull in place).
 
 ### 3. Compile the process
 
@@ -81,7 +81,7 @@ Publish a closure table. See closure-verification.md.
 ## Operating rules (short version)
 
 - **Review the pulled subject tree, not the remote tip.** Whatever SHA the pull has is the version reviewed; capture it at Phase 0 and anchor every finding to it.
-- **Subject-first: no orientation before the subject pull.** Until Phase 0 pulls the subject, nothing in the target repo's local checkouts is read or used for orientation — per review state (a deliberate re-pull starts a new state under the same rule). Pre-pull access is remote-only plus presence probes; the only pre-pull local git command is the cure-light source provenance capture.
+- **Subject-first: no orientation before the subject pull.** Until Phase 0 pulls the subject, nothing in the target repo's local checkouts is read or used for orientation — per review state (a deliberate re-pull starts a new state under the same rule). Pre-pull access is remote-only plus presence probes (pi-chhound install checks; the operator's `/ch-status` report at the frame gate confirms the rail); the only pre-pull local git command is the cure-light source provenance capture.
 - **Findings need file:line evidence and a concrete failure mode.** Opinion without evidence does not enter the report.
 - **Pre-existing vs PR-introduced is a first-class classification**, decided by base-diff, not vibes.
 - **Never draft external artifacts automatically.** The single review comment is operator-gated; the `before_post` gate is mandatory whenever drafting is enabled.
