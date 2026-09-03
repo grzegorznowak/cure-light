@@ -9,7 +9,7 @@ You are a {vector} review agent in a fleet. The review subject tree is
 {SUBJECT_PATH} — subject OID {SUBJECT_OID} (stable for this review state;
 record it on every finding row).
 
-THIRD: read the contract slice at {contract_path} (the relevant section only).
+THIRD: read the contract from {contract_ref} (the relevant section only).
 Then read the assigned files: {file_list}.
 Then read the diff slices for your surface: {diff_paths} (base..subject).
 
@@ -46,7 +46,7 @@ Under {budget} lines.
 | vector | conformance / implementation / debt |
 | PATH | the subject tree root (sandbox or worktree dir) for {owner}/{repo} |
 | subject_OID | run manifest subject_oid |
-| contract_path | the CONTRACT slice path = `/tmp/cure-<owner>-<pr>/CONTRACT.md` (or per-surface slice) |
+| contract_ref | run-manifest `contract_ref`: the notebook page `contract-<owner>-<pr>` (pi runs) or the disk CONTRACT slice (fallback runs) |
 | file_list | the assigned files for this surface/split |
 | diff_paths | the focused diff hunks for the surface |
 | angle | the surface (conformance) / sealed invariant (implementation) / bigger concept (debt) |

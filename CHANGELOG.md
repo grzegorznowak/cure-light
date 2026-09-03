@@ -2,6 +2,24 @@
 
 ## Unreleased (working tree)
 
+### v0.5.4 — notebook-first state store (pi runs)
+
+**kernel/**
+- `intake-and-scope.md` §0.2 — the contract lives in the **run store**: when the runtime's requirements check confirms the notebook, Phase 0 writes the verbatim contract to the notebook page `contract-<owner>-<pr>` (one per review state, named like the frame); CONTRACT.md in the scratch dir is the fallback. Manifest field `contract_path` → `contract_ref` (page name | disk path); item 4 clarified — the contract stores the changed-file list; per-child diff slices are derived at spawn from the subject tree, not stored.
+- `conformance-pass.md` — child intake reads the relevant contract section via the manifest's `contract_ref` (stray "CONTRACT.js" wording dropped).
+- `yagni-pass.md` — reads the contract at `contract_ref`.
+- `SKILL.md` — reference-list annotation aligned to the phase naming (`pull subject + contract`).
+
+**libs/pi-driver/**
+- `notebook-plan-contract.md` — page table gains the `contract-<owner>-<pr>` row (coordinator, Phase 0, one per review state) + content rule (the one long-form verbatim page; no raw diffs/logs/kernel text). Frame row stores the contract ref; a re-pull writes distinct pages, never overwriting earlier states.
+- `requirements-check.md` — row-6 fallback extended: notebook missing → frame/findings in session-scratch + contract on disk.
+
+**templates/assets**
+- `child-pass-prompt-template.md` — `contract_path` slot → `contract_ref` (run-manifest field: notebook page on pi runs, disk CONTRACT slice in fallback).
+- `KICKOFF.md` step 6 — wording aligned: pull the subject, compile the contract (notebook page on pi runs, CONTRACT.md otherwise).
+
+Background: operator direction — the pi runtime has the notebook; stop building ephemeral state files (CONTRACT.md) beside the subject when the notebook is available; disk remains the fallback for runtimes without it. Kernel fetch-hold and priming unchanged: a session is primed once at boot and re-primed by starting a new boot session — no mid-run re-fetch of cure-light instructions.
+
 ### v0.5.3 — chhound research rail + subject model
 
 **kernel/**

@@ -25,12 +25,18 @@ If any hard requirement fails: state the fallback (git/rg instead of chhound; pl
 
 ## 0.2 Capture the contract
 
-Create `CONTRACT.md` in a scratch review dir (e.g. `/tmp/cure-<owner>-<pr>/):
+The contract lives in the **run store**: when the runtime's requirements check
+confirms the notebook, Phase 0 writes it to the notebook page
+`contract-<owner>-<pr>` (one per review state, named like the frame page of
+that state); otherwise create `CONTRACT.md` in a scratch review dir (e.g.
+`/tmp/cure-<owner>-<pr>/`). The run manifest records `contract_ref` — the page
+name, or the disk path in fallback runs.
 
+The contract holds:
 1. PR **description** — the claims the implementer makes (feature list, validation counts, behavior promises).
 2. Linked **issues/tickets** — full text: bullets, tech context, **locked decisions** (verbatim operator decisions are the durable contract).
 3. **Host tech context** worth grounding (existing APIs the PR builds on; caveats the issue itself records).
-4. The **changed-file list** and the **per-vector diff slices** (`git diff base_oid..subject_oid -- <paths>` split per file, or `gh pr diff --name-only` + targeted hunks).
+4. The **changed-file list**. (Per-child diff slices are derived at spawn time from the subject tree — `git diff base_oid..subject_oid -- <paths>` split per surface — and are not part of the stored contract.)
 5. The captured **subject OID / base OID** and a note that everything below analyzes exactly the pulled subject tree at `subject_path`.
 
 Rule: the contract is the PR's own words plus the issue's locked decisions — never the reviewer's paraphrase of intent. Preserve verbatim blocks.
@@ -63,8 +69,8 @@ base_oid: <PR base>   remote_head_oid: <gh-reported PR head at intake — inform
 vectors: [..]  groups: {flash, code-review}
 draft_comment, pauses
 changed_files: [...]
-contract_path: /tmp/cure-.../CONTRACT.md
-notebook: pipeline-frame-<owner>-<pr> + pr-<n>-review   # per review state
+contract_ref: contract-<owner>-<pr>   # notebook page (pi); disk path in fallback runs
+notebook (when available): pipeline-frame-<owner>-<pr> + contract-<owner>-<pr> + pr-<n>-review   # per review state
 lens_matrix: {type: preflight, dead: preflight+v3, read: v2+v3, name: v3, quality: v3}   # see hygiene-lens.md + quality-lens.md
 cure_light_source_head_oid: <cure-light source HEAD at intake>   # review provenance, frozen once (see evidence-format.md)
 ```

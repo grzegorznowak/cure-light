@@ -17,9 +17,9 @@ meaningful chunk; never redesign.*
 
 ## Grounded, not blind
 
-The pass reads the run manifest + CONTRACT.md + the full base..subject diff, AND
-the V1–V3 findings pages — so it understands the requirements and where the PR
-is coming from. Prior findings are **leads, not proof**: every row still needs
+The pass reads the run manifest + the contract at `contract_ref` + the full
+base..subject diff, AND the V1–V3 findings pages — so it understands the
+requirements and where the PR is coming from. Prior findings are **leads, not proof**: every row still needs
 independent subject-tree evidence. The coordinator links duplicates at
 aggregation; it never "reminds" the child to match prior verdicts.
 

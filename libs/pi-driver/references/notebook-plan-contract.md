@@ -6,9 +6,12 @@ The notebook is the shared memory between phases, children, and handoff contexts
 
 | Page | Owner | Contents | Lifetime |
 |---|---|---|---|
-| `pipeline-frame-<owner>-<pr>` | coordinator (Phase 0) | frozen run options, subject path/OID, base OID, changed-file list, contract path, fallback notes | one review state; a deliberate re-pull starts a NEW frame (linked by diff), never overwritten in place |
+| `pipeline-frame-<owner>-<pr>` | coordinator (Phase 0) | frozen run options, subject path/OID, base OID, changed-file list, contract ref (page or path), fallback notes | one review state; a deliberate re-pull starts a NEW frame (linked by diff), never overwritten in place |
+| `contract-<owner>-<pr>` | coordinator (Phase 0) | the verbatim contract (§0.2): PR description, linked issues + locked decisions, changed-file list, subject/base OIDs | one review state, like the frame; a re-pull compiles the new state's contract |
 | `pr-<n>-review` | coordinator (append per vector) | findings table (schema rows, each carrying `subject_oid`) + closure table | one PR, all review states |
 | `dis-<n>-review` (or the durable `decisions` page when follow-ups survive) | coordinator | deferred-decision + closed-by-operator records: author/time/rationale/scope | durable |
+
+A re-pull starts the next review state and writes **distinct** frame + contract pages for it — never overwrite an earlier state's pages in place.
 
 Reference pages by name. Children `notebook_read` on demand; they do not preload bodies. The coordinator serializes writes with a process-local ordering so same-name writes don't race.
 
@@ -16,6 +19,7 @@ Reference pages by name. Children `notebook_read` on demand; they do not preload
 
 - **Findings are recoverable facts** — keep the evidence-format rows; discard tender re-derivable code trivia freely at handoff.
 - **Decisions are non-recoverable** — always persist: operator deferrals, closed-by-operator records, locked decisions from the issue. Never let them go stale or vanish on compaction.
+- **The contract page is verbatim, bounded.** The Phase-0 contract is the one long-form page: PR claims + locked decisions preserved byte-exact (intake-and-scope.md §0.2). Never paste raw diffs, logs, or kernel text into it.
 - **No raw transcripts/logs.** A vector's dead ends and working notes do not belong in the notebook; the closure table's `re-opened` row records the reason concisely.
 
 ## The seal-then-handoff step
@@ -24,7 +28,7 @@ When `handoff` is available and the operator confirms the frame:
 
 1. Write `pipeline-frame-<owner>-<pr>` (compiled options + manifest) and `pr-<n>-review` (findings skeleton).
 2. Discard recoverable code-trivia pages; refresh the durable decision page.
-3. Draft the handoff prompt that carries ONLY: the frame's location, the current state (intake complete, requirements pass/fallback), the immediate next step (Phase 0 pin + contract → Vector 1), and any blocker or failed path worth avoiding.
+3. Draft the handoff prompt that carries ONLY: the frame's location, the current state (intake complete, requirements pass/fallback), the immediate next step (Phase 0 pull subject + contract → Vector 1), and any blocker or failed path worth avoiding.
 4. Call `handoff` with `discardPages` for code-trivia pages and the task prompt pointing at the frame page by name.
 
 The next context reads the frame page, loads kernel references on demand, and kicks off Phase 0 → Vector 1 — it does not re-fetch the kernel.
