@@ -1,6 +1,6 @@
 ---
 name: cure-light
-description: Run a structured three-vector pull-request review — contract-vs-code conformance, implementation bugs, code debt — with a pinned-commit snapshot, spawned fleet passes, and a closure-verification loop. Use when asked to review a GitHub pull request, assess a branch diff, or coordinate a multi-agent code review. Requires git, gh, optional child-agent spawning, and (on pi) the session notebook.
+description: Run a structured three-vector pull-request review — contract-vs-code conformance, implementation bugs, code debt — with a pulled-subject snapshot (one stable tree per review state), spawned fleet passes, and a closure-verification loop. Use when asked to review a GitHub pull request, assess a branch diff, or coordinate a multi-agent code review. Requires git, gh, optional child-agent spawning, and (on pi) the session notebook.
 ---
 
 # cure-light — PR review pipeline
@@ -19,6 +19,7 @@ Read these references completely before establishing a process:
 8. [references/yagni-pass.md](references/yagni-pass.md) — the optional size/YAGNI pass (fresh-context, post-handoff)
 9. [references/quality-lens.md](references/quality-lens.md) — the `quality` lens (V3-owned: maintainable shape, suite strength, consistency)
 10. [references/evidence-format.md](references/evidence-format.md) — finding schema, severity, origin
+11. [references/chhound-driver.md](references/chhound-driver.md) — the chunkhound research rail (pi-chhound plugin): sandbox pull, MCP connect, tool names, discovery-only rule
 
 Read [libs/pi-driver/SKILL.md](../../libs/pi-driver/SKILL.md) only if this runtime provides the pi session notebook; its references define the requirements check and the notebook plan contract.
 
@@ -39,13 +40,12 @@ Collect exactly once; never infer defaults for what only the operator can supply
 | `vectors` | which vectors to run; yagni optional | `[conformance, implementation, debt]` or `+ yagni` |
 | `draft_comment` | whether the pipeline may draft the single aggregated review comment for operator approval (alias: `auto_draft`) | `false` |
 | `pauses` | operator checkpoints (default: pause after each vector) | `[per_vector]` |
-| `checkout_policy` | require the local checkout to equal PR head | `require_pr_head` |
 
 Ask once. If an operator already answered via a filled `KICKOFF.md`, honor it verbatim.
 
-### 2. Freeze the review frame
+### 2. Pull the review subject
 
-Pin the subject BEFORE any analysis: PR head OID, base OID, and the changed-file list captured at intake. Every fleet child receives the same pinned manifest. Reject mixed-SHA evidence. A PR head move mid-review starts a new review state, linked by `git diff old_head..new_head` and handled by the closure loop — never re-run in place.
+Pull the tree under review BEFORE any analysis: a chunkhound PR sandbox when the plugin is present, a plain detached worktree otherwise (intake-and-scope.md §0.1). Whatever SHA the pull has is the **subject** — capture it (`subject_oid` / `subject_path`) into the run manifest at Phase 0. Every fleet child of this review state receives the same subject path + OID. The tree is stable for the whole state; only a deliberate re-pull at an operator gate starts a new review state (never re-pull in place).
 
 ### 3. Compile the process
 
@@ -55,19 +55,19 @@ From the intake fields, compile: the vector set and their fleet groups, the phas
 
 ```text
 Intake → Requirements check → [operator gate: frame]
-  → Phase 0 pin+contract → [gate]
+  → Phase 0 pull subject + contract → [gate]
   → Vector 1 conformance (flash) → [gate]
   → Vector 2 implementation (code-review) → [gate]
   → Vector 3 debt (code-review) → [gate]
   → Optional yagni pass (code-review; size/YAGNI — operator-enabled, fresh-context post-handoff) → [gate]
-  → Output (operator-gated drafts) → [closure loop on new head]
+  → Output (one operator-gated review comment) → [closure loop on deliberate re-pull]
 ```
 
 Each vector is a **fleet pass** with a defined split, per-child prompt contract (assets/child-pass-prompt-template.md), evidence return format (evidence-format.md), and aggregation rule. Truncated or timed-out child output is `inconclusive`, never a pass.
 
 ## Closure verification loop
 
-When the operator says the implementer "worked on the review", do NOT re-run the whole pipeline. Fetch the new head, verify the checkout advanced, diff the finding-touched paths, and classify each finding:
+When the operator says the implementer "worked on the review" (or re-pulls the PR), do NOT re-run the whole pipeline. The re-pull is a new review state: capture the new subject OID, diff the finding-touched paths last-reviewed-subject → new-subject, and classify each finding:
 
 - `verified-fixed` — code + test evidence at old/new lines
 - `re-classified` — category/claim changed
@@ -79,7 +79,7 @@ Publish a closure table. See closure-verification.md.
 
 ## Operating rules (short version)
 
-- **Review the pinned commit, not the branch tip.** Snapshot everything at intake.
+- **Review the pulled subject tree, not the remote tip.** Whatever SHA the pull has is the version reviewed; capture it at Phase 0 and anchor every finding to it.
 - **Findings need file:line evidence and a concrete failure mode.** Opinion without evidence does not enter the report.
 - **Pre-existing vs PR-introduced is a first-class classification**, decided by base-diff, not vibes.
 - **Never draft external artifacts automatically.** The single review comment is operator-gated; the `before_post` gate is mandatory whenever drafting is enabled.

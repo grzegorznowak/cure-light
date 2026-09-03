@@ -1,25 +1,27 @@
-# intake-and-scope.md — Phase 0: pin the subject, build the contract
+# intake-and-scope.md — Phase 0: pull the subject, build the contract
 
-Phase 0 runs once per review. Its output is the **run manifest** — the single source of truth for every subsequent vector and the closure loop.
+Phase 0 runs once per **review state**. Its output is the **run manifest** — the single source of truth for every subsequent vector and the closure loop.
 
-## 0.1 Verify the subject (preflight, ground truth)
+## The subject rule
+
+cure-light reviews the tree it **pulls**, not the remote tip. Whatever SHA the pulled tree has at pull time is the version under review (reviewing the latest is desired, not a risk). The tree is stable for the whole state — nothing mutates it mid-run — and a deliberate re-pull at an operator gate starts a **new review state**. Evidence is anchored to the subject; a state's findings never mix trees.
+
+## 0.1 Pull the subject (preflight, ground truth)
 
 Before any analysis:
 
 - [ ] `gh auth status` — logged in, `repo` scope.
 - [ ] `gh repo view <owner>/<repo>` reachable.
-- [ ] `gh pr view <pr> --json headRefOid,baseRefOid,state,title` — PR exists and is OPEN; capture `headRefOid` + `baseRefOid` verbatim.
-- [ ] Local checkout: either already present or cloneable. **If present, verify `git log -1` == headRefOid.** If it differs, fetch and checkout the pinned head. If the operator policy is `require_pr_head`, refuse to review a diverged tree.
-- [ ] (recommended) Review in a dedicated worktree, so the review never disturbs the developer's working tree:
-      1. Fetch the pinned head first (`git fetch origin <headRefOid>`); if the object is not fetchable, fall back to the local-checkout step above.
-      2. `git worktree add <scratch>/tree <headRefOid>` — detached HEAD at the pinned head, in a temp location outside the main checkout (e.g. `<scratch>` = the review scratch dir, `/tmp/cure-<owner>-<pr>/tree`).
-      3. Use `<scratch>/tree` as the coordinator and child review root for this run.
-      This **supplements, not relaxes**, the pinned-head rule: a worktree created at `headRefOid` satisfies `require_pr_head` by construction, but if the worktree cannot be created (or the operator declines it), fall back to the clone/checkout flow — the recommendation never blocks a review.
-      Lifecycle: keep the worktree for the whole run; on the closure loop, capture the new head first, then re-point the tree to it (fetch + checkout inside the worktree); remove it once the run and closure are complete (`git worktree remove <scratch>/tree`).
+- [ ] `gh pr view <pr> --json headRefOid,baseRefOid,state,title` — PR exists and is OPEN; capture `baseRefOid` + the remote `headRefOid` as **informational context** (what gh reports now; NOT the subject).
+- [ ] Pull the subject tree:
+      - **pi-chhound present** (`/ch-status` responds) → chunkhound PR sandbox per [chhound-driver.md](chhound-driver.md): `/chworktree https://github.com/<owner>/<repo>/pull/<n> --dest <unique-dir>`, then `/ch-mcp <printed-path> --prefix chh_pr<n>`. The sandbox dir is the subject.
+      - **else** → plain detached worktree at the PR's current head: fetch, `git worktree add --detach <scratch>/tree <current headRefOid>`. `<scratch>` = the review scratch dir (e.g. `/tmp/cure-<owner>-<pr>/tree`).
+      - If the tree cannot be pulled at all, STOP (no evidence base).
+- [ ] **Capture the subject**: `git -C <subject-path> rev-parse HEAD` → manifest `subject_oid`. If `subject_oid` ≠ the gh-reported `headRefOid`, record both in the manifest — the pulled tree is the subject regardless (informational divergence, not an error).
 - [ ] (pi) `notebook_index` responds.
-- [ ] (pi, optional) chunkhound index readiness; fallback = bash/rg/grep. Missing index never blocks.
+- [ ] (pi, optional) chhound index health (`chh_pr<n>_daemon_status`); fallback = bash/rg/grep. A broken index never blocks.
 
-If any hard requirement fails: state the fallback (git/rg instead of chunkhound; inherit-parent instead of fleet groups) or STOP before fleet cost.
+If any hard requirement fails: state the fallback (git/rg instead of chhound; plain worktree instead of sandbox; inherit-parent instead of fleet groups) or STOP before fleet cost.
 
 ## 0.2 Capture the contract
 
@@ -28,8 +30,8 @@ Create `CONTRACT.md` in a scratch review dir (e.g. `/tmp/cure-<owner>-<pr>/):
 1. PR **description** — the claims the implementer makes (feature list, validation counts, behavior promises).
 2. Linked **issues/tickets** — full text: bullets, tech context, **locked decisions** (verbatim operator decisions are the durable contract).
 3. **Host tech context** worth grounding (existing APIs the PR builds on; caveats the issue itself records).
-4. The **changed-file list** and the **per-vector diff slices** (`git diff base..head -- <paths>` split per file, or `gh pr diff --name-only` + targeted hunks).
-5. The pinned **head OID / base OID** and a note that everything below analyzes exactly this tree.
+4. The **changed-file list** and the **per-vector diff slices** (`git diff base_oid..subject_oid -- <paths>` split per file, or `gh pr diff --name-only` + targeted hunks).
+5. The captured **subject OID / base OID** and a note that everything below analyzes exactly the pulled subject tree at `subject_path`.
 
 Rule: the contract is the PR's own words plus the issue's locked decisions — never the reviewer's paraphrase of intent. Preserve verbatim blocks.
 
@@ -47,19 +49,22 @@ The lens matrix (hygiene-lens.md) is compiled here and validated: every active l
 
 ## 0.4 Operator gate
 
-Surface the manifest (head/base OID, vectors, splits, groups, gates, draft policy) to the operator for confirmation **before Phase 0 mutates anything external**.
+Surface the manifest (subject path/OID, base OID, vectors, splits, groups, gates, draft policy) to the operator for confirmation **before Phase 0 mutates anything external**.
 
 ## Output
 
 The run manifest (also written to the notebook page, see libs/pi-driver/notebook-plan-contract.md):
 
 ```text
-run: owner/repo pr# @ headRefOid (base baseRefOid)
+run: owner/repo pr# — review state <n>
+subject_path: <pulled tree dir>   # sandbox or plain worktree — the tree under review
+subject_oid: <git HEAD of the pulled tree at Phase 0>   # whatever the pull has; the version reviewed
+base_oid: <PR base>   remote_head_oid: <gh-reported PR head at intake — informational>
 vectors: [..]  groups: {flash, code-review}
-checkout_policy, draft_comment, pauses
+draft_comment, pauses
 changed_files: [...]
 contract_path: /tmp/cure-.../CONTRACT.md
-notebook: pipeline-frame-<owner>-<pr> + pr-<n>-review
+notebook: pipeline-frame-<owner>-<pr> + pr-<n>-review   # per review state
 lens_matrix: {type: preflight, dead: preflight+v3, read: v2+v3, name: v3, quality: v3}   # see hygiene-lens.md + quality-lens.md
 cure_light_source_head_oid: <cure-light source HEAD at intake>   # review provenance, frozen once (see evidence-format.md)
 ```

@@ -2,7 +2,7 @@
 
 **Trigger:** operator-enabled only — at intake (KICKOFF vectors checkbox) or
 on-demand after the Vector 3 gate. **Designed to run post-handoff in a fresh
-context**: same run manifest, same pinned head OID, prior findings as leads.
+context**: same run manifest, same subject tree (subject_oid), prior findings as leads.
 The operator's launch prompt, verbatim:
 
 > now let's look at the codebase from one more distinct vector after handoff to
@@ -17,10 +17,10 @@ meaningful chunk; never redesign.*
 
 ## Grounded, not blind
 
-The pass reads the run manifest + CONTRACT.md + the full base..head diff, AND
+The pass reads the run manifest + CONTRACT.md + the full base..subject diff, AND
 the V1–V3 findings pages — so it understands the requirements and where the PR
 is coming from. Prior findings are **leads, not proof**: every row still needs
-independent pinned-tree evidence. The coordinator links duplicates at
+independent subject-tree evidence. The coordinator links duplicates at
 aggregation; it never "reminds" the child to match prior verdicts.
 
 ## Split: by distinct functionality unit
@@ -36,7 +36,7 @@ own shape defines the partition.
 
 | Lens | Checklist (hit = cite file:line) | Dismiss (NOT-A-HIT) | Default severity |
 |---|---|---|---|
-| `yagni` | untraceable hunk — added lines with no contract-claim/locked-decision trace (`git diff --stat base..head` is the mechanical start, always available, never installs); per-unit weight disproportionate to contract weight; speculative generality (abstraction with one concrete consumer, built for a hypothetical future); dead-on-arrival path (handles a scenario the PR's own contract excludes); over-built surface vs the PR's own contract | generated/vendored/lockfile/test-fixture bulk; a hunk traceable to a backed claim; contracted/required scope; pure-unused surface → `dead` lens (link, don't duplicate) | LOW; MED when material + untraceable |
+| `yagni` | untraceable hunk — added lines with no contract-claim/locked-decision trace (`git diff --stat base..subject` is the mechanical start, always available, never installs); per-unit weight disproportionate to contract weight; speculative generality (abstraction with one concrete consumer, built for a hypothetical future); dead-on-arrival path (handles a scenario the PR's own contract excludes); over-built surface vs the PR's own contract | generated/vendored/lockfile/test-fixture bulk; a hunk traceable to a backed claim; contracted/required scope; pure-unused surface → `dead` lens (link, don't duplicate) | LOW; MED when material + untraceable |
 
 `yagni` is an active lens only while this pass runs; a skipped pass deactivates
 it (the lens matrix shows `off`, exempt from the coverage assertion). Size
@@ -53,7 +53,7 @@ NOT-YAGNI: <surface checked and defended by a locked decision>
 NONE: <unit> — no candidates
 ```
 
-Evidence at the pinned head; origin by base-diff like every vector.
+Evidence at the subject tree (subject_oid); origin by base-diff like every vector.
 
 ## Severity + routing
 

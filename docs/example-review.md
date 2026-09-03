@@ -2,7 +2,7 @@
 
 A condensed walk-through of a real cure-light-style review, to imitate rather than re-read. The PR added model-modality awareness to a spawn system; the review ran the full pipeline against a moving head.
 
-> **Policy note (v0.5.2):** this run predates the one-comment finalization policy — it shows the old per-finding `gh pr comment` + `gh issue` drafting. Under the current policy the same content lands in ONE aggregated review comment: a Findings section plus a "Potential follow-up issues" section the developer opens themselves.
+> **Policy note (v0.5.2+):** this run predates the one-comment finalization policy — it shows the old per-finding `gh pr comment` + `gh issue` drafting — and the v0.5.3 subject model: the "moved 4× mid-review → new run" handling shown below is the old pinned-at-intake ceremony. Under the current model the review pulls a dedicated tree (chunkhound sandbox or worktree), whatever SHA the pull has is the subject, and new commits enter only via a deliberate, gated re-pull (new review state) — and the same content lands in ONE aggregated review comment: a Findings section plus a "Potential follow-up issues" section the developer opens themselves.
 
 ## The run manifest (condensed)
 

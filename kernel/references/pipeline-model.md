@@ -16,7 +16,7 @@ cure-light reviews a pull request through **three independent vectors**. Each an
 ## Sequenced, gated
 
 ```text
-Intake → Phase 0 → Vector 1 → Vector 2 → Vector 3 → Output (single review comment) → Closure loop (on new head)
+Intake → Phase 0 → Vector 1 → Vector 2 → Vector 3 → Output (single review comment) → Closure loop (after a deliberate re-pull)
 ```
 
 - Vector 2 runs only when Vector 1 has a clean/accepted disposition (or the operator explicitly allows skipping).
@@ -25,7 +25,7 @@ Intake → Phase 0 → Vector 1 → Vector 2 → Vector 3 → Output (single rev
 
 ## Cross-cutting rules
 
-1. **One pinned subject.** All vectors analyze the same head OID (see intake-and-scope.md).
+1. **One stable subject per review state.** All vectors in a state analyze the same pulled tree (`subject_path` / `subject_oid`, see intake-and-scope.md); a re-pull is a new state — gated by the operator, never in-place. Findings carry the subject OID their evidence was read from.
 2. **Origin classification is mandatory** (pre-existing vs PR-introduced), decided by base-diff.
 3. **Two-axis severity**: impact (HIGH/MED/LOW) × disposition (fix-in-PR / pre-existing-debt / deferred-decision).
 4. **Notebook is the shared memory.** The coordinator writes run frame + findings pages; children return compact evidence records, they do not compete for writes.
@@ -65,8 +65,7 @@ Rules:
 Beyond the three vectors sits one **optional, vector-shaped pass**: yagni — is
 the PR's physical size in lines changed justified by its contract, and what is
 YAGNI? It runs only when the operator enables it (intake checkbox or on-demand
-after the Vector 3 gate), post-handoff in a fresh context, on the same pinned
-manifest. It owns the `yagni` lens while active (yagni-pass.md); when skipped,
+after the Vector 3 gate), post-handoff in a fresh context, on the same run manifest and subject tree. It owns the `yagni` lens while active (yagni-pass.md); when skipped,
 that lens is inactive (`off`) and needs no owner. Hits route to the lens trail,
 never the bug/debt table.
 

@@ -50,7 +50,7 @@ rendered in the run frame so a future expansion is audited.
 
 For the mechanical lenses (`type`, `dead` in a typed repo) the fleet does not
 guess. Where cheap and self-hosted, the review runs the **repo's own toolchain**
-against the pinned head and cites the output verbatim:
+against the subject tree and cites the output verbatim:
 
 - a TS repo: run its **own** configured strictness (`tsc` with the repo's
   `tsconfig` flags, including `noUnusedLocals` / `noUnusedParameters` where the
@@ -67,8 +67,8 @@ quality-lens.md for `quality`):
 1. **Reuse the repo's config**, never invent a stricter one the PR never
    promised. If the repo ships its own strict flags, that is the conformance
    intent going through the `type` lens.
-2. **Never install or auto-build.** If it cannot run in seconds on the pinned
-   head, mark the lens `inconclusive-mechanical` and do it by static sight.
+2. **Never install or auto-build.** If it cannot run in seconds on the subject
+   tree, mark the lens `inconclusive-mechanical` and do it by static sight.
 3. **Compiler hits are evidence, not guilt.** A flag may be a deliberate
    public/exported symbol (public API) or a config line the PR didn't touch — classify
    with the same base-diff rule as any finding.

@@ -16,9 +16,8 @@ and a V1-only shortcut still exercises the mechanical `type`/`dead` preflight
 (pipeline-model.md). An optional **yagni** pass challenges the PR's size and
 speculative surface when the operator enables it (yagni-pass.md), and a
 V3-owned **quality** lens judges maintainable shape, suite strength, and
-consistency by best absolute judgment (quality-lens.md). It is a small OS for the review process itself: pin the pull, hold a
-pinned-commit manifest, spawn scoped fleets,
-and re-verify on the next head — not the whole pipeline.
+consistency by best absolute judgment (quality-lens.md). It is a small OS for the review process itself: pull a dedicated subject tree (chunkhound PR sandbox when the plugin is present), capture its SHA, spawn scoped fleets,
+and re-pull deliberately for the next review state — not the whole pipeline.
 
 ## Layout
 
@@ -66,10 +65,11 @@ Paste into the fresh session (also `templates/KICKOFF.md`):
 ## The quick requirements check (pi)
 
 `libs/pi-driver/references/requirements-check.md` verifies: gh auth, target repo
-reach, PR head/base OID, checkout at head, notebook writable, fleet groups
-present, git diff works, optional chunkhound index. Fall back (git/rg,
-inherit-parent spelling) or **stop before fleet cost** when a hard requirement
-fails — the review never spends a fleet on an unverified subject.
+reach, PR base + remote head OIDs, subject pullable (chhound sandbox or worktree),
+notebook writable, fleet groups present, git diff works, chhound rail optional.
+Fall back (git/rg, plain worktree, inherit-parent spelling) or **stop before
+fleet cost** when a hard requirement fails — the review never spends a fleet on
+an unverified subject.
 
 ## Why the notebook + handoff
 

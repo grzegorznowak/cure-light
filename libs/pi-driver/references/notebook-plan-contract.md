@@ -6,8 +6,8 @@ The notebook is the shared memory between phases, children, and handoff contexts
 
 | Page | Owner | Contents | Lifetime |
 |---|---|---|---|
-| `pipeline-frame-<owner>-<pr>` | coordinator (intake) | frozen run options, head/base OID, changed-file list, contract path, fallback notes | one run; a head move starts a NEW frame (linked by diff), never overwritten in place |
-| `pr-<n>-review` | coordinator (append per vector) | findings table (schema rows) + closure table | one PR, all runs |
+| `pipeline-frame-<owner>-<pr>` | coordinator (Phase 0) | frozen run options, subject path/OID, base OID, changed-file list, contract path, fallback notes | one review state; a deliberate re-pull starts a NEW frame (linked by diff), never overwritten in place |
+| `pr-<n>-review` | coordinator (append per vector) | findings table (schema rows, each carrying `subject_oid`) + closure table | one PR, all review states |
 | `dis-<n>-review` (or the durable `decisions` page when follow-ups survive) | coordinator | deferred-decision + closed-by-operator records: author/time/rationale/scope | durable |
 
 Reference pages by name. Children `notebook_read` on demand; they do not preload bodies. The coordinator serializes writes with a process-local ordering so same-name writes don't race.

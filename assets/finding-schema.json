@@ -11,6 +11,7 @@
     "summary": { "type": "string" },
     "severity": { "enum": ["HIGH", "MED", "LOW"] },
     "origin": { "enum": ["PR-introduced", "pre-existing", "n/a"] },
+    "subject_oid": { "type": "string", "description": "tree OID this row's evidence was read from (review-state subject; coordinator fills it on every new/updated row — schema-optional for backward compatibility)" },
     "progress": { "enum": ["fix-in-PR", "pre-existing-debt", "deferred-decision", "track-separately", "n/a"] },
     "failure_mode": { "type": "string" },
     "status": {
