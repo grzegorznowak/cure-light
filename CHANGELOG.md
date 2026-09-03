@@ -2,6 +2,23 @@
 
 ## Unreleased (working tree)
 
+### v0.5.5 — subject-first: no pre-subject orientation
+
+**kernel/**
+- **Subject-first rule** (SKILL.md operating rules + §2; intake-and-scope.md §0.1): no orientation or reading in the target repo's local checkouts before the subject pull — per review state (a deliberate re-pull starts a new state under the same rule). Pre-pull access is remote-only (`gh repo view` / `gh pr view` / `gh pr diff --name-only`) plus presence probes (`/ch-status`); the only pre-pull local git command is the cure-light source provenance capture. The pulled subject is the first tree touched.
+- **Gate split** (SKILL.md phase diagram + §3; intake-and-scope.md §0.4; pi-driver SKILL step 3; notebook-plan-contract frame row; evidence-format notebook layout): the pre-pull frame gate approves the PLAN — subject mechanism (chhound sandbox | plain worktree), planned location, vectors/gates/output policy — with no tree fields yet; the Phase 0 gate records REALITY into the manifest/frame (`subject_path` / `subject_oid`, changed-file list, deferred-row outcomes). Contradictory pre-existing wording (frame gate before Phase 0 vs tree fields known only post-pull) fixed.
+- `intake-and-scope.md` §0.1 — plain-worktree source policy: the detached worktree at `<scratch>/tree` is added FROM the developer's existing local clone when one exists (plumbing only — git object source; that clone's working tree is never read as context or evidence); otherwise the target repo is cloned into the review scratch dir at Phase 0. Previously undocumented.
+
+**libs/pi-driver/**
+- `requirements-check.md` — rows re-scoped and split **pre-pull vs deferred-to-Phase-0** (rows 5/8/9): row 4 = rail presence only (reachability stays row 2), outcome recorded as the **planned subject mechanism** (presence ≠ sandbox guarantee — sandbox failure falls back per chhound-driver.md); `git -C <dir> rev-parse` dropped; "clone if missing" moved to the Phase 0 pull. Row 8 = post-pull check on the pulled tree (`base_oid..subject_oid`); `gh pr diff` NEVER substitutes the subject diff (the remote head may differ from the pulled subject — that would corrupt scope/origin); fail → fetch retry, else STOP. Stop conditions moved to the pull; no early "check done", no mixing pre/post-pull results (check lifecycle closes at the Phase 0 gate).
+- `SKILL.md` step 3 + `notebook-plan-contract.md` — frame at seal = frozen options + planned subject mechanism (no tree fields); `subject_path` / `subject_oid` recorded at the Phase 0 gate.
+
+**templates / docs**
+- `BOOTSTRAP.md` after-fetch steps + `KICKOFF.md` steps 2/6 — aligned to the pre-pull subset: subject-tree rows defer to Phase 0; the subject is the first tree touched. §7 checkbox semantics unchanged; bootstrap paste-quote lines untouched.
+- `README.md` quick-requirements paragraph — "git diff works" reworded to the deferred subject-tree rows; "subject pullable" → planned subject mechanism; subject-first note added.
+
+Background: operator direction — a fresh boot oriented in local target-repo checkouts after intake before the subject pull, which is counterproductive when the run reviews a dedicated subject (chhound PR sandbox when the pi-chhound plugin is present, else a plain worktree). Design decided by the operator: subject-first per review state, worktree source = developer's existing clone when present (plumbing only), recommended gate split (plan approval pre-pull, reality recording post-pull), full-sweep scope incl. BOOTSTRAP/KICKOFF/README; an independent #code-review weak-spot pass on the plan had its HIGH/MED findings folded into the decisions. Draft checked by an independent #code-review facts+consistency pass before opening the PR.
+
 ### v0.5.4 — notebook-first state store (pi runs)
 
 **kernel/**

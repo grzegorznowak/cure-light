@@ -52,10 +52,10 @@ These seed the session so it can compile the review process. Fetch them in order
 
 ## After fetching
 
-1. Run the **quick requirements check** (pi-driver `requirements-check.md`).
+1. Run the **quick requirements check** (pi-driver `requirements-check.md`) — pre-pull rows only; the subject-tree rows (5/8/9) defer to the Phase 0 gate, where the check completes.
 2. Ask the **intake fields once** (from `KICKOFF.md` — see below for the field list).
-3. Compile the run frame and save it to the notebook per `notebook-plan-contract.md`.
-4. If `handoff` is available in this runtime, seal the compiled frame and hand off so the next context starts from the sealed compile and runs **Phase 0 → Vector 1**. Else continue in-session.
+3. Compile the run frame (frozen options + planned subject mechanism — no tree fields yet) and save it to the notebook per `notebook-plan-contract.md`.
+4. If `handoff` is available in this runtime, seal the compiled frame and hand off so the next context starts from the sealed compile, pulls the subject (the first tree touched — nothing in the target repo's local checkouts is read before it), records `subject_path` / `subject_oid` at the Phase 0 gate, and runs **Phase 0 → Vector 1**. Else continue in-session.
 5. Report the requirements-check result and the compiled plan before proceeding.
 
 ## Bootstrap prompt (paste into a fresh session)

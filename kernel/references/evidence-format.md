@@ -61,7 +61,7 @@ Decide by **base diff**, never vibes:
 
 ## Notebook layout
 
-- `pipeline-frame-<owner>-<pr>` — frozen run options, head/base OID, manifest. Written once at intake.
+- `pipeline-frame-<owner>-<pr>` — frozen run options, base OID, planned subject mechanism; the manifest's tree fields (`subject_path` / `subject_oid`, changed-file list) are recorded at the Phase 0 gate (notebook-plan-contract.md). Written at seal, completed at Phase 0.
 - `pr-<n>-review` — findings table (schema rows) + closure table. Appended per vector.
 - `decisions` (durable, survives the PR) — deferred-decision and closed-by-operator records with author/time/rationale/scope, plus the leading subarea open questions.
 

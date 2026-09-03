@@ -6,7 +6,7 @@ The notebook is the shared memory between phases, children, and handoff contexts
 
 | Page | Owner | Contents | Lifetime |
 |---|---|---|---|
-| `pipeline-frame-<owner>-<pr>` | coordinator (Phase 0) | frozen run options, subject path/OID, base OID, changed-file list, contract ref (page or path), fallback notes | one review state; a deliberate re-pull starts a NEW frame (linked by diff), never overwritten in place |
+| `pipeline-frame-<owner>-<pr>` | coordinator (seal → Phase 0) | frozen run options + planned subject mechanism (chhound sandbox | plain worktree) — no tree fields at the pre-pull gate; `subject_path` / `subject_oid`, changed-file list, contract ref (page or path) and fallback notes recorded at the Phase 0 gate once the pull lands | one review state; a deliberate re-pull starts a NEW frame (linked by diff), never overwritten in place |
 | `contract-<owner>-<pr>` | coordinator (Phase 0) | the verbatim contract (§0.2): PR description, linked issues + locked decisions, changed-file list, subject/base OIDs | one review state, like the frame; a re-pull compiles the new state's contract |
 | `pr-<n>-review` | coordinator (append per vector) | findings table (schema rows, each carrying `subject_oid`) + closure table | one PR, all review states |
 | `dis-<n>-review` (or the durable `decisions` page when follow-ups survive) | coordinator | deferred-decision + closed-by-operator records: author/time/rationale/scope | durable |
@@ -26,7 +26,7 @@ Reference pages by name. Children `notebook_read` on demand; they do not preload
 
 When `handoff` is available and the operator confirms the frame:
 
-1. Write `pipeline-frame-<owner>-<pr>` (compiled options + manifest) and `pr-<n>-review` (findings skeleton).
+1. Write `pipeline-frame-<owner>-<pr>` (compiled options + planned subject mechanism — the manifest's tree fields land at the Phase 0 gate) and `pr-<n>-review` (findings skeleton).
 2. Discard recoverable code-trivia pages; refresh the durable decision page.
 3. Draft the handoff prompt that carries ONLY: the frame's location, the current state (intake complete, requirements pass/fallback), the immediate next step (Phase 0 pull subject + contract → Vector 1), and any blocker or failed path worth avoiding.
 4. Call `handoff` with `discardPages` for code-trivia pages and the task prompt pointing at the frame page by name.
