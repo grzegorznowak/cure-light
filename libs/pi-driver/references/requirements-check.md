@@ -11,7 +11,7 @@ Run BEFORE the fleet spends anything. Each line is a hard gate with a fallback o
 | 3 | PR exists, OPEN; base OID + remote head OID captured (informational) | `gh pr view <pr> --json headRefOid,baseRefOid,state,title` | STOP or ask |
 | 4 | subject tree pullable: repo reachable for clone/worktree, OR (pi-chhound) `/ch-status` responds | `git -C <dir> rev-parse` ; `gh repo view` ; `/ch-status` | fallback: plain-worktree path; clone if missing; no tree at all → STOP |
 | 5 | (chhound rail, when plugin present) sandbox created + bridge connected at Phase 0; prefixed tool responds | `/ch-mcp … --prefix chh_pr<n>` ; `chh_pr<n>_daemon_status` | reconnect once; else record fallback (git/rg), never stop |
-| 6 | notebook writable (pi) | `notebook_index` returns pages | fallback: session-scratch dir; note durability loss |
+| 6 | notebook writable (pi) | `notebook_index` returns pages | fallback: session-scratch dir (frame/findings) + contract on disk; note durability loss |
 | 7 | fleet groups present (pi + model-groups) | inspect group list (flash/code-review/…) | fallback: inherit-parent spawn, note in frame |
 | 8 | git diff base..subject works on the pulled tree | `git diff <base>..<subject> --stat` | use `gh pr diff` instead |
 | 9 | (chhound rail) index health | `chh_pr<n>_daemon_status` | use bash/rg/grep; never block |

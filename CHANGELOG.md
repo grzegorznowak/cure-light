@@ -2,6 +2,23 @@
 
 ## Unreleased (working tree)
 
+### v0.5.4 — notebook-first state store (pi runs)
+
+**kernel/**
+- `intake-and-scope.md` §0.2 — the contract lives in the **run store**: when the runtime's requirements check confirms the notebook, Phase 0 writes the verbatim contract to the notebook page `contract-<owner>-<pr>` (one per review state, named like the frame); CONTRACT.md in the scratch dir is the fallback (no notebook, or the contract outgrows the page budget — recorded in the frame). Manifest field `contract_path` → `contract_ref` (page name | disk path). §0.2 item 4 clarified: the contract stores the changed-file list; per-child diff slices are derived at spawn from the subject tree, not stored.
+- `yagni-pass.md` — reads the contract from `contract_ref` (notebook page on pi runs, CONTRACT.md in fallback runs).
+- `SKILL.md` — reference-list annotation aligned to the phase naming (`pull subject + contract`).
+
+**libs/pi-driver/**
+- `notebook-plan-contract.md` — page table gains the `contract-<owner>-<pr>` row (coordinator, Phase 0, one per review state) + content rule (the contract page is the one long-form verbatim page; no raw diffs/logs/kernel text). Frame row stores the contract ref. Re-pull state pages are distinguished by a coordinator-chosen state marker (recorded in the frame); earlier states' pages are never overwritten.
+- `requirements-check.md` — row-6 fallback extended: notebook missing → frame/findings in session-scratch + contract on disk.
+
+**templates/assets**
+- `child-pass-prompt-template.md` — `contract_path` slot → `contract_ref` (notebook page name on pi runs, CONTRACT slice path in fallback).
+- `KICKOFF.md` step 6 — wording aligned: pull the subject, compile the contract (notebook page on pi runs, CONTRACT.md otherwise).
+
+Background: operator direction — the pi runtime has the notebook; stop building ephemeral state files (CONTRACT.md) beside the subject when the notebook is available; disk remains the fallback for runtimes without it. Kernel fetch-hold and priming unchanged: a session is primed once at boot and re-primed by starting a new boot session — no mid-run re-fetch of cure-light instructions.
+
 ### v0.5.3 — chhound research rail + subject model
 
 **kernel/**

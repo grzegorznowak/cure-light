@@ -10,7 +10,7 @@ A **diagnostic review, not a fixer.** cure-light reviews a PR against its own st
 Read these references completely before establishing a process:
 
 1. [references/pipeline-model.md](references/pipeline-model.md) — the 3-vector model, phases, gates
-2. [references/intake-and-scope.md](references/intake-and-scope.md) — Phase 0 pin + contract
+2. [references/intake-and-scope.md](references/intake-and-scope.md) — Phase 0 pull subject + contract
 3. [references/conformance-pass.md](references/conformance-pass.md) — Vector 1
 4. [references/implementation-pass.md](references/implementation-pass.md) — Vector 2
 5. [references/debt-pass.md](references/debt-pass.md) — Vector 3
