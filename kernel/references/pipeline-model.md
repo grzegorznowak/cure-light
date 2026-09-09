@@ -35,7 +35,7 @@ Intake → Phase 0 → Vector 1 → Vector 2 → Vector 3 → Output (single rev
 
 ## The research accelerator (cross-cutting; Vector 2 + Vector 3)
 
-Cure-light treats the chhound research rail (chhound-driver.md) as an **accelerator** for understanding the subject's subsystems — never as an evidence source. The mode is compiled from the planned subject mechanism and frozen in the run manifest at the plan gate:
+Cure-light treats the chhound research rail (chhound-driver.md) as an **accelerator** for understanding the subject's subsystems — never as an evidence source. The mode is compiled from the planned subject mechanism and frozen in the run manifest at the plan gate; the Phase 0 gate **re-records** it against the pulled reality — a planned rail that fell back to a plain worktree flips the mode to `direct-tree` (`ch_prefix: none`) before Vector 1 (requirements-check stop conditions):
 
 - `research.mode: chhound-rail` — the rail is confirmed and Phase 0 pulls the subject as a chunkhound PR sandbox whose own index is bound under the frame's prefix `chh_pr<n>`. The manifest records the prefix and the exact tool names (`{ch_prefix}_daemon_status`, `{ch_prefix}_code_research`, `{ch_prefix}_search`) and lists every other live `chh_*` prefix as excluded.
 - `research.mode: direct-tree` — plain detached worktree (rail unconfirmed/broken). The run proceeds with git/rg/read; the fallback is explicit in the manifest, never silent.

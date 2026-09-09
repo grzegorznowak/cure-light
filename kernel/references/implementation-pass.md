@@ -39,6 +39,7 @@ Every Vector-2 child closes its output with the shared footer; fields that do no
 RESEARCH TRACE
 mode: chhound-rail | search-extensive | direct-tree
 tools-invoked-first-use: <exact names in order>
+tool-call-count: <n>                                  # all modes: total exact-tool invocations (self-reported)
 daemon-query-ready: true | false | error | n/a
 orientation-question: <one line>                         # chhound-rail mode (Vector 2)
 pinpoint-query: <type + query, or n/a with reason>       # chhound-rail mode (Vector 2)
@@ -53,7 +54,7 @@ A missing or noncompliant trace makes the split `inconclusive`: rerun once with 
 
 ### Cost accounting and shadow splits
 
-- Latency/cost is measured per child (wall-clock, call count) and reported at the Vector-2 gate; no preset budget applies until pilot data exists.
+- Latency/cost is measured per child and recorded at the Vector-2 gate: wall-clock by the coordinator, exact-tool call count from the trace's `tool-call-count` (self-reported, as above). No preset budget applies until pilot data exists.
 - Shadow splits — a paired direct-only control child on the same sealed concept, output compared for quality delta and excluded from the review — are **off by default**; they run only when the operator explicitly sets `research.shadow: on` in the manifest.
 
 ## Origin classification (mandatory)

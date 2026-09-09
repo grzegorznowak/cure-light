@@ -50,7 +50,7 @@ Debt claims are repo-wide by nature ("no consumers", "count the touch points a 2
 - Results are leads, never evidence: cite only lines re-read in the subject tree at `subject_oid`; PR-specific vs pre-existing segmentation stays base-diff based (`git show <base_oid>:<path>`). The index may lag the subject tree.
 - Unready/failed mapped tool → one recorded direct-tree fallback (rg/grep-based tracing); never another `chh_*` namespace.
 - The mandatory footer is the shared RESEARCH TRACE in `search-extensive` mode (canonical schema in implementation-pass.md; prompt filler in child-pass-prompt-template.md Variant C). Missing/noncompliant trace = `inconclusive`, rerun once with the corrected rendered prompt, then operator gate.
-- Cost: search call counts and wall-clock are measured and reported at the Vector-3 gate; no preset budget until pilot data exists. Shadow splits follow the same operator opt-in (`research.shadow: on`).
+- Cost: wall-clock by the coordinator and the trace's `search-call-count` (self-reported — no child telemetry, see implementation-pass.md) are recorded at the Vector-3 gate; no preset budget until pilot data exists. Shadow splits follow the same operator opt-in (`research.shadow: on`).
 
 ## Child return format
 

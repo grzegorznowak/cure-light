@@ -13,10 +13,10 @@ THIRD: read the contract from {contract_ref} (the relevant section only).
 Then read the assigned files: {file_list}.
 Then read the diff slices for your surface: {diff_paths} (base..subject).
 
-YOUR ANGLE: {surface / sealed concept}. Inspect completely and report per
-{return format in the vector's pass contract}.
+YOUR ANGLE: {angle}. Inspect completely and report per
+{return}.
 
-YOUR LENSES: {lens list from the lens matrix}. Run each lens checklist from
+YOUR LENSES: {lenses}. Run each lens checklist from
 its owning reference — hygiene family: kernel/references/hygiene-lens.md; the
 `quality` lens: kernel/references/quality-lens.md; a lens you check and clear
 is explicitly NOT-A-HIT. Hygiene hits go to the lens trail, never the bug table.
@@ -33,8 +33,8 @@ summary of intent. Cite file:line in the subject tree. Do NOT run tests unless
 told; do NOT propose large refactors; keep style mentions on the lens trail
 (unrouted style noise is dropped).
 
-Return: a numbered list of {GAP|F|D} findings conforming to the vector contract,
-plus a {VERIFIED | NOT-A-BUG | NONE} closing for any surface you check and clear,
+Return: a numbered list of GAP|F|D findings conforming to the vector contract,
+plus a VERIFIED | NOT-A-BUG | NONE closing for any surface you check and clear,
 plus the RESEARCH TRACE footer when {research_protocol} is present.
 Under {budget} lines.
 ```
@@ -44,8 +44,9 @@ Under {budget} lines.
 | Slot | Filled from |
 |---|---|
 | vector | conformance / implementation / debt |
-| PATH | the subject tree root (sandbox or worktree dir) for {owner}/{repo} |
-| subject_OID | run manifest subject_oid |
+| SUBJECT_PATH | the subject tree root (sandbox or worktree dir) — run manifest `subject_path` |
+| SUBJECT_OID | run manifest subject_oid |
+| owner/repo | the review target `<owner>/<repo>` (intake `owner/repo`) — Variants A/C subject description |
 | contract_ref | run-manifest `contract_ref`: the notebook page `contract-<owner>-<pr>` (pi runs) or the disk CONTRACT slice (fallback runs) |
 | file_list | the assigned files for this surface/split |
 | diff_paths | the focused diff hunks for the surface |
@@ -106,6 +107,7 @@ Close your output with:
 RESEARCH TRACE
 mode: chhound-rail | direct-tree
 tools-invoked-first-use: <exact names in order>
+tool-call-count: <n>
 daemon-query-ready: true | false | error
 orientation-question: <one line>
 pinpoint-query: <type + query, or n/a with reason>
@@ -132,6 +134,7 @@ Close your output with:
 RESEARCH TRACE
 mode: direct-tree
 tools-invoked-first-use: <exact names in order>
+tool-call-count: n/a
 daemon-query-ready: n/a
 orientation-question: n/a
 pinpoint-query: n/a
@@ -177,6 +180,7 @@ Close your output with:
 RESEARCH TRACE
 mode: search-extensive | direct-tree
 tools-invoked-first-use: <exact names in order>
+tool-call-count: <n>
 daemon-query-ready: true | false | error
 orientation-question: n/a
 pinpoint-query: n/a
