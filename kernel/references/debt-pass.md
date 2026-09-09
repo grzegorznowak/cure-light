@@ -40,6 +40,18 @@ All hygiene hits route to the lens trail (LOW default, operator-suppressible), n
 
 Each child receives: contract context, the relevant architecture files + diff, and this stance. Reading is concept-directed, not exhaustive.
 
+## Search-extensive research protocol (Vector 3)
+
+Debt claims are repo-wide by nature ("no consumers", "count the touch points a 2nd type needs", "re-declared elsewhere") — when `research.mode = chhound-rail` (sandbox index under the frame's prefix `chh_pr<n>`), the exact `{ch_prefix}_search` tool is Vector 3's **default lead generator** and is used extensively:
+
+- For every owned concept and lens, lead with the exact `{ch_prefix}_search` tool — regex queries for concrete symbols/patterns (usage sites, imports, duplicated literals/keys/version numbers), semantic queries for concept-level correlation (touch points for a second constraint, sites reading a config key, candidate consumers of a surface). Iterate: refine queries from hits instead of stopping at the first result.
+- Minimum per child: **at least two distinct search calls per owned concept/lens**, and every repo-wide claim (usage counts, absence of consumers, vocabulary duplication) must be preceded by a logged search attempt.
+- `{ch_prefix}_code_research` may be used for architecture orientation when a concept needs it; it is never required here.
+- Results are leads, never evidence: cite only lines re-read in the subject tree at `subject_oid`; PR-specific vs pre-existing segmentation stays base-diff based (`git show <base_oid>:<path>`). The index may lag the subject tree.
+- Unready/failed mapped tool → one recorded direct-tree fallback (rg/grep-based tracing); never another `chh_*` namespace.
+- The mandatory footer is the shared RESEARCH TRACE in `search-extensive` mode (canonical schema in implementation-pass.md; prompt filler in child-pass-prompt-template.md Variant C). Missing/noncompliant trace = `inconclusive`, rerun once with the corrected rendered prompt, then operator gate.
+- Cost: wall-clock by the coordinator and the trace's `search-call-count` (self-reported — no child telemetry, see implementation-pass.md) are recorded at the Vector-3 gate; no preset budget until pilot data exists. Shadow splits follow the same operator opt-in (`research.shadow: on`).
+
 ## Child return format
 
 ```text

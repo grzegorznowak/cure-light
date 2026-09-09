@@ -21,7 +21,7 @@ Read these references completely before establishing a process:
 10. [references/evidence-format.md](references/evidence-format.md) — finding schema, severity, origin
 11. [references/chhound-driver.md](references/chhound-driver.md) — the chunkhound research rail (pi-chhound plugin): sandbox pull, MCP connect, tool names, discovery-only rule
 
-Read [libs/pi-driver/SKILL.md](../../libs/pi-driver/SKILL.md) only if this runtime provides the pi session notebook; its references define the requirements check and the notebook plan contract.
+Read [libs/pi-driver/SKILL.md](../libs/pi-driver/SKILL.md) only if this runtime provides the pi session notebook; its references define the requirements check and the notebook plan contract.
 
 ## Initialization contract
 
@@ -49,7 +49,7 @@ Pull the tree under review BEFORE any analysis or orientation in the target repo
 
 ### 3. Compile the process
 
-From the intake fields, compile: the vector set and their fleet groups, the phase order and operator gates, the **planned subject mechanism** (chhound sandbox | plain worktree) and its planned location, the notebook pages (run frame + findings), and the output policy (what may be drafted, what waits). Surface the compiled frame to the operator for confirmation before Phase 0 — the pre-pull gate approves the plan; the tree's reality (`subject_path` / `subject_oid`) is recorded at the Phase 0 gate.
+From the intake fields, compile: the vector set and their fleet groups, the phase order and operator gates, the **planned subject mechanism** (chhound sandbox | plain worktree) and its planned location, the notebook pages (run frame + findings), and the output policy (what may be drafted, what waits). The research mode (chhound-rail | direct-tree — pipeline-model.md, research accelerator) is compiled from the planned mechanism and frozen with the frame; if the Phase 0 pull falls back from a planned rail to a plain worktree, the mode is re-recorded as `direct-tree` before Vector 1. Surface the compiled frame to the operator for confirmation before Phase 0 — the pre-pull gate approves the plan; the tree's reality (`subject_path` / `subject_oid`) is recorded at the Phase 0 gate.
 
 ## Phase order & gates
 
@@ -89,3 +89,4 @@ Publish a closure table. See closure-verification.md.
 - **Fleets are budgeted.** Cap children, timeouts, output; serialize notebook writes via the coordinator.
 - **Lens coverage is a preflight assertion.** The run frame must map every active lens to an owning pass (lens matrix, see hygiene-lens.md); a lens without an owner blocks the run.
 - **Optional passes are opt-in.** The yagni pass runs only when the operator enables it; a skipped pass deactivates its lens (matrix shows `off`, exempt from the coverage assertion).
+- **Subsystem research is mandatory-if-ready on the chhound rail.** When the frame's research mode is `chhound-rail`, Vector 2 runs the code-research protocol (implementation-pass.md) and Vector 3 the search-extensive protocol (debt-pass.md): exact registered tool names are rendered into every child prompt, and a missing RESEARCH TRACE footer makes a split `inconclusive`. In `direct-tree` mode (plain worktree) children never invoke a `chh_*` namespace. Shadow splits are off unless the operator opts in.
