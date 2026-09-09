@@ -16,6 +16,46 @@ By **sealed concept / invariant** — each child owns one data flow or invariant
 
 The split is derived from the Vector 1 matrix — you drill into the surfaces that carry contract weight, not every line.
 
+## Subsystem research protocol (Vector 2)
+
+Vector 2 uses the run manifest's research policy (`research.mode`) before direct source inspection, so each split understands its subsystem beyond the assigned files. The mandate is **uniform**: it applies to every split, including test-integrity concepts — deeper subsystem understanding yields better insights regardless of split type.
+
+When `research.mode = chhound-rail` (sandbox index under the frame's prefix `chh_pr<n>`), every child MUST:
+
+1. Call the exact `{ch_prefix}_daemon_status` tool and record `query_ready`.
+2. If ready, call the exact `{ch_prefix}_code_research` tool with ONE question scoped to its sealed invariant — end-to-end callers, state transitions, failure paths, persistence/version boundaries, tests, correlated sites.
+3. Use the exact `{ch_prefix}_search` tool at least once (regex for known symbols, semantic for behavior) to pinpoint a lead from that map.
+4. Verify every cited or classified line in the subject tree with direct read/grep; decide origin only with `git show <base_oid>:<path>`.
+
+The index may lag the subject tree: it is an orientation/navigation accelerator, never evidence authority (chhound-driver.md, Evidence rule). A not-ready or failed mapped tool triggers one honest direct-tree fallback that must be reported; it is NOT permission to use another `chh_*` namespace (all other live prefixes are excluded in the manifest).
+
+When `research.mode = direct-tree` (plain worktree), trace the same invariant with git diff, rg/grep, direct reads, and git-show origin checks; do not invoke any `chh_*` namespace.
+
+### RESEARCH TRACE footer (mandatory)
+
+Every Vector-2 child closes its output with the shared footer; fields that do not apply to the mode are `n/a`:
+
+```text
+RESEARCH TRACE
+mode: chhound-rail | search-extensive | direct-tree
+tools-invoked-first-use: <exact names in order>
+daemon-query-ready: true | false | error | n/a
+orientation-question: <one line>                         # chhound-rail mode (Vector 2)
+pinpoint-query: <type + query, or n/a with reason>       # chhound-rail mode (Vector 2)
+search-log: <type + query per call, first-use order>     # search-extensive mode (Vector 3)
+search-call-count: <n>                                   # search-extensive mode (Vector 3)
+code_research-used: true | false                         # search-extensive mode (Vector 3; never required)
+verified-correlated-sites: <path:line list, or checked-none>
+fallback/error: none | <exact reason>
+```
+
+A missing or noncompliant trace makes the split `inconclusive`: rerun once with the corrected rendered prompt; a second failure reaches the operator gate. Traces are self-reported (current runtimes expose no child tool-call telemetry) — the coordinator spot-audits claimed `verified-correlated-sites` against the subject tree.
+
+### Cost accounting and shadow splits
+
+- Latency/cost is measured per child (wall-clock, call count) and reported at the Vector-2 gate; no preset budget applies until pilot data exists.
+- Shadow splits — a paired direct-only control child on the same sealed concept, output compared for quality delta and excluded from the review — are **off by default**; they run only when the operator explicitly sets `research.shadow: on` in the manifest.
+
 ## Origin classification (mandatory)
 
 Every finding gets an origin, decided by **base-diff evidence**, never vibes:

@@ -61,7 +61,7 @@ The lens matrix (hygiene-lens.md) is compiled here and validated: every active l
 
 ## 0.4 Operator gates
 
-- **Plan gate (pre-pull).** Before Phase 0 mutates anything external, surface the compiled plan for confirmation: subject mechanism (chhound sandbox | plain worktree) and planned location, vectors, splits, groups, gates, output policy. The frame carries **no tree fields yet** — `subject_path` / `subject_oid` cannot exist before the pull (subject-first, §0.1).
+- **Plan gate (pre-pull).** Before Phase 0 mutates anything external, surface the compiled plan for confirmation: subject mechanism (chhound sandbox | plain worktree) and planned location, vectors, splits, groups, gates, output policy. The planned research mode (chhound-rail when the sandbox rail is planned, else direct-tree — pipeline-model.md) is part of the plan. The frame carries **no tree fields yet** — `subject_path` / `subject_oid` cannot exist before the pull (subject-first, §0.1).
 - **Phase 0 gate (post-pull).** Surface the manifest with the recorded reality: actual `subject_path` / `subject_oid`, `base_oid`, changed-file list from the pulled tree, deferred requirements-row outcomes, fallback notes. The run proceeds to Vector 1 only after this gate.
 
 ## Output
@@ -79,6 +79,7 @@ changed_files: [...]
 contract_ref: contract-<owner>-<pr>   # notebook page (pi); disk path in fallback runs
 notebook (when available): pipeline-frame-<owner>-<pr> + contract-<owner>-<pr> + pr-<n>-review   # per review state
 lens_matrix: {type: preflight, dead: preflight+v3, read: v2+v3, name: v3, quality: v3}   # see hygiene-lens.md + quality-lens.md
+research: {mode: chhound-rail | direct-tree, ch_prefix: <chh_pr<n> | none>, excluded: [<other live chh_* prefixes>], v2_protocol: code-research-if-ready, v3_protocol: search-extensive-if-ready, shadow: off}   # protocols in implementation-pass.md + debt-pass.md; shadow on only by explicit operator choice
 cure_light_source_head_oid: <cure-light source HEAD at intake>   # review provenance, frozen once (see evidence-format.md)
 ```
 

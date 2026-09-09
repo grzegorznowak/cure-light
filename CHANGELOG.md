@@ -2,6 +2,25 @@
 
 ## Unreleased (working tree)
 
+### v0.5.7 — research enforcement: mandatory-if-ready chhound protocols (V2 code-research, V3 search-extensive) + RESEARCH TRACE gate
+
+**kernel/ + assets/**
+- `pipeline-model.md` — new cross-cutting **research accelerator** section: `research.mode` (`chhound-rail` | `direct-tree`) compiled from the planned subject mechanism and frozen in the manifest; Vector 2 runs the code-research protocol **mandatory-if-ready and uniform across every split** (including test-integrity concepts); Vector 3 runs the **search-extensive** protocol (`search` leads every concept/lens sweep; `code_research` allowed, never required); authority rules — index output is discovery only (every cited line re-read in the subject tree at `subject_oid`), origin stays base-diff based, Vector 1 remains optional; shadow splits **off by default** (`research.shadow: on` = explicit operator choice).
+- `implementation-pass.md` — **Subsystem research protocol (Vector 2)**: per split, one scoped `{ch_prefix}_code_research` orientation question (callers, state transitions, failure paths, persistence/version boundaries, tests, correlated sites) + at least one `{ch_prefix}_search` pinpoint + tree verification; canonical **RESEARCH TRACE footer** schema (modes `chhound-rail` | `search-extensive` | `direct-tree`; V3-only fields `search-log` / `search-call-count` / `code_research-used`); enforcement — missing/noncompliant trace = `inconclusive`, rerun once, then operator gate; traces are self-report (no child telemetry) → coordinator spot-audits `verified-correlated-sites`; cost measured/reported, no preset budget until pilot data.
+- `debt-pass.md` — **Search-extensive research protocol (Vector 3)**: `{ch_prefix}_search` is the default lead generator for every owned concept/lens (regex for symbols/patterns, semantic for concept correlation; iterate from hits); minimum two distinct search calls per concept/lens and every repo-wide claim (usage counts, absence of consumers, vocabulary duplication) preceded by a logged search attempt; `code_research` optional; same evidence/fallback/trace rules.
+- `assets/child-pass-prompt-template.md` — soft "RESEARCH TOOLS" paragraph replaced by the mandatory `{research_protocol}` step; slot-map rows (`research_protocol`, `ch_prefix`, exact tool-name slots, `excluded_namespaces`, `BASE_OID`); invariant 7 (missing trace = inconclusive); **Variant A** (V2 rail protocol), **Variant B** (direct-tree), **Variant C** (V3 search-extensive), shadow-control note. Vector 1 omits the slot.
+- `evidence-format.md` — research traces are **process metadata**, not finding evidence; index-derived lines/origin labels invalid until tree/base-diff verified.
+- `intake-and-scope.md` — plan gate + manifest gain the `research:` block (mode, `ch_prefix`, excluded live prefixes, per-vector protocols, `shadow`).
+- `SKILL.md` — compile step freezes the research mode; operating rule: mandatory-if-ready on the rail, `direct-tree` never invokes a `chh_*` namespace.
+
+**libs/pi-driver/**
+- `SKILL.md` — research enforcement bullet: render exact prefixed names (`chh_pr<n>_daemon_status`/`_code_research`/`_search`) into the `{research_protocol}` slot (never generic aliases), trace gate at each vector, self-report audit against the subject tree.
+- `notebook-plan-contract.md` — frame carries the research binding; per-split RESEARCH TRACE compliance table appends to `pr-<n>-review` (shadow comparisons when enabled).
+
+`requirements-check.md` intentionally unchanged — its rows already gate the rail with `chh_pr<n>_daemon_status` (v0.5.6); `chhound-driver.md` stays the rail-mechanics doc (enforcement lives in the pass contracts + template).
+
+Background: operator direction after a tool-adoption experiment series (spawned children, fresh contexts): children **never voluntarily invoke research tools** (0/6 without exact registered tool names in the prompt; full adoption only when the prompt names the exact tool, binds the namespace, scripts the sequence, and preempts freshness/cost objections). cure-light's previous soft encouragement (discovery-optional paragraph) could not drive use. Decision: mandatory-if-ready protocols with a verifiable footer, uniform across Vector-2 splits (incl. test-integrity — deeper understanding yields better insights regardless of split type), search-extensive for Vector 3 (debt claims are repo-wide: usage counts, absence of consumers, duplicated vocabulary). Shadow splits (paired direct-only controls) measure the accelerator's quality delta — operator opt-in only. No preset latency budget: measured and reported until pilot data exists. Evidence discipline unchanged: the index is an accelerator, never an evidence source.
+
 ### v0.5.6 — rail presence probe fix: operator-confirmed `/ch-status`
 
 **kernel/**

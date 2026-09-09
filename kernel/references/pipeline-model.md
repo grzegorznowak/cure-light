@@ -33,6 +33,22 @@ Intake → Phase 0 → Vector 1 → Vector 2 → Vector 3 → Output (single rev
 6. **Fleets are budgeted.** Per-phase child counts, timeouts, output caps, and a cheap re-review path (delta-only) are mandatory.
 7. **Review is diagnostic.** cure-light proposes; the operator gates the single external review comment (see evidence-format.md, External routing).
 
+## The research accelerator (cross-cutting; Vector 2 + Vector 3)
+
+Cure-light treats the chhound research rail (chhound-driver.md) as an **accelerator** for understanding the subject's subsystems — never as an evidence source. The mode is compiled from the planned subject mechanism and frozen in the run manifest at the plan gate:
+
+- `research.mode: chhound-rail` — the rail is confirmed and Phase 0 pulls the subject as a chunkhound PR sandbox whose own index is bound under the frame's prefix `chh_pr<n>`. The manifest records the prefix and the exact tool names (`{ch_prefix}_daemon_status`, `{ch_prefix}_code_research`, `{ch_prefix}_search`) and lists every other live `chh_*` prefix as excluded.
+- `research.mode: direct-tree` — plain detached worktree (rail unconfirmed/broken). The run proceeds with git/rg/read; the fallback is explicit in the manifest, never silent.
+
+Vector 2 enforces subsystem research **mandatory-if-ready and uniform across every split — including test-integrity concepts** (deeper subsystem understanding yields better insights regardless of split type): one scoped `code_research` orientation question per sealed invariant, then at least one `search` pinpoint, then tree verification. Vector 3 enforces a **search-extensive** protocol — `search` leads every concept and lens sweep (repo-wide claims need logged searches); `code_research` may orient but is never required there. The per-child prompt slots, workflows, and the mandatory RESEARCH TRACE footer are defined in [implementation-pass.md](implementation-pass.md), [debt-pass.md](debt-pass.md) and [child-pass-prompt-template.md](../../assets/child-pass-prompt-template.md).
+
+Authority rules (bind all vectors):
+
+1. Index output is **discovery only**: its citations are leads, not evidence — every cited line is re-read in the subject tree at `subject_oid` before it may appear in a finding (chhound-driver.md, Evidence rule).
+2. Origin (PR-introduced vs pre-existing) is decided by base diff only, never from the index.
+3. Vector 1 may use the tools where the coordinator judges it useful; nothing is mandatory there.
+4. Shadow splits (paired direct-only control children that measure the accelerator's quality delta) are **off by default** — enabled only by explicit operator choice (`research.shadow: on`).
+
 ## The lens dimension (cross-cutting coverage)
 
 Vectors ask **one big question**; lenses ask small, repeatable checks the fleet must not be allowed to skip just because a child got assigned a different angle. A lens has an owner (≥1 pass exercises it), a checklist, a route, and an optional deterministic accelerator. The code-hygiene family — the stage-3 gap from our phase-2 lens comparison — is defined in [hygiene-lens.md](hygiene-lens.md).

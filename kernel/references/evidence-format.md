@@ -50,6 +50,13 @@ compiler output — never a silent skip and never a finding-status by itself.
 Decide by **base diff**, never vibes:
 `git show <base>:<path>` → is the mechanics present at base? If yes and the PR only touches it in passing → pre-existing. If the path (field/gate/logic/README-claim) is new → PR-introduced.
 
+## Research traces are process metadata
+
+Vector-2 and Vector-3 children attach a RESEARCH TRACE footer (implementation-pass.md / debt-pass.md). The trace records how leads were gathered; it is process metadata, not finding evidence:
+
+- Index-derived `file:line` references and origin labels are invalid until verified in the subject tree / by base diff.
+- A finding's evidence stands only on tree-verified anchors; a trace without verified anchors does not upgrade a finding.
+
 ## Writing findings
 
 - Every finding needs a **concrete failure mode** — not a style opinion.
