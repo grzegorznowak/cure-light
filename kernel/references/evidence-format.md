@@ -16,6 +16,9 @@ evidence:
 severity: HIGH | MED | LOW
 origin: PR-introduced | pre-existing   # Vector 2+ ; conformance is PR-only by definition
 disposition: fix-in-PR | pre-existing-debt | deferred-decision | track-separately
+             # fix-in-PR = in scope (introduced or enforced); pre-existing-debt = out-of-scope
+             # follow-up (recommended or downstream); deferred-decision / track-separately record
+             # an accepted deferral or an own ticket
 failure_mode: <concrete user-visible or future failure>
 status: open | verified-fixed | re-classified | test-only | doc-only | deferred-decision | closed-by-operator | re-opened
 owner: <implementer | operator | subsystem>
@@ -82,16 +85,22 @@ The single review comment contains:
 
 ```text
 ## Summary                     — owner/repo pr# @ head OID, vectors run
-## Findings                    — in-scope, PR-introduced: file:line evidence, severity, origin
-## Potential follow-up issues  — pre-existing debt, phrased as suggestions (marked
-                                "pre-existing, out of this PR's scope") for the
-                                developer to open themselves
+## Findings                    — in scope of this PR (introduced or enforced by it;
+                                origin may still be pre-existing): file:line evidence,
+                                severity, origin — to be addressed
+## Potential follow-up issues  — out of this PR's scope, optional, never required:
+                                · recommended — easy / best bang for the buck items,
+                                  worth addressing while the area is open
+                                · downstream — only low-impact + heavy implementation,
+                                  or pre-existing issues this PR did not introduce
 [attribution footer — see below]
 ```
 
+**Scope routes the comment.** `origin` is base-diff evidence, not the routing key. **In scope** = the PR owns the issue: introduced by the PR, or pre-existing on a path the PR's own change now depends on, routes through, or claims to guarantee (a new gate, validation, dependency, standard, or contract claim). **Out of scope** = the PR neither introduces the issue nor depends on/claims that path — a passing touch does not make it enforced. In-scope items go to Findings, to be addressed — never a follow-up suggestion; only out-of-scope items may appear under follow-ups.
+
 - **Never auto-post.** The single draft is operator-gated at the `before_post` pause — mandatory whenever `draft_comment` is enabled — and the operator may edit or veto it.
 - **Lens-trail rows stay in the notebook** (hygiene / quality / yagni) and are never included in the comment.
-- **Issues are suggested, not drafted.** cure-light never composes `gh issue` bodies; the developer opens follow-up issues from the "Potential follow-up issues" section. A `linked` value may be added later, when a developer or operator has created the issue.
+- **Issues are suggested, not drafted.** cure-light never composes `gh issue` bodies; a developer may open follow-up issues from the "Potential follow-up issues" section. A `linked` value may be added later, when a developer or operator has created the issue.
 - **Attribution footer.** The single review comment ends with the cure-light attribution footer, composed **solely from run-manifest values**:
 
   ```text

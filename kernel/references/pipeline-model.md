@@ -27,7 +27,7 @@ Intake → Phase 0 → Vector 1 → Vector 2 → Vector 3 → Output (single rev
 
 1. **One stable subject per review state.** All vectors in a state analyze the same pulled tree (`subject_path` / `subject_oid`, see intake-and-scope.md); a re-pull is a new state — gated by the operator, never in-place. Findings carry the subject OID their evidence was read from.
 2. **Origin classification is mandatory** (pre-existing vs PR-introduced), decided by base-diff.
-3. **Two-axis severity**: impact (HIGH/MED/LOW) × disposition (fix-in-PR / pre-existing-debt / deferred-decision).
+3. **Two-axis severity**: impact (HIGH/MED/LOW) × disposition (fix-in-PR / pre-existing-debt / deferred-decision / track-separately).
 4. **Notebook is the shared memory.** The coordinator writes run frame + findings pages; children return compact evidence records, they do not compete for writes.
 5. **Inconclusive = no pass.** A child timeout/truncation means the finding is unverified, not accepted.
 6. **Fleets are budgeted.** Per-phase child counts, timeouts, output caps, and a cheap re-review path (delta-only) are mandatory.

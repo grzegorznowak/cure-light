@@ -66,8 +66,10 @@ Debt claims are repo-wide by nature ("no consumers", "count the touch points a 2
 The coordinator groups findings:
 
 1. **Concept-level finding + concrete future failure.**
-2. **PR-specific vs pre-existing** segmentation (debt can live on pre-existing flows the PR compounds).
-3. **Disposition**: `fix-in-PR` / `deferred-decision` (recorded, with rationale) / `tracked-separately` (own ticket).
+2. **Scope segmentation** per evidence-format.md (External routing): debt the PR owns (introduced, or its change depends on / routes through / claims the flow) vs pre-existing debt the PR only touches in passing.
+3. **Routing**:
+   - **In scope** → `fix-in-PR` — addressed in this PR, never a follow-up suggestion.
+   - **Out of scope** → `pre-existing-debt` in the comment's follow-up section: `recommended` when easy / best bang for the buck, otherwise a downstream candidate. The row moves to `deferred-decision` (recorded with rationale) or `track-separately` (own ticket) only when that resolution is accepted.
 
 ## Failure to avoid
 

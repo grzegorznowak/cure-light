@@ -83,7 +83,7 @@ Publish a closure table. See closure-verification.md.
 - **Review the pulled subject tree, not the remote tip.** Whatever SHA the pull has is the version reviewed; capture it at Phase 0 and anchor every finding to it.
 - **Subject-first: no orientation before the subject pull.** Until Phase 0 pulls the subject, nothing in the target repo's local checkouts is read or used for orientation — per review state (a deliberate re-pull starts a new state under the same rule). Pre-pull access is remote-only plus presence probes (pi-chhound install checks; the operator's `/ch-status` report at the frame gate confirms the rail); the only pre-pull local git command is the cure-light source provenance capture.
 - **Findings need file:line evidence and a concrete failure mode.** Opinion without evidence does not enter the report.
-- **Pre-existing vs PR-introduced is a first-class classification**, decided by base-diff, not vibes.
+- **Pre-existing vs PR-introduced is a first-class classification**, decided by base-diff, not vibes — and scope routes the comment: introduced-or-enforced items are addressed, never deferred downstream; out-of-scope items are only recommended or suggested.
 - **Never draft external artifacts automatically.** The single review comment is operator-gated; the `before_post` gate is mandatory whenever drafting is enabled.
 - **Deferred is not closed.** Record it in the decisions page with rationale.
 - **Fleets are budgeted.** Cap children, timeouts, output; serialize notebook writes via the coordinator.
