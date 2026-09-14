@@ -2,6 +2,16 @@
 
 ## Unreleased (working tree)
 
+### v0.5.8 — comment scope routing: in-scope (introduced or enforced) is addressed, never auto-downstreamed
+
+**kernel/**
+- `evidence-format.md` — **scope routes the comment**: `origin` (base-diff) is evidence, not the routing key. An item **in scope** — the PR owns it: introduced by the PR, or pre-existing on a path the PR's own change now depends on, routes through, or claims to guarantee — goes to **Findings · to be addressed**, never a follow-up suggestion. `## Potential follow-up issues` is now **out of this PR's scope, optional, never required**, with two row kinds: **recommended** (easy / best bang for the buck — worth addressing while the area is open) and **downstream** (only low-impact + heavy implementation, or pre-existing issues this PR did not introduce). Disposition annotation: `fix-in-PR` = in scope; `pre-existing-debt` = out-of-scope follow-up, moving to `deferred-decision` / `track-separately` only when that resolution is accepted.
+- `implementation-pass.md` / `debt-pass.md` — aggregation rules reworded to the same scope route: in scope → Findings / `fix-in-PR`; out of scope → `pre-existing-debt` — `recommended` or a downstream candidate.
+- `pipeline-model.md` — cross-cutting disposition list now matches the schema (`track-separately` added).
+- `SKILL.md` — operating rule: base-diff classification feeds scope routing; introduced-or-enforced items are addressed, never deferred downstream.
+
+Background: operator direction — the previous split (Findings = PR-introduced, follow-ups = pre-existing debt) automatically pushed every pre-existing item downstream, even ones the PR enforces or makes load-bearing, and framed cheap high-value items the same as heavy low-impact ones. Reworded in place: same three comment sections, no new taxonomy layer; the added text is the scope definition plus the two follow-up row kinds.
+
 ### v0.5.7 — research enforcement: mandatory-if-ready chhound protocols (V2 code-research, V3 search-extensive) + RESEARCH TRACE gate
 
 **kernel/ + assets/**
