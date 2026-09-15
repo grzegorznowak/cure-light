@@ -16,10 +16,11 @@ Read these references completely before establishing a process:
 5. [references/debt-pass.md](references/debt-pass.md) — Vector 3
 6. [references/closure-verification.md](references/closure-verification.md) — the re-review loop
 7. [references/hygiene-lens.md](references/hygiene-lens.md) — the lens dimension: code-hygiene family, deterministic preflight, lens trail
-8. [references/yagni-pass.md](references/yagni-pass.md) — the optional size/YAGNI pass (fresh-context, post-handoff)
-9. [references/quality-lens.md](references/quality-lens.md) — the `quality` lens (V3-owned: maintainable shape, suite strength, consistency)
-10. [references/evidence-format.md](references/evidence-format.md) — finding schema, severity, origin
-11. [references/chhound-driver.md](references/chhound-driver.md) — the chunkhound research rail (pi-chhound plugin): sandbox pull, MCP connect, tool names, discovery-only rule
+8. [references/blast-lens.md](references/blast-lens.md) — the `blast` lens (V2-owned: data × call-site blast radius, advisory rows vs blocking instances)
+9. [references/yagni-pass.md](references/yagni-pass.md) — the optional size/YAGNI pass (fresh-context, post-handoff)
+10. [references/quality-lens.md](references/quality-lens.md) — the `quality` lens (V3-owned: maintainable shape, suite strength, consistency)
+11. [references/evidence-format.md](references/evidence-format.md) — finding schema, severity, origin
+12. [references/chhound-driver.md](references/chhound-driver.md) — the chunkhound research rail (pi-chhound plugin): sandbox pull, MCP connect, tool names, the symbol-sweep preflight recipe, discovery-only rule
 
 Read [libs/pi-driver/SKILL.md](../libs/pi-driver/SKILL.md) only if this runtime provides the pi session notebook; its references define the requirements check and the notebook plan contract.
 

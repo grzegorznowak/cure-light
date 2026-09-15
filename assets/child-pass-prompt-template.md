@@ -18,8 +18,10 @@ YOUR ANGLE: {angle}. Inspect completely and report per
 
 YOUR LENSES: {lenses}. Run each lens checklist from
 its owning reference — hygiene family: kernel/references/hygiene-lens.md; the
-`quality` lens: kernel/references/quality-lens.md; a lens you check and clear
-is explicitly NOT-A-HIT. Hygiene hits go to the lens trail, never the bug table.
+`quality` lens: kernel/references/quality-lens.md; the `blast` lens:
+kernel/references/blast-lens.md; a lens you check and clear
+is explicitly NOT-A-HIT. Advisory lens hits go to the lens trail, never the bug
+table — a concrete `blast` hazard instance is a Vector 2 finding instead.
 
 RESEARCH STEP: then execute the research step per {research_protocol} when the
 slot is present (Vector 2: code-research protocol; Vector 3: search-extensive
@@ -51,7 +53,7 @@ Under {budget} lines.
 | file_list | the assigned files for this surface/split |
 | diff_paths | the focused diff hunks for the surface |
 | angle | the surface (conformance) / sealed invariant (implementation) / bigger concept (debt) |
-| lenses | the lens list this split owns, from the run lens matrix (pipeline-model.md; checklists per owning reference: hygiene-lens.md, quality-lens.md) |
+| lenses | the lens list this split owns, from the run lens matrix (pipeline-model.md; checklists per owning reference: hygiene-lens.md, blast-lens.md, quality-lens.md) |
 | return | from the pass contract: `VERIFIED/GAP/NONE`, `[F] file:line`, `[D] concept` |
 | budget | output-size cap (lines); enforced; truncation = inconclusive |
 | research_protocol | run-manifest `research` block rendered per the variants below (Vector 2: Variant A; Vector 3: Variant C; Vector 1: omitted) |
@@ -190,6 +192,16 @@ code_research-used: true | false
 verified-correlated-sites: <path:line list, or checked-none>
 fallback/error: none | <exact reason>
 ```
+
+### Preflight sweep child (`blast` lens, once per review state)
+
+Before Vector 2, the coordinator spawns one non-vector sweep child with the exact
+Symbol sweep recipe (chhound-driver.md, Symbol sweep): subject tree + `{BASE_OID}` /
+`{SUBJECT_OID}`, the symbols (or the command that extracts them), the exact
+`{ch_daemon_status_tool}` + `{ch_search_tool}` names or `mode: rg`, page-size and
+caps, and the table schema. It returns the compact `symbol | hits | in-diff |
+outside | locations | truncation` table plus provenance — chunk dumps and
+pagination stay inside the child.
 
 ### Shadow control (only when the operator opts in)
 

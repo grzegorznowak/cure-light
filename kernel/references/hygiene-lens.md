@@ -44,7 +44,9 @@ systematically:
 The family is open-ended; `quality` already carries the suite-strength and
 shape checks, and the reserved `test` / `security` schema slots remain
 available for a future split (e.g. a dedicated security lens). The matrix is
-rendered in the run frame so a future expansion is audited.
+rendered in the run frame so a future expansion is audited. Lenses with their
+own references: [quality-lens.md](quality-lens.md) (V3) and
+[blast-lens.md](blast-lens.md) (V2, data × call-site blast radius).
 
 ## Deterministic preflight (mechanical accelerator)
 

@@ -55,11 +55,15 @@ Re-validated rows update their `subject_oid` to the new subject — a row's `sub
 
 ## Lens trail in closure
 
-Hygiene lens hits are classified with the same table; two lens-specific
-notes (see hygiene-lens.md):
+Lens-trail rows (hygiene, `blast`) are classified with the same table; two
+lens-specific notes (see hygiene-lens.md):
 
 - A lens hit that a later head removes is `verified-fixed` only when the lens
   sweep on the new head cites the old→new lines — `closed-by-operator`
   suppression does not make it fixed.
 - Non-fix closures (deferred / closed-by-operator) must not flip `lens-checked`
   to false: the lens remains exercised; only the specific hit was disposed.
+
+A `blast` row's *concrete* hazard instance is a Vector 2 finding and follows
+ordinary finding closure; its advisory rows close like any other lens-trail row
+(blast-lens.md).
