@@ -7,7 +7,7 @@ Every finding in a cure-light run conforms to this shape. It is the interop cont
 ```yaml
 id: <vector-letter><#>            # V1-V3 + seq, e.g. F2-03 or D3-01 (yagni: Y-01)
 vector: conformance | implementation | debt | yagni
-lens: type | dead | read | name | test | security | yagni | quality | none   # optional; see hygiene-lens.md + quality-lens.md
+lens: type | dead | read | name | blast | test | security | yagni | quality | none   # optional; see hygiene-lens.md + blast-lens.md + quality-lens.md
 lens-checked: [<lens>, ...]       # lenses proven exercised on this artifact
 summary: one line
 evidence:
@@ -47,6 +47,7 @@ compiler output — never a silent skip and never a finding-status by itself.
 - **LOW** — brittle, fragile, or coverage-without-assurance; cosmetic; deferred by design.
 - **Yagni rows (`yagni` lens)**: LOW default, MED ceiling — existence questions are advisory (non-blocking); current harm is V2's, future-change cost is V3's.
 - **Quality rows (`quality` lens)**: LOW default, MED only when the quality problem's *own scale* is material — never HIGH, rated independently of product criticality (a spaghetti tree in a payments feature is not elevated because payments is critical); advisory (non-blocking), lens-trail only.
+- **Blast rows (`blast` lens)**: LOW default, MED ceiling — never HIGH, suggestion-only, lens-trail only (blast-lens.md). The *concrete* hazard instance is not a row: it is a Vector 2 finding at its own severity (HIGH possible), and that finding is what blocks.
 
 ## Origin rule (Vector 2+)
 
@@ -67,6 +68,7 @@ Vector-2 and Vector-3 children attach a RESEARCH TRACE footer (implementation-pa
 - Hygiene hits follow the **lens trail** (hygiene-lens.md): detection mandatory, LOW by default, operator-suppressible per instance — they never pollute the bug table.
 - `yagni` rows (yagni pass) follow the same lens trail with the same suppression/closure semantics — suggestion-only, never bug/debt tables.
 - `quality` rows (V3 lens) follow the same lens trail — suggestion-only, rated by the problem's own scale, never bug/debt tables.
+- `blast` rows (V2 lens) follow the same lens trail — suggestion-only, never bug/debt tables; the concrete data-hazard instance routes to the bug table as a Vector 2 finding (blast-lens.md).
 - Evidence is read from the state's **subject tree** at its recorded `subject_oid` (intake-and-scope.md §0.1). Every row carries `subject_oid`; if a child read a different tree, its output is `inconclusive`.
 
 ## Notebook layout
@@ -99,7 +101,7 @@ The single review comment contains:
 **Scope routes the comment.** `origin` is base-diff evidence, not the routing key. **In scope** = the PR owns the issue: introduced by the PR, or pre-existing on a path the PR's own change now depends on, routes through, or claims to guarantee (a new gate, validation, dependency, standard, or contract claim). **Out of scope** = the PR neither introduces the issue nor depends on/claims that path — a passing touch does not make it enforced. In-scope items go to Findings, to be addressed — never a follow-up suggestion; only out-of-scope items may appear under follow-ups.
 
 - **Never auto-post.** The single draft is operator-gated at the `before_post` pause — mandatory whenever `draft_comment` is enabled — and the operator may edit or veto it.
-- **Lens-trail rows stay in the notebook** (hygiene / quality / yagni) and are never included in the comment.
+- **Lens-trail rows stay in the notebook** (hygiene / blast / quality / yagni) and are never included in the comment.
 - **Issues are suggested, not drafted.** cure-light never composes `gh issue` bodies; a developer may open follow-up issues from the "Potential follow-up issues" section. A `linked` value may be added later, when a developer or operator has created the issue.
 - **Attribution footer.** The single review comment ends with the cure-light attribution footer, composed **solely from run-manifest values**:
 

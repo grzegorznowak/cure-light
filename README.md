@@ -16,7 +16,10 @@ and a V1-only shortcut still exercises the mechanical `type`/`dead` preflight
 (pipeline-model.md). An optional **yagni** pass challenges the PR's size and
 speculative surface when the operator enables it (yagni-pass.md), and a
 V3-owned **quality** lens judges maintainable shape, suite strength, and
-consistency by best absolute judgment (quality-lens.md). It is a small OS for the review process itself: pull a dedicated subject tree (chunkhound PR sandbox when the [pi-chhound](https://github.com/grzegorznowak/pi-chunkhound) plugin is present), capture its SHA, spawn scoped fleets,
+consistency by best absolute judgment (quality-lens.md); a V2-owned **blast**
+lens asks what existing data and call sites will meet the change — uninspected
+call-site sweeps, storage-engine comparison semantics, artificial-row triggers
+proven by fixture rather than by reading (blast-lens.md). It is a small OS for the review process itself: pull a dedicated subject tree (chunkhound PR sandbox when the [pi-chhound](https://github.com/grzegorznowak/pi-chunkhound) plugin is present), capture its SHA, spawn scoped fleets,
 and re-pull deliberately for the next review state — not the whole pipeline.
 
 ## Layout
@@ -27,7 +30,7 @@ cure-light/
 ├── kernel/                   ← the review method (the master skill)
 │   ├── SKILL.md              ← dispatcher: phases, gates, rules
 │   └── references/           ← pipeline-model, intake, the 3 pass contracts,
-│                               hygiene-lens, yagni-pass, quality-lens, closure-verification,
+│                               hygiene-lens, blast-lens, yagni-pass, quality-lens, closure-verification,
 │                               evidence-format, chhound-driver
 ├── libs/pi-driver/           ← pi binding (notebook + handoff + model-groups)
 │   ├── SKILL.md
@@ -99,8 +102,9 @@ Vector 1 without re-reading the kernel. See `libs/pi-driver/SKILL.md`.
 - **Deferred is not closed.** Recorded, with rationale — never presented as an
   engineering fix.
 - **Statuses / opinion excluded.** Findings need file:line + concrete failure
-  mode; hygiene hits route to the lens trail (LOW, operator-suppressible), never
-  pollute the bug trail — but the lens *itself* is always checked, never skipped.
+  mode; lens hits (hygiene, blast) route to the lens trail (LOW,
+  operator-suppressible), never pollute the bug trail — but every active lens is
+  always rendered in the matrix and checked, never silently skipped.
 - **One comment per run, operator-gated.** Finalization drafts one aggregated
   review comment when the operator enables `draft_comment`; the `before_post`
   gate is enforced whenever drafting is on. After a deliberate re-pull, closure

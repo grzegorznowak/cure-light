@@ -75,13 +75,15 @@ origin: PR-introduced | pre-existing (base evidence: <base:<path>:<line>)
 
 - Label `NOT-A-BUG` when a suspected bug is checked and dismissed (cheap, honest).
 
-## Hygiene lenses owned here
+## Lenses owned here
 
 Vector 2 owns the **`read` lens** (readability / statement density) — see [hygiene-lens.md](hygiene-lens.md). Concretely:
 
 - Each split names the `read` checks it exercised and marks `NOT-A-HIT` when clear — a lens not named is a frame error, never silence.
 - A one-line expression packing several side effects, or a branch whose intent is not spottable in a glance = a `read` lens hit (LOW, lens trail). Naming/shape-lies belong to the `name` lens (owned by Vector 3), not `read`.
 - Dense-but-repo-idiomatic code is a `NOT-A-HIT`, not a hit — the repo's own style is the baseline, never an invented one.
+
+Vector 2 also owns the **`blast` lens** outright (data × call-site blast radius — [blast-lens.md](blast-lens.md)). Every split records its five rows — `data` / `sweep` / `semantics` / `fixture` / `gates` — as `hit` / `NOT-A-HIT` / `n/a-with-reason`; a data-free diff records one whole-lens `n/a`. The rows are **advisory** (lens trail, LOW default, MED ceiling, never HIGH); a *concrete* hazard instance — a named query or comparison site that breaks for a named existing data state — is a **bug-table finding at its own severity**, and that finding is what blocks, never the lens.
 
 **Style rule reconciled**: hygiene findings are *detected* by Vector 2 splits but do not enter the bug table — they route to the lens trail with LOW default severity and are operator-suppressible per instance. What the old rule forbade is *unrouted style noise in bug findings*; it never forbade systematic detection.
 
@@ -94,7 +96,7 @@ The coordinator segments findings into:
    - **Out of scope** → an optional follow-up row: `recommended` when easy / best bang for the buck, otherwise a downstream candidate (low-impact + heavy, or pre-existing and not introduced by the PR).
 2. **Deferred** → recorded on the decisions page with rationale; never presented as fixed.
 
-Hygiene lens hits (from the section above) are aggregated **separately** into the lens trail of the findings page — not merged into the bug table — and each stays operator-gated.
+Lens-trail rows (hygiene + `blast`, from the section above) are aggregated **separately** into the lens trail of the findings page — not merged into the bug table — and each stays operator-gated.
 
 Also produce the **pre-existing vs PR-introduced summary** — the operator needs to see directly which debt the PR itself owes (introduced or enforced) and which it merely inherits.
 

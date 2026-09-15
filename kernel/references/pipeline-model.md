@@ -51,7 +51,7 @@ Authority rules (bind all vectors):
 
 ## The lens dimension (cross-cutting coverage)
 
-Vectors ask **one big question**; lenses ask small, repeatable checks the fleet must not be allowed to skip just because a child got assigned a different angle. A lens has an owner (≥1 pass exercises it), a checklist, a route, and an optional deterministic accelerator. The code-hygiene family — the stage-3 gap from our phase-2 lens comparison — is defined in [hygiene-lens.md](hygiene-lens.md).
+Vectors ask **one big question**; lenses ask small, repeatable checks the fleet must not be allowed to skip just because a child got assigned a different angle. A lens has an owner (≥1 pass exercises it), a checklist, a route, and an optional deterministic accelerator. The code-hygiene family — the stage-3 gap from our phase-2 lens comparison — is defined in [hygiene-lens.md](hygiene-lens.md). Non-hygiene lenses carry their own references: the V3-owned `quality` lens ([quality-lens.md](quality-lens.md)) and the V2-owned `blast` lens — data × call-site blast radius ([blast-lens.md](blast-lens.md)).
 
 Every run manifest renders a **lens matrix** — a closed table of lens × owning passes:
 
@@ -62,6 +62,7 @@ type    | deterministic preflight | yes       | lens
 dead    | preflight + v3        | yes       | lens
 read    | v2 split + v3 split   | no        | lens
 name    | v3 split              | no        | lens (NOT-A-HIT when clear)
+blast   | preflight + v2 split  | partial   | lens
 yagni   | yagni pass (when active) | no    | lens
 quality | v3 split              | no        | lens
 ```
@@ -75,6 +76,10 @@ Rules:
 5. **`quality` is advisory** (quality-lens.md): LOW default, MED only when the
    quality problem's own scale is material, never HIGH, rated independently of
    product criticality — suggestion-only on the lens trail.
+6. **`blast` rows are advisory, its instances are findings** (blast-lens.md): row
+   hits follow the lens trail (LOW default, MED ceiling, never HIGH); a concrete
+   data-hazard instance routes to the bug table as a Vector 2 finding at its own
+   severity — the lens finds the class, the finding is what blocks.
 
 ## Optional pass: yagni (size / YAGNI)
 
