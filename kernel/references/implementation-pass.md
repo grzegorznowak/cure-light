@@ -83,7 +83,7 @@ Vector 2 owns the **`read` lens** (readability / statement density) — see [hyg
 - A one-line expression packing several side effects, or a branch whose intent is not spottable in a glance = a `read` lens hit (LOW, lens trail). Naming/shape-lies belong to the `name` lens (owned by Vector 3), not `read`.
 - Dense-but-repo-idiomatic code is a `NOT-A-HIT`, not a hit — the repo's own style is the baseline, never an invented one.
 
-Vector 2 also owns the **`blast` lens** — data × call-site blast radius: the deterministic preflight runs the once-per-state symbol sweep, and each split records its four judgment rows (`data` / `semantics` / `fixture` / `gates`) as `hit` / `NOT-A-HIT` / `n/a-with-reason`, consuming the sweep table for `sweep` ([blast-lens.md](blast-lens.md)). Rows are **advisory** (lens trail, LOW default, MED ceiling, never HIGH); a *concrete* hazard instance is a **bug-table finding at its own severity**, and that finding is what blocks, never the lens.
+Vector 2 also owns the **`blast` lens** — data × call-site blast radius: the preflight runs the once-per-state symbol sweep, and each split records its four judgment rows (`data` / `semantics` / `fixture` / `gates`) as `hit` / `NOT-A-HIT` / `n/a-with-reason`, consuming the sweep table for `sweep` ([blast-lens.md](blast-lens.md)). Rows are **advisory**; a *concrete* hazard instance is a **bug-table finding at its own severity**, and that finding is what blocks, never the lens.
 
 **Style rule reconciled**: hygiene findings are *detected* by Vector 2 splits but do not enter the bug table — they route to the lens trail with LOW default severity and are operator-suppressible per instance. What the old rule forbade is *unrouted style noise in bug findings*; it never forbade systematic detection.
 

@@ -25,11 +25,9 @@ instance is a finding** (see Routing).
   reason. A Vector-1-only run leaves the lens inactive (`off` in the matrix) —
   the coverage assertion binds active lenses only (pipeline-model.md).
 - **Trail discipline:** unless the cited run-level whole-lens `n/a` applies, each
-  split records every **owned** row as `hit` / `NOT-A-HIT` / `n/a-with-reason`, and
-  the `sweep` outcome is recorded from the preflight table — a required outcome not
-  recorded is a frame error (`inconclusive`), exactly like an unnamed lens
-  (implementation-pass.md). Compact per-row trail, so checklist execution is
-  provable, not just the lens (same discipline as `quality`, quality-lens.md).
+  split records every **owned** row as `hit` / `NOT-A-HIT` / `n/a-with-reason`;
+  the preflight records `sweep`. A required outcome not recorded is a frame error
+  (`inconclusive`), exactly like an unnamed lens (implementation-pass.md).
 
 ## The five rows
 
@@ -64,12 +62,11 @@ Reading finds the hazard **class**; only a fixture proves the **instance**.
 ## Determinism
 
 The `sweep` row is mechanical: the preflight recipe produces the once-per-state
-table (chhound-driver.md, Symbol sweep — the rail's `search`, `rg` as the
-documented fallback), and the matrix renders the lens `yes (sweep)`. `semantics`
-and `gates` are reads of files that exist on the subject tree (schema /
-migration definitions, CI and analyzer config). `data` and `fixture` are fleet
-judgment. A sweep that cannot run marks the lens `inconclusive-mechanical` in
-the trail (evidence-format.md) — never a silent skip.
+table (chhound-driver.md, Symbol sweep — rail `search`, `rg` fallback), which
+the matrix renders `yes (sweep)`. `semantics` / `gates` read subject-tree files
+(schema/migration definitions, CI and analyzer config); `data` / `fixture` are
+fleet judgment. A sweep that cannot run is `inconclusive-mechanical` in the
+trail (evidence-format.md) — never a silent skip.
 
 ## Boundaries (dedupe map)
 

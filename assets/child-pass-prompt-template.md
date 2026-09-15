@@ -195,13 +195,13 @@ fallback/error: none | <exact reason>
 
 ### Preflight sweep child (`blast` lens, once per review state)
 
-Not a vector split: the coordinator spawns one sweep child before the Vector 2
-splits and hands it the exact recipe (chhound-driver.md, Symbol sweep). Its prompt
-fixes: the subject tree + `{BASE_OID}` / `{SUBJECT_OID}`, the extracted symbol set
-(or the bash command that builds it), the exact `{ch_daemon_status_tool}` +
-`{ch_search_tool}` names or `mode: rg`, the page-size and caps, and the table schema. It returns only the
-compact `symbol | hits | in-diff | outside | locations | truncation` table plus
-provenance — chunk dumps and pagination stay inside the child.
+Before Vector 2, the coordinator spawns one non-vector sweep child with the exact
+Symbol sweep recipe (chhound-driver.md, Symbol sweep): subject tree + `{BASE_OID}` /
+`{SUBJECT_OID}`, the symbols (or the command that extracts them), the exact
+`{ch_daemon_status_tool}` + `{ch_search_tool}` names or `mode: rg`, page-size and
+caps, and the table schema. It returns the compact `symbol | hits | in-diff |
+outside | locations | truncation` table plus provenance — chunk dumps and
+pagination stay inside the child.
 
 ### Shadow control (only when the operator opts in)
 

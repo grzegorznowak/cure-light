@@ -57,7 +57,7 @@ Each vector's fleet splits the contract surface. Example split for a model-group
 
 Slice granularity is chosen so each child reads a bounded file set + the relevant CONTRACT slice, and returns under a defined evidence budget.
 
-The lens matrix (hygiene-lens.md) is compiled here and validated: every active lens must map to ≥1 owner. Deterministic preflight (strict tsc / lint) is scheduled as the cheap sweep for the `type` lens and accelerant for `dead`; the `blast` symbol sweep runs there too — once per state, artifact `symbol_sweep`, recipe in chhound-driver.md (Symbol sweep) — and the V2 splits consume it (blast-lens.md).
+The lens matrix (hygiene-lens.md) is compiled here and validated: every active lens must map to ≥1 owner. Deterministic preflight (strict tsc / lint) is the `type` sweep and `dead` accelerant; it also produces `blast`'s once-per-state `symbol_sweep`, consumed by the V2 splits (recipe: chhound-driver.md, Symbol sweep).
 
 ## 0.4 Operator gates
 
