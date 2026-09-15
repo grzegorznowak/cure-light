@@ -77,9 +77,8 @@ Rules:
    quality problem's own scale is material, never HIGH, rated independently of
    product criticality — suggestion-only on the lens trail.
 6. **`blast` rows are advisory, its instances are findings** (blast-lens.md): row
-   hits follow the lens trail (LOW default, MED ceiling, never HIGH); a concrete
-   data-hazard instance routes to the bug table as a Vector 2 finding at its own
-   severity — the lens finds the class, the finding is what blocks.
+   hits follow the lens trail; a concrete data-hazard instance routes to the bug
+   table as a Vector 2 finding at its own severity.
 
 ## Optional pass: yagni (size / YAGNI)
 

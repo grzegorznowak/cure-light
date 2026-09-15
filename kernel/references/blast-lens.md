@@ -65,9 +65,8 @@ judgment. A sweep that cannot run marks the lens `inconclusive-mechanical` in
 the trail (evidence-format.md) — never a silent skip. The matrix renders the
 lens as `partial` (only some rows have a mechanical accelerator).
 
-Sweep rules follow the hygiene preflight (hygiene-lens.md): reuse the repo's own
-tooling and config, never install or auto-build, and a mechanical result is
-evidence to classify with the base-diff rule — not guilt by itself.
+Sweep rules follow the hygiene preflight (hygiene-lens.md) — the repo's own
+tooling, no installs.
 
 ## Boundaries (dedupe map)
 

@@ -47,7 +47,7 @@ compiler output — never a silent skip and never a finding-status by itself.
 - **LOW** — brittle, fragile, or coverage-without-assurance; cosmetic; deferred by design.
 - **Yagni rows (`yagni` lens)**: LOW default, MED ceiling — existence questions are advisory (non-blocking); current harm is V2's, future-change cost is V3's.
 - **Quality rows (`quality` lens)**: LOW default, MED only when the quality problem's *own scale* is material — never HIGH, rated independently of product criticality (a spaghetti tree in a payments feature is not elevated because payments is critical); advisory (non-blocking), lens-trail only.
-- **Blast rows (`blast` lens)**: LOW default, MED ceiling — never HIGH, suggestion-only, lens-trail only (blast-lens.md). The *concrete* hazard instance is not a row: it is a Vector 2 finding at its own severity (HIGH possible), and that finding is what blocks.
+- **Blast rows (`blast` lens)**: LOW default, MED ceiling — never HIGH, suggestion-only; the concrete hazard instance is a Vector 2 finding at its own severity (blast-lens.md).
 
 ## Origin rule (Vector 2+)
 
