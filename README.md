@@ -19,7 +19,9 @@ V3-owned **quality** lens judges maintainable shape, suite strength, and
 consistency by best absolute judgment (quality-lens.md); a V2-owned **blast**
 lens asks what existing data and call sites will meet the change — uninspected
 call-site sweeps, storage-engine comparison semantics, artificial-row triggers
-proven by fixture rather than by reading (blast-lens.md). It is a small OS for the review process itself: pull a dedicated subject tree (chunkhound PR sandbox when the [pi-chhound](https://github.com/grzegorznowak/pi-chunkhound) plugin is present), capture its SHA, spawn scoped fleets,
+proven by fixture rather than by reading (blast-lens.md) — its mechanical
+call-site sweep runs as a preflight recipe over the chunkhound rail (`rg`
+fallback), classifying every hit as in-diff or outside (chhound-driver.md). It is a small OS for the review process itself: pull a dedicated subject tree (chunkhound PR sandbox when the [pi-chhound](https://github.com/grzegorznowak/pi-chunkhound) plugin is present), capture its SHA, spawn scoped fleets,
 and re-pull deliberately for the next review state — not the whole pipeline.
 
 ## Layout

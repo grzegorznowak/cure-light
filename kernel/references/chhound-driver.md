@@ -68,6 +68,46 @@ baseline and top-up can lag the checkout — so:
 - a research tool that errors or returns stale-looking results is a fallback trigger
   (git/rg), never a finding on its own.
 
+## Symbol sweep
+
+A changed shared sentinel / constant / identifier is an API-wide change: the `blast` lens's
+`sweep` row needs every consumer enumerated, and the **deterministic preflight** produces
+that enumeration once per review state as the manifest's `symbol_sweep` artifact
+(blast-lens.md / intake-and-scope.md). A **dedicated sweep child** executes it — chunk
+dumps, pagination, and noise stay inside that child, which returns the table only.
+
+1. **Extract the symbol set** — bash on the subject tree: `git diff -U0 <base_oid>..<subject_oid>`
+   gives the per-file changed line ranges and the identifiers on added/removed lines.
+   Drop language keywords and names shorter than 3 characters, dedupe, cap at ≈30–40
+   (record drops), and lead with any explicit symbols the operator supplied (manifest
+   `symbol_sweep_symbols`, or the sweep-child prompt). Keep the changed ranges for step 3.
+2. **Probe per symbol, never batched** (one symbol per query keeps every hit attributable).
+   Call `{ch_prefix}_daemon_status` once; if not `query_ready`, or the rail is absent, go
+   to step 5. For each symbol call `{ch_prefix}_search` with `type: regex`, query
+   `\b<symbol>\b` (RE2; escape metacharacters), `page_size: 3–5`. The hit count is the
+   footer's `of <total>` — **chunks, not occurrences**. Page further whenever `total`
+   exceeds the fetched results, capped (e.g. ≤3 pages per symbol, ≤15 extra pages total),
+   prioritizing symbols showing `outside` hits; an unfetched remainder is uninspected —
+   it goes in the truncation note and cannot clear the `sweep` row.
+3. **Classify against the diff** — a hit chunk whose `Lx–Ly` range intersects a changed
+   range for the same file is `in-diff`, else `outside`. Chunk granularity is coarse: a
+   chunk spanning both counts `in-diff` (under-counts outside use, never over-counts) and
+   can be re-read in the tree.
+4. **Table** — the artifact, provenance-stamped `chunkhound index, review state
+   <subject_oid>` or `mode: rg`. The stamp records the state, not a freshness guarantee
+   — the index carries no SHA provenance (Evidence rule), so the truncation note
+   carries the honesty:
+
+   ```text
+   symbol | hits | in-diff | outside | outside locations (capped) | truncation note
+   ```
+
+   Every `outside` hit is accounted for by the owning V2 split: verified as a consumer
+   (a lead — tree-verified like any index output, Evidence rule), or listed as uninspected
+   → the in-scope finding route (blast-lens.md).
+5. **No confirmed rail → `mode: rg`** — the same steps with `rg -n -w` over the subject
+   tree, marked in the table; `mode: rg` never invokes a `chh_*` namespace.
+
 ## Fallbacks (never block)
 
 - Rail unconfirmed (install detection negative, or the operator's `/ch-status` report shows no rail) → plain-worktree pull (intake-and-scope.md §0.1).

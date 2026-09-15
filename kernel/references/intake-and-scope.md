@@ -52,12 +52,12 @@ Rule: the contract is the PR's own words plus the issue's locked decisions — n
 Each vector's fleet splits the contract surface. Example split for a model-group/spawn PR:
 
 - conformance: derivation core · persistence/schema guard · spawn/router gate · main-session+TUI · tests
-- implementation: sealed concepts the review already established (never open-ended), + **`read` and `blast` lens ownership** (the `blast` sweep's mechanical part runs in the deterministic preflight)
+- implementation: sealed concepts the review already established (never open-ended), + **`read` lens and the `blast` judgment rows** (the once-per-state sweep runs in the deterministic preflight)
 - debt: pluggability · boundary ownership · versioning/migrations · projections · perf/operability, + **`dead`/`name`/`quality` lens ownership**
 
 Slice granularity is chosen so each child reads a bounded file set + the relevant CONTRACT slice, and returns under a defined evidence budget.
 
-The lens matrix (hygiene-lens.md) is compiled here and validated: every active lens must map to ≥1 owner. Deterministic preflight (strict tsc / lint) is scheduled as the cheap sweep for the `type` lens and accelerant for `dead`; the `blast` sentinel/constant sweep is scheduled there too (blast-lens.md).
+The lens matrix (hygiene-lens.md) is compiled here and validated: every active lens must map to ≥1 owner. Deterministic preflight (strict tsc / lint) is scheduled as the cheap sweep for the `type` lens and accelerant for `dead`; the `blast` symbol sweep runs there too — once per state, artifact `symbol_sweep`, recipe in chhound-driver.md (Symbol sweep) — and the V2 splits consume it (blast-lens.md).
 
 ## 0.4 Operator gates
 
@@ -79,6 +79,8 @@ changed_files: [...]
 contract_ref: contract-<owner>-<pr>   # notebook page (pi); disk path in fallback runs
 notebook (when available): pipeline-frame-<owner>-<pr> + contract-<owner>-<pr> + pr-<n>-review   # per review state
 lens_matrix: {type: preflight, dead: preflight+v3, read: v2+v3, name: v3, blast: preflight+v2, quality: v3}   # see hygiene-lens.md + blast-lens.md + quality-lens.md
+symbol_sweep: <artifact ref — preflight table; mode: chhound-rail | rg>   # recipe in chhound-driver.md (Symbol sweep); produced before the V2 splits consume it
+symbol_sweep_symbols: [..]   # optional: explicit identifiers the operator adds to the extracted sweep set
 research: {mode: chhound-rail | direct-tree, ch_prefix: <chh_pr<n> | none>, excluded: [<other live chh_* prefixes>], v2_protocol: code-research-if-ready, v3_protocol: search-extensive-if-ready, shadow: off}   # protocols in implementation-pass.md + debt-pass.md; shadow on only by explicit operator choice
 cure_light_source_head_oid: <cure-light source HEAD at intake>   # review provenance, frozen once (see evidence-format.md)
 ```

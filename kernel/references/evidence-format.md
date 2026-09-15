@@ -90,6 +90,11 @@ The single review comment contains:
 ## Findings                    — in scope of this PR (introduced or enforced by it;
                                 origin may still be pre-existing): file:line evidence,
                                 severity, origin — to be addressed
+## Symbol impact               — the preflight sweep table, when the diff changes a
+                                shared sentinel / identifier: top rows by outside-use
+                                count, provenance (index query at review state
+                                `<subject_oid>` | rg), caps —
+                                mechanical evidence, never a lens-row judgment
 ## Potential follow-up issues  — out of this PR's scope, optional, never required:
                                 · recommended — easy / best bang for the buck items,
                                   worth addressing while the area is open
@@ -101,7 +106,7 @@ The single review comment contains:
 **Scope routes the comment.** `origin` is base-diff evidence, not the routing key. **In scope** = the PR owns the issue: introduced by the PR, or pre-existing on a path the PR's own change now depends on, routes through, or claims to guarantee (a new gate, validation, dependency, standard, or contract claim). **Out of scope** = the PR neither introduces the issue nor depends on/claims that path — a passing touch does not make it enforced. In-scope items go to Findings, to be addressed — never a follow-up suggestion; only out-of-scope items may appear under follow-ups.
 
 - **Never auto-post.** The single draft is operator-gated at the `before_post` pause — mandatory whenever `draft_comment` is enabled — and the operator may edit or veto it.
-- **Lens-trail rows stay in the notebook** (hygiene / blast / quality / yagni) and are never included in the comment.
+- **Lens-trail rows stay in the notebook** (hygiene / blast / quality / yagni) and are never included in the comment; the one exception is the mechanical `Symbol impact` table — mechanical counts with provenance and caps (chhound-driver.md, Symbol sweep), never a row's advisory judgment.
 - **Issues are suggested, not drafted.** cure-light never composes `gh issue` bodies; a developer may open follow-up issues from the "Potential follow-up issues" section. A `linked` value may be added later, when a developer or operator has created the issue.
 - **Attribution footer.** The single review comment ends with the cure-light attribution footer, composed **solely from run-manifest values**:
 
