@@ -40,7 +40,7 @@ Cure-light treats the chhound research rail (chhound-driver.md) as an **accelera
 - `research.mode: chhound-rail` — the rail is confirmed and Phase 0 pulls the subject as a chunkhound PR sandbox whose own index is bound under the frame's prefix `chh_pr<n>`. The manifest records the prefix and the exact tool names (`{ch_prefix}_daemon_status`, `{ch_prefix}_code_research`, `{ch_prefix}_search`) and lists every other live `chh_*` prefix as excluded.
 - `research.mode: direct-tree` — plain detached worktree (rail unconfirmed/broken). The run proceeds with git/rg/read; the fallback is explicit in the manifest, never silent.
 
-Vector 2 enforces subsystem research **mandatory-if-ready and uniform across every split — including test-integrity concepts** (deeper subsystem understanding yields better insights regardless of split type): one scoped `code_research` orientation question per sealed invariant, then at least one `search` pinpoint, then tree verification. Vector 3 enforces a **search-extensive** protocol — `search` leads every concept and lens sweep (repo-wide claims need logged searches); `code_research` may orient but is never required there. The per-child prompt slots, workflows, and the mandatory RESEARCH TRACE footer are defined in [implementation-pass.md](implementation-pass.md), [debt-pass.md](debt-pass.md) and [child-pass-prompt-template.md](../../assets/child-pass-prompt-template.md).
+Vector 2 enforces subsystem research **mandatory-if-ready and uniform across every split — including test-integrity concepts** (deeper subsystem understanding yields better insights regardless of split type): one scoped `code_research` orientation question per sealed invariant, then at least one `search` pinpoint, then tree verification. Vector 3 enforces a **search-extensive** protocol — children read the state's symbol map (`symbol_sweep`, chhound-driver.md) first as a lead inventory, then `search` leads every concept and lens sweep (repo-wide claims need logged searches); `code_research` may orient but is never required there. The per-child prompt slots, workflows, and the mandatory RESEARCH TRACE footer are defined in [implementation-pass.md](implementation-pass.md), [debt-pass.md](debt-pass.md) and [child-pass-prompt-template.md](../../assets/child-pass-prompt-template.md).
 
 Authority rules (bind all vectors):
 
@@ -79,7 +79,7 @@ Rules:
 6. **`blast` rows are advisory, its instances are findings** (blast-lens.md): row
    hits follow the lens trail; a concrete data-hazard instance routes to the bug
    table as a Vector 2 finding at its own severity; the preflight's mechanical
-   sweep table may surface as the comment's `Symbol impact` section
+   symbol map may surface as the comment's `Symbol impact` section
    (chhound-driver.md / evidence-format.md).
 
 ## Optional pass: yagni (size / YAGNI)

@@ -44,6 +44,8 @@ Each child receives: contract context, the relevant architecture files + diff, a
 
 Debt claims are repo-wide by nature ("no consumers", "count the touch points a 2nd type needs", "re-declared elsewhere") — when `research.mode = chhound-rail` (sandbox index under the frame's prefix `chh_pr<n>`), the exact `{ch_prefix}_search` tool is Vector 3's **default lead generator** and is used extensively:
 
+Before the first search, read the run's **symbol map** (`symbol_sweep` artifact — chhound-driver.md, Symbol sweep): the diff symbols' occurrence census and usage heat, shared with this vector as a lead inventory. It is a convenience, not an exemption — the census covers the selected diff symbols only (literal-name occurrences, not resolved symbols), and the search requirements below are unchanged.
+
 - For every owned concept and lens, lead with the exact `{ch_prefix}_search` tool — regex queries for concrete symbols/patterns (usage sites, imports, duplicated literals/keys/version numbers), semantic queries for concept-level correlation (touch points for a second constraint, sites reading a config key, candidate consumers of a surface). Iterate: refine queries from hits instead of stopping at the first result.
 - Minimum per child: **at least two distinct search calls per owned concept/lens**, and every repo-wide claim (usage counts, absence of consumers, vocabulary duplication) must be preceded by a logged search attempt.
 - `{ch_prefix}_code_research` may be used for architecture orientation when a concept needs it; it is never required here.

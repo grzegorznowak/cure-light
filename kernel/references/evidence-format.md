@@ -74,6 +74,7 @@ Vector-2 and Vector-3 children attach a RESEARCH TRACE footer (implementation-pa
 ## Notebook layout
 
 - `pipeline-frame-<owner>-<pr>` — frozen run options, base OID, planned subject mechanism; the manifest's tree fields (`subject_path` / `subject_oid`, changed-file list) are recorded at the Phase 0 gate (notebook-plan-contract.md). Written at seal, completed at Phase 0.
+- `symbol-map-<owner>-<pr>-s<n>` — the preflight symbol map (chhound-driver.md, Symbol sweep): selected symbols, census heat table, capped outside locations, provenance/caps. One per review state; a bounded state cache kept while the state's consumers run (V2 sweep, V3 seed, yagni), discarded when the state closes.
 - `pr-<n>-review` — findings table (schema rows) + closure table. Appended per vector.
 - `decisions` (durable, survives the PR) — deferred-decision and closed-by-operator records with author/time/rationale/scope, plus the leading subarea open questions.
 
@@ -90,11 +91,13 @@ The single review comment contains:
 ## Findings                    — in scope of this PR (introduced or enforced by it;
                                 origin may still be pre-existing): file:line evidence,
                                 severity, origin — to be addressed
-## Symbol impact               — the preflight sweep table, when the diff changes a
-                                shared sentinel / identifier: top rows by outside-use
-                                count, provenance (index query at review state
-                                `<subject_oid>` | rg), caps —
-                                mechanical evidence, never a lens-row judgment
+## Symbol impact               — the preflight symbol map, when the diff changes a
+                                shared sentinel / identifier: top rows by outside-
+                                occurrence count (census over the declared scope at
+                                `<subject_oid>`), provenance, caps — mechanical
+                                counts only, never triage labels, heuristic splits,
+                                verdicts, or a claim that unread remainders were
+                                cleared; never a lens-row judgment
 ## Potential follow-up issues  — out of this PR's scope, optional, never required:
                                 · recommended — easy / best bang for the buck items,
                                   worth addressing while the area is open
@@ -106,7 +109,7 @@ The single review comment contains:
 **Scope routes the comment.** `origin` is base-diff evidence, not the routing key. **In scope** = the PR owns the issue: introduced by the PR, or pre-existing on a path the PR's own change now depends on, routes through, or claims to guarantee (a new gate, validation, dependency, standard, or contract claim). **Out of scope** = the PR neither introduces the issue nor depends on/claims that path — a passing touch does not make it enforced. In-scope items go to Findings, to be addressed — never a follow-up suggestion; only out-of-scope items may appear under follow-ups.
 
 - **Never auto-post.** The single draft is operator-gated at the `before_post` pause — mandatory whenever `draft_comment` is enabled — and the operator may edit or veto it.
-- **Lens-trail rows stay in the notebook** (hygiene / blast / quality / yagni) and are never included in the comment; the one exception is the mechanical `Symbol impact` table — mechanical counts with provenance and caps (chhound-driver.md, Symbol sweep), never a row's advisory judgment.
+- **Lens-trail rows stay in the notebook** (hygiene / blast / quality / yagni) and are never included in the comment; the one exception is the mechanical `Symbol impact` table — outside-occurrence counts with census scope, provenance, and caps (chhound-driver.md, Symbol sweep), never a row's advisory judgment.
 - **Issues are suggested, not drafted.** cure-light never composes `gh issue` bodies; a developer may open follow-up issues from the "Potential follow-up issues" section. A `linked` value may be added later, when a developer or operator has created the issue.
 - **Attribution footer.** The single review comment ends with the cure-light attribution footer, composed **solely from run-manifest values**:
 

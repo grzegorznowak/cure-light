@@ -2,10 +2,16 @@
 
 ## Unreleased (working tree)
 
-### v0.5.10 — symbol sweep coverage census: `rg` enumerates every occurrence, the chunkhound sample is triage
+### v0.5.10 — the symbol map: the preflight builds one shared usage artifact (census + heat), reused by V2 blast, V3 debt, yagni, and the comment
 
 **kernel/**
-- `chhound-driver.md` (§Symbol sweep) — the paginated rail sample is **triage, not coverage**: its caps bound how many enclosing chunks the sweep reads to judge ingest-worthiness, are recorded in the truncation note, and never bound what must be inspected. A **coverage census** (`rg -n -w`, one pass over the subject tree) always runs and is the row's coverage claim: the `sweep` row clears only when every occurrence is triaged from a fetched chunk or listed as uninspected → the in-scope finding route. Reading the tree, the census stays subject-accurate even when the index lags; `mode: rg` falls back to line-read triage. Table columns unchanged.
+- `chhound-driver.md` (§Symbol sweep) — the artifact is the review state's **symbol map**: the diff-extracted symbol set plus a complete occurrence **census** (`rg -n -w` over the tracked files at `subject_oid`; scope/exclusions, match unit, and completion recorded; literal names, not resolved symbols) plus a bounded heat table `symbol | change | total | in-diff | outside | outside locations (capped) | note`. The paginated chunkhound sample is **triage, not coverage**: the `sweep` row clears only when every occurrence is tree-read and accounted or routed as an uninspected finding — chunk triage is navigation, never clearance. Stored at `symbol-map-<owner>-<pr>-s<n>` (one per review state; scratch file in fallback runs); caps bounded, drill-down via the recorded census command.
+- `blast-lens.md` / `intake-and-scope.md` / `pipeline-model.md` / `implementation-pass.md` — the symbol map is the manifest's `symbol_sweep` artifact; the consumers are named (V2 `sweep` row, V3 debt seed, the yagni pass) without changing lens ownership or the matrix; the comment's `Symbol impact` renders the map.
+- `debt-pass.md` / `yagni-pass.md` / `assets/child-pass-prompt-template.md` — V3 and yagni children read the map before their own work (leads only; V3's search-extensive protocol is unchanged — no search-credit carve-out); yagni treats an outside-empty row as a candidate hint, never an unused verdict.
+- `evidence-format.md` — `Symbol impact` renders outside-occurrence counts with census scope/provenance/caps (no triage labels, heuristic splits, verdicts, or unread-remainder clearance claims); the state's map page joins the Notebook layout.
+- `closure-verification.md` — a closure render regenerates the new state's census (or omits `Symbol impact`); old-state counts are never carried forward.
+- `libs/pi-driver/references/notebook-plan-contract.md` — the state-qualified map page: a bounded cache kept through the state's consumers.
+- `README.md` — the blast-lens paragraph names the shared symbol map.
 
 ### v0.5.9 — the `blast` lens: data × call-site blast radius + the chunkhound symbol sweep (V2-owned; advisory rows, blocking instances)
 
