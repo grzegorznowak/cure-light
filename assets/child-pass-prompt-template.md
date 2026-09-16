@@ -10,6 +10,10 @@ You are a {vector} review agent in a fleet. The review subject tree is
 record it on every finding row).
 
 THIRD: read the contract from {contract_ref} (the relevant section only).
+THEN READ the state's symbol map at {symbol_map_ref} when the slot is present
+(V2/V3/yagni) — the diff symbols' occurrence census and usage heat. Leads only:
+re-read every cited line in the subject tree at {SUBJECT_OID}, and let no map row
+decide a consumer or a verdict.
 Then read the assigned files: {file_list}.
 Then read the diff slices for your surface: {diff_paths} (base..subject).
 
@@ -50,6 +54,7 @@ Under {budget} lines.
 | SUBJECT_OID | run manifest subject_oid |
 | owner/repo | the review target `<owner>/<repo>` (intake `owner/repo`) — Variants A/C subject description |
 | contract_ref | run-manifest `contract_ref`: the notebook page `contract-<owner>-<pr>` (pi runs) or the disk CONTRACT slice (fallback runs) |
+| symbol_map_ref | run manifest `symbol_sweep` — the state's symbol map ref (notebook page `symbol-map-<owner>-<pr>-s<n>` on pi runs; scratch path in fallback runs) |
 | file_list | the assigned files for this surface/split |
 | diff_paths | the focused diff hunks for the surface |
 | angle | the surface (conformance) / sealed invariant (implementation) / bigger concept (debt) |
@@ -158,6 +163,10 @@ sandbox index bound under prefix {ch_prefix}. Use ONLY these exact tools:
 3. {ch_code_research_tool}   # allowed, never required
 Do NOT use any other chhound namespace, including {excluded_namespaces}.
 
+Before the first search, read the state's symbol map at {symbol_map_ref} (the diff
+symbols' occurrence census and heat) — a lead inventory only; it covers the selected
+diff symbols, and the search requirements below are unchanged.
+
 Call {ch_daemon_status_tool} first. If query_ready, lead every owned concept and
 lens with {ch_search_tool}:
 - regex queries for concrete symbols/patterns (usage sites, imports, duplicated
@@ -193,15 +202,17 @@ verified-correlated-sites: <path:line list, or checked-none>
 fallback/error: none | <exact reason>
 ```
 
-### Preflight sweep child (`blast` lens, once per review state)
+### Preflight sweep child (the symbol map, once per review state)
 
 Before Vector 2, the coordinator spawns one non-vector sweep child with the exact
 Symbol sweep recipe (chhound-driver.md, Symbol sweep): subject tree + `{BASE_OID}` /
-`{SUBJECT_OID}`, the symbols (or the command that extracts them), the exact
-`{ch_daemon_status_tool}` + `{ch_search_tool}` names or `mode: rg`, page-size and
-caps, and the table schema. It returns the compact `symbol | hits | in-diff |
-outside | locations | truncation` table plus provenance — chunk dumps and
-pagination stay inside the child.
+`{SUBJECT_OID}`, the symbols (or the command that extracts them), the census scope +
+command, the exact `{ch_daemon_status_tool}` + `{ch_search_tool}` names or `mode: rg`,
+page-size and caps, and the map schema. It returns the bounded **symbol map** —
+header (selected / dropped / operator-added symbols, census scope + command,
+completion, rail triage marked discovery-only) + the heat table `symbol | change |
+total | in-diff | outside | outside locations (capped) | note` — chunk dumps and
+pagination stay inside the child; the coordinator writes the map to `{symbol_map_ref}`.
 
 ### Shadow control (only when the operator opts in)
 
