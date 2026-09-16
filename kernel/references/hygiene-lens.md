@@ -61,7 +61,7 @@ against the subject tree and cites the output verbatim:
 - a repo without a cheap runner: fall back to static inspection, flagged
   `inconclusive-mechanical` in the lens outcome — never a silent skip.
 
-Rules — **mechanical preflight only (`type` / `dead`)**; taste lenses
+Rules — **mechanical preflight for `type` / `dead`**; taste lenses
 (`read`, `name`, `quality`) have **no config/tool gate** — they run on the
 fleet's best absolute judgment, and hits are pushback-able per instance (see
 quality-lens.md for `quality`):
@@ -96,7 +96,7 @@ the findings page, not the bug/debt table:
 
 1. **A lens is not a vector.** It never blocks Vector 2/3 gating by itself; it is
    recorded and reported, and its hits are operator-suppressible per instance.
-2. **Per-lens coverage is a preflight assertion.** The run manifest lists each lens
+2. **Per-lens coverage is a frame assertion.** The run manifest lists each lens
    and its owning pass (see pipeline-model.md). If any **active** lens lacks an
    owner, the run does not start; lenses owned by a skipped optional pass (yagni)
    are inactive (`off` in the matrix) and need no owner.

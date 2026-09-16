@@ -6,8 +6,9 @@ The notebook is the shared memory between phases, children, and handoff contexts
 
 | Page | Owner | Contents | Lifetime |
 |---|---|---|---|
-| `pipeline-frame-<owner>-<pr>` | coordinator (seal → Phase 0) | frozen run options + planned subject mechanism (chhound sandbox | plain worktree) — no tree fields at the pre-pull gate; `subject_path` / `subject_oid`, changed-file list, contract ref (page or path), research binding (mode chhound-rail | direct-tree, `ch_prefix`, exact tool names, excluded namespaces, fallback reason) and fallback notes recorded at the Phase 0 gate once the pull lands | one review state; a deliberate re-pull starts a NEW frame (linked by diff), never overwritten in place |
-| `contract-<owner>-<pr>` | coordinator (Phase 0) | the verbatim contract (§0.2): PR description, linked issues + locked decisions, changed-file list, subject/base OIDs | one review state, like the frame; a re-pull compiles the new state's contract |
+| `pipeline-frame-<owner>-<pr>-s<n>` | coordinator (seal → Phase 0) | frozen run options + planned subject mechanism (chhound sandbox | plain worktree) — no tree fields at the pre-pull gate; `subject_path` / `subject_oid`, changed-file list, contract ref (page or path), research binding (mode chhound-rail | direct-tree, `ch_prefix`, exact tool names, excluded namespaces, fallback reason) and fallback notes recorded at the Phase 0 gate once the pull lands | one review state; a deliberate re-pull starts a NEW frame (linked by diff), never overwritten in place |
+| `contract-<owner>-<pr>-s<n>` | coordinator (Phase 0) | the verbatim contract (§0.2): PR description, linked issues + locked decisions, changed-file list, subject/base OIDs | one review state, like the frame; a re-pull compiles the new state's contract |
+| `symbol-map-<owner>-<pr>-s<n>` | coordinator (preflight, before V2) | the state's symbol map: selected symbols, census heat table, capped outside locations, provenance/caps (chhound-driver.md, Symbol sweep) | one review state; kept through the state's consumers (V2 sweep, V3 seed, yagni), discarded when the state closes |
 | `pr-<n>-review` | coordinator (append per vector) | findings table (schema rows, each carrying `subject_oid`) + closure table | one PR, all review states |
 | `dis-<n>-review` (or the durable `decisions` page when follow-ups survive) | coordinator | deferred-decision + closed-by-operator records: author/time/rationale/scope | durable |
 
@@ -18,6 +19,7 @@ Reference pages by name. Children `notebook_read` on demand; they do not preload
 ## Content rules
 
 - **Findings are recoverable facts** — keep the evidence-format rows; discard tender re-derivable code trivia freely at handoff.
+- **The symbol map is a bounded state cache.** Structured artifact data (symbols, counts, capped locations) that survives the state's handoffs because V3 and the post-handoff yagni pass consume it — never raw search logs. A re-pull is a new state: a new `-s<n>` page, never an overwrite or silent reuse.
 - **Decisions are non-recoverable** — always persist: operator deferrals, closed-by-operator records, locked decisions from the issue. Never let them go stale or vanish on compaction.
 - **The contract page is verbatim, bounded.** The Phase-0 contract is the one long-form page: PR claims + locked decisions preserved byte-exact (intake-and-scope.md §0.2). Never paste raw diffs, logs, or kernel text into it.
 - **No raw transcripts/logs.** A vector's dead ends and working notes do not belong in the notebook; the closure table's `re-opened` row records the reason concisely.
@@ -27,7 +29,7 @@ Reference pages by name. Children `notebook_read` on demand; they do not preload
 
 When `handoff` is available and the operator confirms the frame:
 
-1. Write `pipeline-frame-<owner>-<pr>` (compiled options + planned subject mechanism — the manifest's tree fields land at the Phase 0 gate) and `pr-<n>-review` (findings skeleton).
+1. Write `pipeline-frame-<owner>-<pr>-s<n>` (compiled options + planned subject mechanism — the manifest's tree fields land at the Phase 0 gate) and `pr-<n>-review` (findings skeleton).
 2. Discard recoverable code-trivia pages; refresh the durable decision page.
 3. Draft the handoff prompt that carries ONLY: the frame's location, the current state (intake complete, requirements pass/fallback), the immediate next step (Phase 0 pull subject + contract → Vector 1), and any blocker or failed path worth avoiding.
 4. Call `handoff` with `discardPages` for code-trivia pages and the task prompt pointing at the frame page by name.

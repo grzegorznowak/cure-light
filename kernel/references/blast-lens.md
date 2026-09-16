@@ -15,10 +15,12 @@ instance is a finding** (see Routing).
 ## Owner and activation
 
 - **Owner:** the **deterministic preflight** runs the mechanical `sweep` once
-  per review state — its table is the manifest's `symbol_sweep` artifact
-  (recipe: chhound-driver.md, Symbol sweep) — and each Vector 2 split owns the
-  four judgment rows (`data` / `semantics` / `fixture` / `gates`) and consumes
-  that table. A lens without an owner is a frame error (hygiene-lens.md).
+  per review state — its symbol map is the manifest's `symbol_sweep` artifact
+  (recipe: chhound-driver.md, Symbol sweep; shared with V3 debt and the yagni
+  pass as a lead inventory) — and each Vector 2 split owns the four judgment rows
+  (`data` / `semantics` / `fixture` / `gates`) and consumes the map's `sweep`
+  rows. Consuming the map changes no lens ownership (the matrix is unchanged).
+  A lens without an owner is a frame error (hygiene-lens.md).
 - **Activation:** always active whenever Vector 2 runs. A data-free diff records
   one whole-lens `n/a` **citing the absence** of any runtime data path, shared
   value, or gate claim across the whole diff; a per-split `n/a` always carries a
@@ -34,7 +36,7 @@ instance is a finding** (see Routing).
 | Row | Checklist (hit = cite file:line) | Dismiss (NOT-A-HIT) | Determinism |
 |---|---|---|---|
 | `data` | the changed behavior depends on state the PR does not create — legacy / orphan rows, dangling refs, NULL / empty / anonymous state, zero-value sentinel rows; name the concrete data state that reaches it | the surface is new or self-contained: no pre-existing rows or consumers can reach it | low — entry points are findable; the reachability call is judgment |
-| `sweep` | a changed shared sentinel / constant / default: every consumer must be enumerated **in this PR**; a call site named as deferred ("follow-up ticket") or simply uninspected = hit | the sweep table exists with no uninspected remainder and every `outside` hit is accounted for — a verified consumer, or routed as a finding (cite the table) | **high** — the preflight symbol-sweep recipe (chhound-driver.md, Symbol sweep: rail `search`, or `rg` when the rail is absent); always available, never installs |
+| `sweep` | a changed shared sentinel / constant / default: every consumer must be enumerated **in this PR**; a call site named as deferred ("follow-up ticket") or left uninspected = hit | the map's census is complete over its declared scope and every `outside` occurrence is tree-read and accounted — a verified consumer or a site judged not a consumer (cite the map) | **high** — the preflight symbol map (chhound-driver.md, Symbol sweep: `rg` census is the coverage claim; rail `search` is discovery-only triage); always available, never installs |
 | `semantics` | a comparison where the language's value model differs from the storage engine's (e.g. empty string vs a numeric column): the column type and the engine's own meaning are checked at the site | the comparison is proven type- and engine-consistent (cite the column / schema definition) | medium — schema definitions are findable; the meaning call is judgment |
 | `fixture` | a hazard whose trigger is a **single artificial row/state** is being adjudicated on inspection alone → the requirement is on the **PR** to ship the fixture test that reproduces it on the repo's own scratch database; the review flags the absence, never runs it | no artificial-state trigger exists, or the PR already ships the reproducing fixture | low (judgment) — the repo's own harness runs the test; the fleet never installs or executes a database |
 | `gates` | a "this class is statically detectable" claim where the analyzer / lint gate is **not enabled** in the repo's own config or CI — a dormant analyzer is not a net | no static-detectability claim is made, or the gate is enabled and cited | medium — read the repo's CI + analyzer config; no installs |
@@ -47,7 +49,7 @@ Reading finds the hazard **class**; only a fixture proves the **instance**.
   material, **never HIGH**; suggestion-only, operator-suppressible per instance,
   notebook-only. They never enter the bug/debt table and never the comment
   (evidence-format.md, External routing) — the one mechanical exception is the
-  preflight table surfaced as the comment's `Symbol impact` section.
+  preflight symbol map surfaced as the comment's `Symbol impact` section.
 - **The concrete instance → the bug table.** A **concrete instance** is a named
   file:line mechanism + a named trigger (data / input / config) + a concrete
   failure mode; anything less stays a row hit. An instance is a **Vector 2
@@ -61,12 +63,14 @@ Reading finds the hazard **class**; only a fixture proves the **instance**.
 
 ## Determinism
 
-The `sweep` row is mechanical: the preflight recipe produces the once-per-state
-table (chhound-driver.md, Symbol sweep — rail `search`, `rg` fallback), which
-the matrix renders `yes (sweep)`. `semantics` / `gates` read subject-tree files
-(schema/migration definitions, CI and analyzer config); `data` / `fixture` are
-fleet judgment. A sweep that cannot run is `inconclusive-mechanical` in the
-trail (evidence-format.md) — never a silent skip.
+The `sweep` row is mechanical in its counts: the preflight recipe produces the
+once-per-state symbol map (chhound-driver.md, Symbol sweep — the `rg` census is
+the coverage claim, the rail `search` sample is discovery-only triage), which the
+matrix renders `yes (sweep)`; accounting each occurrence is the owning split's
+call. `semantics` / `gates` read subject-tree files (schema/migration
+definitions, CI and analyzer config); `data` / `fixture` are fleet judgment. A
+sweep that cannot run is `inconclusive-mechanical` in the trail
+(evidence-format.md) — never a silent skip.
 
 ## Boundaries (dedupe map)
 
@@ -78,9 +82,12 @@ trail (evidence-format.md) — never a silent skip.
   surface is contract-claim existence, V2 test integrity is a demonstrated
   regression that stays green; `blast.fixture` is triggered differently — a
   hazard the review discovered whose only evidence is inspection.
-- **V3 debt** — repo-wide consistency and future-change cost; a repo-wide sweep
-  completeness claim is V3's search-extensive territory (debt-pass.md) when the
-  operator wants the extra coverage — the default owner stays V2 + preflight.
-- **`quality` / `yagni`** — shape and existence of what should exist; the `blast`
-  lens asks whether what exists is safe against the data already in the
+- **V3 debt** — repo-wide consistency and future-change cost; the map is seeded
+  into V3 (and the yagni pass) as leads, but concept-level completeness claims
+  beyond the map's literal-name census stay V3's search-extensive territory
+  (debt-pass.md) — the `sweep` row's default owner stays V2 + preflight.
+- **`quality` / `yagni` / `dead`** — shape and existence of what should exist; an
+  outside-empty map row is a candidate hint for unused-surface questions (link
+  to `dead` / yagni; never a `blast` row — this lens is not hygiene), while the
+  `blast` lens asks whether what exists is safe against the data already in the
   database.

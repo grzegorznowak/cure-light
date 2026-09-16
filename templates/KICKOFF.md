@@ -85,5 +85,5 @@ model tools.
 4. It compiles the run frame and shows it for confirmation.
 5. It saves the frame + findings pages, and (if the runtime provides handoff) seals and hands off.
 6. Phase 0 runs in the new context: pull the subject (the first tree read — no orientation in local target checkouts before it), compile the contract (notebook page on pi runs, CONTRACT.md otherwise), record subject path/OID + changed files into the frame, complete the deferred requirements rows, split vectors. Gate.
-7. Vector 1 (conformance) fleets out; report; gate. Then Vector 2, Vector 3, then output.
+7. Vector 1 (conformance) fleets out; report; gate. Then the deterministic preflight (symbol map), Vector 2, Vector 3, then output.
 8. On "the implementer worked on the review", the closure loop re-validates per finding and publishes the table.

@@ -19,7 +19,12 @@ meaningful chunk; never redesign.*
 
 The pass reads the run manifest + the contract at `contract_ref` + the full
 base..subject diff, AND the V1–V3 findings pages — so it understands the
-requirements and where the PR is coming from. Prior findings are **leads, not proof**: every row still needs
+requirements and where the PR is coming from. It also reads the state's
+**symbol map** (`symbol_sweep` — chhound-driver.md, Symbol sweep): an added
+surface with no outside occurrences is a candidate for the `yagni` / `dead`
+question — a **candidate hint, never an unused verdict** (literal-name census;
+verify identity, in-diff uses, contract/public-API status, and dynamic entry
+points before any row). Prior findings are **leads, not proof**: every row still needs
 independent subject-tree evidence. The coordinator links duplicates at
 aggregation; it never "reminds" the child to match prior verdicts.
 

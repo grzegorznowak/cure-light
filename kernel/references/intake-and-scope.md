@@ -33,7 +33,7 @@ If any hard requirement fails: state the fallback (git/rg instead of chhound; pl
 
 The contract lives in the **run store**: when the runtime's requirements check
 confirms the notebook, Phase 0 writes it to the notebook page
-`contract-<owner>-<pr>` (one per review state, named like the frame page of
+`contract-<owner>-<pr>-s<n>` (one per review state, named like the frame page of
 that state); otherwise create `CONTRACT.md` in a scratch review dir (e.g.
 `/tmp/cure-<owner>-<pr>/`). The run manifest records `contract_ref` — the page
 name, or the disk path in fallback runs.
@@ -57,7 +57,7 @@ Each vector's fleet splits the contract surface. Example split for a model-group
 
 Slice granularity is chosen so each child reads a bounded file set + the relevant CONTRACT slice, and returns under a defined evidence budget.
 
-The lens matrix (hygiene-lens.md) is compiled here and validated: every active lens must map to ≥1 owner. Deterministic preflight (strict tsc / lint) is the `type` sweep and `dead` accelerant; it also produces `blast`'s once-per-state `symbol_sweep`, consumed by the V2 splits (recipe: chhound-driver.md, Symbol sweep).
+The lens matrix (hygiene-lens.md) is compiled here and validated: every active lens must map to ≥1 owner. Deterministic preflight (strict tsc / lint) is the `type` sweep and `dead` accelerant; it also produces the state's once-per-state `symbol_sweep` symbol map (recipe: chhound-driver.md, Symbol sweep) — consumed by the V2 splits for the `sweep` row, seeded into V3 debt and the yagni pass, and rendered as the comment's `Symbol impact`.
 
 ## 0.4 Operator gates
 
@@ -66,7 +66,7 @@ The lens matrix (hygiene-lens.md) is compiled here and validated: every active l
 
 ## Output
 
-The run manifest (also written to the notebook page, see libs/pi-driver/notebook-plan-contract.md):
+The run manifest (also written to the notebook page, see libs/pi-driver/references/notebook-plan-contract.md):
 
 ```text
 run: owner/repo pr# — review state <n>
@@ -76,10 +76,10 @@ base_oid: <PR base>   remote_head_oid: <gh-reported PR head at intake — inform
 vectors: [..]  groups: {flash, code-review}
 draft_comment, pauses
 changed_files: [...]
-contract_ref: contract-<owner>-<pr>   # notebook page (pi); disk path in fallback runs
-notebook (when available): pipeline-frame-<owner>-<pr> + contract-<owner>-<pr> + pr-<n>-review   # per review state
+contract_ref: contract-<owner>-<pr>-s<n>   # notebook page (pi); disk path in fallback runs
+notebook (when available): pipeline-frame-<owner>-<pr>-s<n> + contract-<owner>-<pr>-s<n> + symbol-map-<owner>-<pr>-s<n> + pr-<n>-review   # per review state (pr-<n>-review: per PR); the map is the state's symbol_sweep artifact
 lens_matrix: {type: preflight, dead: preflight+v3, read: v2+v3, name: v3, blast: preflight+v2, quality: v3}   # see hygiene-lens.md + blast-lens.md + quality-lens.md
-symbol_sweep: <artifact ref — preflight table; mode: chhound-rail | rg>   # recipe in chhound-driver.md (Symbol sweep); produced before the V2 splits consume it
+symbol_sweep: <artifact ref — state's symbol map page/file (symbol-map-<owner>-<pr>-s<n> | scratch path); mode: chhound-rail | rg>   # preflight symbol map, recipe in chhound-driver.md (Symbol sweep); reused by V2/V3/yagni + the comment render
 symbol_sweep_symbols: [..]   # optional: explicit identifiers the operator adds to the extracted sweep set
 research: {mode: chhound-rail | direct-tree, ch_prefix: <chh_pr<n> | none>, excluded: [<other live chh_* prefixes>], v2_protocol: code-research-if-ready, v3_protocol: search-extensive-if-ready, shadow: off}   # protocols in implementation-pass.md + debt-pass.md; shadow on only by explicit operator choice
 cure_light_source_head_oid: <cure-light source HEAD at intake>   # review provenance, frozen once (see evidence-format.md)

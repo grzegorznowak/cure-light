@@ -50,7 +50,7 @@ Bigger concepts: pluggability claim · four divergent group semantics · TUI→c
 
 ## What the worked example teaches
 
-1. The head WILL move mid-review; pin + manifest, gate the fleet.
+1. The remote head may move; the pulled subject is pinned by SHA, and a re-pull starts a new review state.
 2. Origin classification (base-diff) decides which findings are the PR's problem vs inherited debt.
 3. Closure is delta: unchanged code cannot be green; deferred ≠ fixed.
 4. The operator's "don't re-raise X" is a `closed-by-operator` record, not a disappearance.

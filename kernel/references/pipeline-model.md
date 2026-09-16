@@ -16,7 +16,7 @@ cure-light reviews a pull request through **three independent vectors**. Each an
 ## Sequenced, gated
 
 ```text
-Intake → Phase 0 → Vector 1 → Vector 2 → Vector 3 → Output (single review comment) → Closure loop (after a deliberate re-pull)
+Intake → Phase 0 → Vector 1 → Deterministic preflight → Vector 2 → Vector 3 → Output (single review comment) → Closure loop (after a deliberate re-pull)
 ```
 
 - Vector 2 runs only when Vector 1 has a clean/accepted disposition (or the operator explicitly allows skipping).
@@ -40,7 +40,7 @@ Cure-light treats the chhound research rail (chhound-driver.md) as an **accelera
 - `research.mode: chhound-rail` — the rail is confirmed and Phase 0 pulls the subject as a chunkhound PR sandbox whose own index is bound under the frame's prefix `chh_pr<n>`. The manifest records the prefix and the exact tool names (`{ch_prefix}_daemon_status`, `{ch_prefix}_code_research`, `{ch_prefix}_search`) and lists every other live `chh_*` prefix as excluded.
 - `research.mode: direct-tree` — plain detached worktree (rail unconfirmed/broken). The run proceeds with git/rg/read; the fallback is explicit in the manifest, never silent.
 
-Vector 2 enforces subsystem research **mandatory-if-ready and uniform across every split — including test-integrity concepts** (deeper subsystem understanding yields better insights regardless of split type): one scoped `code_research` orientation question per sealed invariant, then at least one `search` pinpoint, then tree verification. Vector 3 enforces a **search-extensive** protocol — `search` leads every concept and lens sweep (repo-wide claims need logged searches); `code_research` may orient but is never required there. The per-child prompt slots, workflows, and the mandatory RESEARCH TRACE footer are defined in [implementation-pass.md](implementation-pass.md), [debt-pass.md](debt-pass.md) and [child-pass-prompt-template.md](../../assets/child-pass-prompt-template.md).
+Vector 2 enforces subsystem research **mandatory-if-ready and uniform across every split — including test-integrity concepts** (deeper subsystem understanding yields better insights regardless of split type): one scoped `code_research` orientation question per sealed invariant, then at least one `search` pinpoint, then tree verification. Vector 3 enforces a **search-extensive** protocol — children read the state's symbol map (`symbol_sweep`, chhound-driver.md) first as a lead inventory, then `search` leads every concept and lens sweep (repo-wide claims need logged searches); `code_research` may orient but is never required there. The per-child prompt slots, workflows, and the mandatory RESEARCH TRACE footer are defined in [implementation-pass.md](implementation-pass.md), [debt-pass.md](debt-pass.md) and [child-pass-prompt-template.md](../../assets/child-pass-prompt-template.md).
 
 Authority rules (bind all vectors):
 
@@ -69,7 +69,7 @@ quality | v3 split              | no        | lens
 
 Rules:
 
-1. **Per-lens coverage is a preflight assertion.** If any **active** lens has no owner, the run does not start — coverage is proven per lens, not per vector. A lens whose activating pass does not run is **inactive** (matrix shows `off`) and needs no owner.
+1. **Per-lens coverage is a frame assertion.** If any **active** lens has no owner, the run does not start — coverage is proven per lens, not per vector. A lens whose activating pass does not run is **inactive** (matrix shows `off`) and needs no owner.
 2. **A lens outcome is `checked-and-clear` + a trail.** A lens not checked is a frame error, never "nothing found".
 3. **Hygiene hits route to the lens trail**, never the bug/debt table (see hygiene-lens.md). Lens hits are never external: they stay in the notebook (see evidence-format.md, External routing).
 4. **The family is extensible.** Adding a lens is an auditable manifest change, not silent scope drift.
@@ -79,7 +79,7 @@ Rules:
 6. **`blast` rows are advisory, its instances are findings** (blast-lens.md): row
    hits follow the lens trail; a concrete data-hazard instance routes to the bug
    table as a Vector 2 finding at its own severity; the preflight's mechanical
-   sweep table may surface as the comment's `Symbol impact` section
+   symbol map may surface as the comment's `Symbol impact` section
    (chhound-driver.md / evidence-format.md).
 
 ## Optional pass: yagni (size / YAGNI)
