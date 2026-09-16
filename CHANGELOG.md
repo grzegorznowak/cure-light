@@ -2,6 +2,11 @@
 
 ## Unreleased (working tree)
 
+### v0.5.10 — symbol sweep coverage census: `rg` enumerates every occurrence, the chunkhound sample is triage
+
+**kernel/**
+- `chhound-driver.md` (§Symbol sweep) — the paginated rail sample is **triage, not coverage**: its caps bound how many enclosing chunks the sweep reads to judge ingest-worthiness, are recorded in the truncation note, and never bound what must be inspected. A **coverage census** (`rg -n -w`, one pass over the subject tree) always runs and is the row's coverage claim: the `sweep` row clears only when every occurrence is triaged from a fetched chunk or listed as uninspected → the in-scope finding route. Reading the tree, the census stays subject-accurate even when the index lags; `mode: rg` falls back to line-read triage. Table columns unchanged.
+
 ### v0.5.9 — the `blast` lens: data × call-site blast radius + the chunkhound symbol sweep (V2-owned; advisory rows, blocking instances)
 
 **kernel/**

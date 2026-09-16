@@ -34,7 +34,7 @@ instance is a finding** (see Routing).
 | Row | Checklist (hit = cite file:line) | Dismiss (NOT-A-HIT) | Determinism |
 |---|---|---|---|
 | `data` | the changed behavior depends on state the PR does not create — legacy / orphan rows, dangling refs, NULL / empty / anonymous state, zero-value sentinel rows; name the concrete data state that reaches it | the surface is new or self-contained: no pre-existing rows or consumers can reach it | low — entry points are findable; the reachability call is judgment |
-| `sweep` | a changed shared sentinel / constant / default: every consumer must be enumerated **in this PR**; a call site named as deferred ("follow-up ticket") or simply uninspected = hit | the sweep table exists with no uninspected remainder and every `outside` hit is accounted for — a verified consumer, or routed as a finding (cite the table) | **high** — the preflight symbol-sweep recipe (chhound-driver.md, Symbol sweep: rail `search`, or `rg` when the rail is absent); always available, never installs |
+| `sweep` | a changed shared sentinel / constant / default: every consumer must be enumerated **in this PR**; a call site named as deferred ("follow-up ticket") or simply uninspected = hit | the sweep table exists with no uninspected remainder and every `outside` hit is accounted for — a verified consumer, or routed as a finding (cite the table) | **high** — the preflight symbol-sweep recipe (chhound-driver.md, Symbol sweep: `rg` census + rail `search` triage); always available, never installs |
 | `semantics` | a comparison where the language's value model differs from the storage engine's (e.g. empty string vs a numeric column): the column type and the engine's own meaning are checked at the site | the comparison is proven type- and engine-consistent (cite the column / schema definition) | medium — schema definitions are findable; the meaning call is judgment |
 | `fixture` | a hazard whose trigger is a **single artificial row/state** is being adjudicated on inspection alone → the requirement is on the **PR** to ship the fixture test that reproduces it on the repo's own scratch database; the review flags the absence, never runs it | no artificial-state trigger exists, or the PR already ships the reproducing fixture | low (judgment) — the repo's own harness runs the test; the fleet never installs or executes a database |
 | `gates` | a "this class is statically detectable" claim where the analyzer / lint gate is **not enabled** in the repo's own config or CI — a dormant analyzer is not a net | no static-detectability claim is made, or the gate is enabled and cited | medium — read the repo's CI + analyzer config; no installs |
@@ -62,7 +62,7 @@ Reading finds the hazard **class**; only a fixture proves the **instance**.
 ## Determinism
 
 The `sweep` row is mechanical: the preflight recipe produces the once-per-state
-table (chhound-driver.md, Symbol sweep — rail `search`, `rg` fallback), which
+table (chhound-driver.md, Symbol sweep — `rg` census, rail `search` triage), which
 the matrix renders `yes (sweep)`. `semantics` / `gates` read subject-tree files
 (schema/migration definitions, CI and analyzer config); `data` / `fixture` are
 fleet judgment. A sweep that cannot run is `inconclusive-mechanical` in the
