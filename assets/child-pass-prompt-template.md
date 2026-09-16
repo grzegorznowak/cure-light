@@ -23,14 +23,15 @@ YOUR ANGLE: {angle}. Inspect completely and report per
 YOUR LENSES: {lenses}. Run each lens checklist from
 its owning reference — hygiene family: kernel/references/hygiene-lens.md; the
 `quality` lens: kernel/references/quality-lens.md; the `blast` lens:
-kernel/references/blast-lens.md; a lens you check and clear
+kernel/references/blast-lens.md; the `yagni` lens:
+kernel/references/yagni-pass.md; a lens you check and clear
 is explicitly NOT-A-HIT. Advisory lens hits go to the lens trail, never the bug
 table — a concrete `blast` hazard instance is a Vector 2 finding instead.
 
 RESEARCH STEP: then execute the research step per {research_protocol} when the
 slot is present (Vector 2: code-research protocol; Vector 3: search-extensive
-protocol; Vector 1: omitted). The slot carries the exact registered tool names,
-the namespace binding, the fallback rule, and the mandatory RESEARCH TRACE
+protocol; Vector 1/yagni: omitted). The slot carries the exact registered tool
+names, the namespace binding, the fallback rule, and the mandatory RESEARCH TRACE
 footer. MCP output is discovery only — every cited line is re-read in the
 subject tree at {SUBJECT_OID} before it becomes evidence.
 
@@ -39,9 +40,9 @@ summary of intent. Cite file:line in the subject tree. Do NOT run tests unless
 told; do NOT propose large refactors; keep style mentions on the lens trail
 (unrouted style noise is dropped).
 
-Return: a numbered list of GAP|F|D findings conforming to the vector contract,
-plus a VERIFIED | NOT-A-BUG | NONE closing for any surface you check and clear,
-plus the RESEARCH TRACE footer when {research_protocol} is present.
+Return: a numbered list of findings plus a closing for any surface you check and
+clear, per {return}; include the RESEARCH TRACE footer when {research_protocol}
+is present.
 Under {budget} lines.
 ```
 
@@ -49,19 +50,19 @@ Under {budget} lines.
 
 | Slot | Filled from |
 |---|---|
-| vector | conformance / implementation / debt |
+| vector | conformance / implementation / debt / yagni |
 | SUBJECT_PATH | the subject tree root (sandbox or worktree dir) — run manifest `subject_path` |
 | SUBJECT_OID | run manifest subject_oid |
 | owner/repo | the review target `<owner>/<repo>` (intake `owner/repo`) — Variants A/C subject description |
-| contract_ref | run-manifest `contract_ref`: the notebook page `contract-<owner>-<pr>` (pi runs) or the disk CONTRACT slice (fallback runs) |
+| contract_ref | run-manifest `contract_ref`: the notebook page `contract-<owner>-<pr>-s<n>` (pi runs) or the disk CONTRACT slice (fallback runs) |
 | symbol_map_ref | run manifest `symbol_sweep` — the state's symbol map ref (notebook page `symbol-map-<owner>-<pr>-s<n>` on pi runs; scratch path in fallback runs) |
 | file_list | the assigned files for this surface/split |
 | diff_paths | the focused diff hunks for the surface |
-| angle | the surface (conformance) / sealed invariant (implementation) / bigger concept (debt) |
-| lenses | the lens list this split owns, from the run lens matrix (pipeline-model.md; checklists per owning reference: hygiene-lens.md, blast-lens.md, quality-lens.md) |
-| return | from the pass contract: `VERIFIED/GAP/NONE`, `[F] file:line`, `[D] concept` |
+| angle | the surface (conformance) / sealed invariant (implementation) / bigger concept (debt) / functionality unit (yagni) |
+| lenses | the lens list this split owns, from the run lens matrix (pipeline-model.md; checklists per owning reference: hygiene-lens.md, blast-lens.md, quality-lens.md, yagni-pass.md) |
+| return | from the pass contract: `VERIFIED/GAP/NONE`, `[F] file:line`, `[D] concept`; yagni: `SIZE` / `[Y]` / `NOT-YAGNI` (yagni-pass.md) |
 | budget | output-size cap (lines); enforced; truncation = inconclusive |
-| research_protocol | run-manifest `research` block rendered per the variants below (Vector 2: Variant A; Vector 3: Variant C; Vector 1: omitted) |
+| research_protocol | run-manifest `research` block rendered per the variants below (Vector 2: Variant A; Vector 3: Variant C; Vector 1/yagni: omitted) |
 | ch_prefix | the frame's exact tool prefix (`chh_pr<n>`) when `research.mode: chhound-rail`; `none` in direct-tree |
 | ch_daemon_status_tool / ch_code_research_tool / ch_search_tool | `{ch_prefix}_daemon_status` / `_code_research` / `_search` — exact registered names |
 | excluded_namespaces | other live `chh_*` prefixes (other sandboxes) — never to be used |

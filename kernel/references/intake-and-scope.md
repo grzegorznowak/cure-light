@@ -33,7 +33,7 @@ If any hard requirement fails: state the fallback (git/rg instead of chhound; pl
 
 The contract lives in the **run store**: when the runtime's requirements check
 confirms the notebook, Phase 0 writes it to the notebook page
-`contract-<owner>-<pr>` (one per review state, named like the frame page of
+`contract-<owner>-<pr>-s<n>` (one per review state, named like the frame page of
 that state); otherwise create `CONTRACT.md` in a scratch review dir (e.g.
 `/tmp/cure-<owner>-<pr>/`). The run manifest records `contract_ref` — the page
 name, or the disk path in fallback runs.
@@ -66,7 +66,7 @@ The lens matrix (hygiene-lens.md) is compiled here and validated: every active l
 
 ## Output
 
-The run manifest (also written to the notebook page, see libs/pi-driver/notebook-plan-contract.md):
+The run manifest (also written to the notebook page, see libs/pi-driver/references/notebook-plan-contract.md):
 
 ```text
 run: owner/repo pr# — review state <n>
@@ -76,8 +76,8 @@ base_oid: <PR base>   remote_head_oid: <gh-reported PR head at intake — inform
 vectors: [..]  groups: {flash, code-review}
 draft_comment, pauses
 changed_files: [...]
-contract_ref: contract-<owner>-<pr>   # notebook page (pi); disk path in fallback runs
-notebook (when available): pipeline-frame-<owner>-<pr> + contract-<owner>-<pr> + symbol-map-<owner>-<pr>-s<n> + pr-<n>-review   # per review state; the map is the state's symbol_sweep artifact
+contract_ref: contract-<owner>-<pr>-s<n>   # notebook page (pi); disk path in fallback runs
+notebook (when available): pipeline-frame-<owner>-<pr>-s<n> + contract-<owner>-<pr>-s<n> + symbol-map-<owner>-<pr>-s<n> + pr-<n>-review   # per review state (pr-<n>-review: per PR); the map is the state's symbol_sweep artifact
 lens_matrix: {type: preflight, dead: preflight+v3, read: v2+v3, name: v3, blast: preflight+v2, quality: v3}   # see hygiene-lens.md + blast-lens.md + quality-lens.md
 symbol_sweep: <artifact ref — state's symbol map page/file (symbol-map-<owner>-<pr>-s<n> | scratch path); mode: chhound-rail | rg>   # preflight symbol map, recipe in chhound-driver.md (Symbol sweep); reused by V2/V3/yagni + the comment render
 symbol_sweep_symbols: [..]   # optional: explicit identifiers the operator adds to the extracted sweep set

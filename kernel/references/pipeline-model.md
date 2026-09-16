@@ -16,7 +16,7 @@ cure-light reviews a pull request through **three independent vectors**. Each an
 ## Sequenced, gated
 
 ```text
-Intake → Phase 0 → Vector 1 → Vector 2 → Vector 3 → Output (single review comment) → Closure loop (after a deliberate re-pull)
+Intake → Phase 0 → Vector 1 → Deterministic preflight → Vector 2 → Vector 3 → Output (single review comment) → Closure loop (after a deliberate re-pull)
 ```
 
 - Vector 2 runs only when Vector 1 has a clean/accepted disposition (or the operator explicitly allows skipping).
@@ -69,7 +69,7 @@ quality | v3 split              | no        | lens
 
 Rules:
 
-1. **Per-lens coverage is a preflight assertion.** If any **active** lens has no owner, the run does not start — coverage is proven per lens, not per vector. A lens whose activating pass does not run is **inactive** (matrix shows `off`) and needs no owner.
+1. **Per-lens coverage is a frame assertion.** If any **active** lens has no owner, the run does not start — coverage is proven per lens, not per vector. A lens whose activating pass does not run is **inactive** (matrix shows `off`) and needs no owner.
 2. **A lens outcome is `checked-and-clear` + a trail.** A lens not checked is a frame error, never "nothing found".
 3. **Hygiene hits route to the lens trail**, never the bug/debt table (see hygiene-lens.md). Lens hits are never external: they stay in the notebook (see evidence-format.md, External routing).
 4. **The family is extensible.** Adding a lens is an auditable manifest change, not silent scope drift.

@@ -59,6 +59,7 @@ Intake → Requirements check (pre-pull rows; subject-tree rows defer to Phase 0
   → [operator gate: frame] — approves the PLAN: subject mechanism (chhound sandbox | plain worktree) + planned location, vectors, gates, output policy; no tree fields yet
   → Phase 0 pull subject + contract → [gate: manifest records reality — subject_path / subject_oid]
   → Vector 1 conformance (flash) → [gate]
+  → Deterministic preflight (type/dead + the state's symbol map)
   → Vector 2 implementation (code-review) → [gate]
   → Vector 3 debt (code-review) → [gate]
   → Optional yagni pass (code-review; size/YAGNI — operator-enabled, fresh-context post-handoff) → [gate]
@@ -88,6 +89,6 @@ Publish a closure table. See closure-verification.md.
 - **Never draft external artifacts automatically.** The single review comment is operator-gated; the `before_post` gate is mandatory whenever drafting is enabled.
 - **Deferred is not closed.** Record it in the decisions page with rationale.
 - **Fleets are budgeted.** Cap children, timeouts, output; serialize notebook writes via the coordinator.
-- **Lens coverage is a preflight assertion.** The run frame must map every active lens to an owning pass (lens matrix, see hygiene-lens.md); a lens without an owner blocks the run.
+- **Lens coverage is a frame assertion.** The run frame must map every active lens to an owning pass (lens matrix, see hygiene-lens.md); a lens without an owner blocks the run.
 - **Optional passes are opt-in.** The yagni pass runs only when the operator enables it; a skipped pass deactivates its lens (matrix shows `off`, exempt from the coverage assertion).
 - **Subsystem research is mandatory-if-ready on the chhound rail.** When the frame's research mode is `chhound-rail`, Vector 2 runs the code-research protocol (implementation-pass.md) and Vector 3 the search-extensive protocol (debt-pass.md): exact registered tool names are rendered into every child prompt, and a missing RESEARCH TRACE footer makes a split `inconclusive`. In `direct-tree` mode (plain worktree) children never invoke a `chh_*` namespace. Shadow splits are off unless the operator opts in.

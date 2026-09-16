@@ -132,13 +132,14 @@ the manifest in fallback runs (notebook-plan-contract.md).
    locations per symbol, ≈400 lines per map) — the rail caps bound the triage sample
    only, never the census.
 
-   Every `outside` occurrence is accounted for by the owning V2 split: verified as a
-   consumer (a lead — tree-verified like any index output, Evidence rule), judged not a
-   consumer at the site, or routed as an uninspected finding → the in-scope route
-   (blast-lens.md). **Enumeration complete is not inspection clear**: a chunk-triaged
-   occurrence is navigation metadata, never clearance — the `sweep` row clears only when
-   every `outside` occurrence is tree-read and accounted; the in-diff occurrences are
-   covered by the diff review.
+   Every `outside` occurrence gets a disposition from the owning V2 split: tree-read and
+   accounted — verified as a consumer (a lead, tree-verified like any index output,
+   Evidence rule) or judged not a consumer at the site — or routed as an uninspected
+   finding → the in-scope route (blast-lens.md), which leaves the row a hit.
+   **Enumeration complete is not inspection clear**: a chunk-triaged occurrence is
+   navigation metadata, never clearance — the `sweep` row clears only when every
+   `outside` occurrence is tree-read and accounted; the in-diff occurrences are covered
+   by the diff review.
 6. **No confirmed rail → `mode: rg`** — the census is the same `rg -n -w` pass; without
    chunk triage, occurrences are triaged by reading their lines in the tree. The map is
    marked `mode: rg`, which never invokes a `chh_*` namespace.

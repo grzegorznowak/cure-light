@@ -47,10 +47,10 @@ Re-validated rows update their `subject_oid` to the new subject — a row's `sub
 **Closure publication.** By default, after closure verification, update the single review comment **in place**: fold in new or changed dispositions and note the new subject OID in its attribution footer. The `before_post` gate still applies. Post a separate fresh comment only when the operator prefers one.
 
 **Symbol map in a closure render.** The map belongs to a review state: a closure
-render that updates the comment to a new `subject_oid` either regenerates the
-census for that state (the `rg` pass alone suffices; the old state's rail triage is
-stale and omitted) or omits the `Symbol impact` section — old-state counts are
-never carried into a new-state comment.
+render that updates the comment to a new `subject_oid` either regenerates that
+state's census — written to `symbol-map-<owner>-<pr>-s<n>`, the `rg` pass alone
+suffices and the old state's rail triage is stale — or omits the `Symbol impact`
+section; old-state counts are never carried into a new-state comment.
 
 ## 6. Honesty rules
 
@@ -61,8 +61,8 @@ never carried into a new-state comment.
 
 ## Lens trail in closure
 
-Lens-trail rows (hygiene, `blast`) are classified with the same table; two
-lens-specific notes (see hygiene-lens.md):
+Lens-trail rows (hygiene, `blast`, `quality`, `yagni`) are classified with the
+same table; two lens-specific notes (see hygiene-lens.md):
 
 - A lens hit that a later head removes is `verified-fixed` only when the lens
   sweep on the new head cites the old→new lines — `closed-by-operator`
