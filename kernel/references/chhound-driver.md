@@ -89,8 +89,8 @@ the manifest in fallback runs (notebook-plan-contract.md).
    `symbol_sweep_symbols`, or the sweep-child prompt). Keep the changed ranges for steps 3–4.
 2. **Probe per symbol, never batched** (one symbol per query keeps every hit attributable).
    Call `{ch_prefix}_daemon_status` once; if not `query_ready`, or the rail is absent,
-   skip the chunk sample — the census (step 4) always runs; without chunks,
-   occurrences are settled by reading their lines in the tree (step 6). For each
+   skip the chunk sample — the census (step 4) always runs, and accounting moves fully
+   to tree reads (step 5). For each
    symbol call `{ch_prefix}_search` with
    `type: regex`, query `\b<symbol>\b` (RE2; escape metacharacters), `page_size: 3–5`.
    The hit count is the footer's `of <total>` — **chunks, not occurrences**. Page
@@ -98,7 +98,7 @@ the manifest in fallback runs (notebook-plan-contract.md).
    symbol, ≤15 extra pages total), prioritizing symbols showing `outside` occurrences.
    The paginated sample is **triage, not coverage**: its caps bound how many enclosing
    chunks are read for the worth-ingesting call, are recorded as triage metadata, and
-   never bound what must be inspected (step 4).
+   never bound the census (step 4).
 3. **Classify against the diff** — a hit chunk whose `Lx–Ly` range intersects a changed
    range for the same file is `in-diff`, else `outside`. Chunk granularity is coarse: a
    chunk spanning both counts `in-diff` (under-counts outside use, never over-counts) and
@@ -106,8 +106,9 @@ the manifest in fallback runs (notebook-plan-contract.md).
 4. **Coverage census (always runs)** — enumerate every occurrence of each symbol with
    `rg -n -w` (one `-e`-joined pass is enough) over the **census scope**: the tracked
    files at `subject_oid` (`git ls-files`-driven), exclusions recorded (ignored / hidden /
-   binary / vendored), and the exact command. The match unit is the **matching line**
-   (one entry per line even when a line holds several matches); `\b` boundaries match
+   binary / vendored), and the exact command. The match unit is the **symbol-line**: a
+   `(path, line)` counts once per selected symbol whose literal name occurs there — each
+   returned line is attributed to every selected symbol it matches; `\b` boundaries match
    **literal names, not resolved symbols** (same-name declarations elsewhere are
    included, and the symbol's own definition counts). Classify each occurrence against
    the same changed ranges. The census is the coverage claim: complete **over the
@@ -133,10 +134,11 @@ the manifest in fallback runs (notebook-plan-contract.md).
 
    Every `outside` occurrence is accounted for by the owning V2 split: verified as a
    consumer (a lead — tree-verified like any index output, Evidence rule), judged not a
-   consumer at the site, or listed as uninspected → the in-scope finding route
+   consumer at the site, or routed as an uninspected finding → the in-scope route
    (blast-lens.md). **Enumeration complete is not inspection clear**: a chunk-triaged
    occurrence is navigation metadata, never clearance — the `sweep` row clears only when
-   every occurrence is tree-read and accounted, or routed as an uninspected finding.
+   every `outside` occurrence is tree-read and accounted; the in-diff occurrences are
+   covered by the diff review.
 6. **No confirmed rail → `mode: rg`** — the census is the same `rg -n -w` pass; without
    chunk triage, occurrences are triaged by reading their lines in the tree. The map is
    marked `mode: rg`, which never invokes a `chh_*` namespace.

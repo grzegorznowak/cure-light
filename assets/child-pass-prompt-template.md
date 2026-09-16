@@ -163,10 +163,6 @@ sandbox index bound under prefix {ch_prefix}. Use ONLY these exact tools:
 3. {ch_code_research_tool}   # allowed, never required
 Do NOT use any other chhound namespace, including {excluded_namespaces}.
 
-Before the first search, read the state's symbol map at {symbol_map_ref} (the diff
-symbols' occurrence census and heat) — a lead inventory only; it covers the selected
-diff symbols, and the search requirements below are unchanged.
-
 Call {ch_daemon_status_tool} first. If query_ready, lead every owned concept and
 lens with {ch_search_tool}:
 - regex queries for concrete symbols/patterns (usage sites, imports, duplicated
