@@ -4,13 +4,13 @@ Triggered when the operator says the implementer "worked on the review" (or any 
 
 ## 1. Capture the new subject
 
-Closure runs after a deliberate re-pull (the operator re-pulls the PR — fresh chunkhound sandbox or plain worktree, see chhound-driver.md / intake-and-scope.md §0.1). Capture the new subject OID before trusting any diff:
+Closure runs after a deliberate re-pull (the operator decides at the gate; the coordinator updates the subject tree **in place** to the new head — or pulls fresh when the tree is gone/broken — see chhound-driver.md / intake-and-scope.md §0.1). Capture the new subject OID before trusting any diff:
 
 ```text
-git -C <new-subject-path> rev-parse HEAD   → the new state's subject_oid
+git -C <subject-path> rev-parse HEAD   → the new state's subject_oid
 ```
 
-The delta is `git diff <last-reviewed subject_oid>..<new subject_oid>` — old findings re-validated against the new tree, never against an assumed remote tip. If the subject did not change, say so (no work has been pulled) or wait.
+The delta is `git diff <last-reviewed subject_oid>..<new subject_oid>` — old findings re-validated against the new tree, never against an assumed remote tip. If the subject did not change, say so (no work has been pulled) or wait. Old-state content is read at its own OID (`git show <old_subject_oid>:<path>`) — the working tree holds the new subject only.
 
 ## 2. Map findings → touched paths
 
@@ -19,7 +19,7 @@ For every open finding (and every `deferred-decision` the implementer claims to 
 ## 3. Re-validate per finding (targeted)
 
 - **Code touched?** Diff the finding's path. If the relevant code is byte-identical → the finding is NOT fixed regardless of what any comment says.
-- **Behavior changed?** Re-read the new code at old/new lines. Run the relevant tests if they exist and are cheap (`bun test <file>` / `node --test` style — use the repo's own runner).
+- **Behavior changed?** Re-read the new code at old/new lines (old lines from the old `subject_oid`). Run the relevant tests if they exist and are cheap (`bun test <file>` / `node --test` style — use the repo's own runner).
 - **If architecture changed** (e.g. the fix refactored the module): re-run the original fleet slice rather than spot-verify, since evidence paths moved.
 
 ## 4. Classify
@@ -42,7 +42,7 @@ finding | prior evidence (old file:line) | new evidence/tests (new file:line) | 
 
 Output to the notebook findings page, not as a fresh review. This is the artifact the operator reads to decide merge.
 
-Re-validated rows update their `subject_oid` to the new subject — a row's `subject_oid` is the tree its current evidence was read from (evidence-format.md).
+Re-validated rows update their `subject_oid` to the new subject — a row's `subject_oid` is the tree its current evidence was read from (evidence-format.md); a row not (yet) re-validated keeps its own `subject_oid` and is read at it.
 
 **Closure publication.** By default, after closure verification, update the single review comment **in place**: fold in new or changed dispositions and note the new subject OID in its attribution footer. The `before_post` gate still applies. Post a separate fresh comment only when the operator prefers one.
 

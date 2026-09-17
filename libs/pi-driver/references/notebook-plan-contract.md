@@ -12,7 +12,7 @@ The notebook is the shared memory between phases, children, and handoff contexts
 | `pr-<n>-review` | coordinator (append per vector) | findings table (schema rows, each carrying `subject_oid`) + closure table | one PR, all review states |
 | `dis-<n>-review` (or the durable `decisions` page when follow-ups survive) | coordinator | deferred-decision + closed-by-operator records: author/time/rationale/scope | durable |
 
-A re-pull starts the next review state and writes **distinct** frame + contract pages for it — never overwrite an earlier state's pages in place.
+A re-pull starts the next review state and writes **distinct** frame + contract pages for it — never overwrite an earlier state's pages in place (the new frame reuses `subject_path` with the new `subject_oid`; the tree itself is updated in place).
 
 Reference pages by name. Children `notebook_read` on demand; they do not preload bodies. The coordinator serializes writes with a process-local ordering so same-name writes don't race.
 

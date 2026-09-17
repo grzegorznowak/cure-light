@@ -63,7 +63,7 @@ Under {budget} lines.
 | return | from the pass contract: `VERIFIED/GAP/NONE`, `[F] file:line`, `[D] concept`; yagni: `SIZE` / `[Y]` / `NOT-YAGNI` (yagni-pass.md) |
 | budget | output-size cap (lines); enforced; truncation = inconclusive |
 | research_protocol | run-manifest `research` block rendered per the variants below (Vector 2: Variant A; Vector 3: Variant C; Vector 1/yagni: omitted) |
-| ch_prefix | the frame's exact tool prefix (`chh_pr<n>`) when `research.mode: chhound-rail`; `none` in direct-tree |
+| ch_prefix | the frame's registered `chh_*` prefix in rail mode; `none` in direct-tree |
 | ch_daemon_status_tool / ch_code_research_tool / ch_search_tool | `{ch_prefix}_daemon_status` / `_code_research` / `_search` — exact registered names |
 | excluded_namespaces | other live `chh_*` prefixes (other sandboxes) — never to be used |
 | BASE_OID | run manifest base_oid (for origin checks) |

@@ -1,57 +1,78 @@
 # chhound-driver.md — the chunkhound research rail (pi-chhound plugin)
 
-When the pi runtime provides the **pi-chhound** plugin (installed, rail operator-confirmed — see presence below), the review subject is pulled as a
-chunkhound **PR sandbox**: a git worktree with its **own chunkhound index** — baseline
-anchored at the PR's base branch, incremental top-up of the PR's own diff. The sandbox's
-index is the primary *discovery* rail for the coordinator and fleet children; everything
-else in the pipeline is unchanged. Rail unconfirmed or broken → the plain detached worktree
-(intake-and-scope.md §0.1) and git/rg research — the rail never blocks a review.
+When the pi runtime provides the **pi-chhound** plugin (installed, rail live — see presence
+below), the review subject is pulled as a chunkhound **PR sandbox**: a git worktree with its
+**own chunkhound index** — a baseline index of the repo, incremental top-up of the PR's own
+diff. The sandbox's index is the primary *discovery* rail for the coordinator and fleet
+children; everything else in the pipeline is unchanged. Rail unconfirmed or broken → the
+plain detached worktree (intake-and-scope.md §0.1) and git/rg research — the rail never
+blocks a review.
 
-The rail's commands — `/ch-status`, `/chworktree`, `/ch-mcp` — are **operator-side slash
-commands**: the coordinator cannot run them, and their UI output reaches the model only
-when the operator reports it. Presence is therefore checked in two steps:
+The rail is driven through the **`ch-chhound` model tool** when the running pi-chhound
+build provides it: read actions (e.g. `status`) need no consent; mutating actions
+(`worktree.create`, `mcp.connect`, `mcp.disconnect`, `baseline.refresh`) are consent-gated
+and blocked in headless/no-UI runs. Where the tool is absent (older builds) or an action
+is unavailable (`modelTools=off`, read-only for mutations, no UI for consent), the
+**operator-side `/ch` commands** are the fallback lane — `/ch-status`, `/ch-worktree`,
+`/ch-mcp`, `/ch-setup` — the coordinator cannot run them and their UI output reaches the
+model only when the operator reports it.
 
-1. **Install detection (coordinator, at boot)** — model-executable, no `/ch` invocation:
-   pi-chhound appears in the pi settings `packages` (or an extension dir) and the
-   `chunkhound` CLI is on PATH.
-2. **Rail confirmation (operator, at the frame gate)** — when the install detection is
-   positive, the coordinator instructs the operator to run `/ch-status` and report the
-   output: the authoritative check that the rail is live in this session. No confirmed
-   rail → the plain-worktree plan stands.
+## Presence (frame gate)
 
-Nothing here is a hard requirement; each step has a recorded fallback.
+1. **Model probe (coordinator)** — call `ch-chhound {action: "status"}`: a rendered status
+   (chunkhound version/binary, library roots, index roots, active connections with prefixes
+   and tool names) confirms the rail is live **in this session**. `modelTools=off` answers
+   with a clear error instead — the install is there, model tools are not.
+2. **Fallback check (older builds only)** — no `ch-chhound` tool in the session: install
+   detection — pi-chhound appears in the pi settings `packages` (or an extension dir) and
+   the `chunkhound` CLI is on PATH — plus the operator's `/ch-status` report at the frame
+   gate: the authoritative check that the rail is live in this session.
 
-## Phase 0 recipe (rail confirmed)
+## Phase 0 recipe (rail live)
 
-The operator executes the `/ch` commands below (slash commands); the coordinator verifies
-with model-side checks — capture commands, `chh_*` tool responses, fallback rules.
+The coordinator executes the `ch-chhound` actions below; headless/no-UI runs use the
+operator fallback. A first pull only: an in-place re-pull needs no rail action and no new
+sandbox (see Re-pull). The coordinator verifies with model-side checks — capture commands,
+`{ch_prefix}_*` tool responses, fallback rules.
 
-1. **Create the sandbox** (one-go, non-interactive):
-   `/chworktree https://github.com/<owner>/<repo>/pull/<n> --dest <dir>`
-   The PR URL carries the repo identity; the sandbox branch is `pull/<n>`. Use a **unique
-   `--dest` per review state** — fresh sandboxes for the same PR must never collide in the
-   shared root.
-2. **Capture the subject**: `git -C <sandbox-path> rev-parse HEAD` → manifest `subject_oid`;
-   the sandbox dir → `subject_path`. Whatever SHA the pull has **is** the review subject
+1. **Create and connect** (one-go, non-interactive):
+   `ch-chhound {action: "worktree.create", pr: "https://github.com/<owner>/<repo>/pull/<n>", connect: true}`
+   The PR URL carries the repo identity; the slot is `pull/<n>`; `connect: true` attempts
+   the MCP connect. Use a **unique `dest` per sandbox** for fresh creations of the same PR
+   (a re-pull reuses its own sandbox). Fallback: operator
+   `/ch-worktree https://github.com/<owner>/<repo>/pull/<n> --dest <dir>`.
+2. **Capture the subject**: the reported `worktree:` path → `subject_path` (the checkout
+   inside its sandbox storage dir — not the storage dir itself); `git -C <subject_path>
+   rev-parse HEAD` → `subject_oid`. Whatever SHA the pull has **is** the review subject
    (subject rule, intake-and-scope.md §0.1) — no refusal ladder when it differs from the
    gh-reported remote head; record the difference in the manifest as informational context.
-3. **Connect the index**: `/ch-mcp <path-or-storage-id printed by /chworktree> --prefix chh_pr<n>`
-   (`pull/<n>` is not a reliable selector — use the printed path/id). The fixed `--prefix`
-   makes tool names deterministic. The operator verifies the footer `🔌 ch-mcp: 1
-   connected`; the coordinator confirms the prefixed tools respond (`chh_pr<n>_daemon_status`
-   — a tool-list registration alone does not prove a response).
-4. **MCP lifecycle**: one live bridge per sandbox. Before connecting a fresh sandbox for
-   the same PR, disconnect the old one: `/ch-mcp <old-id> --disconnect`. Two live bridges
-   with the same prefix would be ambiguous.
+3. **Verify the connection**: a failed connect never fails the create, so verify with
+   `ch-chhound {action: "status"}` — no connection for the sandbox → connect via the
+   fallback below. Read the registered names from the same output (derivation under Tool
+   names) and render those exact names into child prompts; then confirm a
+   `{ch_prefix}_daemon_status` call responds — a tool-list registration alone does not
+   prove a response. Fallback connect: `ch-chhound {action: "mcp.connect", target: "<path-or-id>"}`,
+   or operator `/ch-mcp <printed-path> --prefix chh_pr<n>` (then the prefix is the fixed
+   `chh_pr<n>`).
+4. **MCP lifecycle**: one live bridge per sandbox; an in-place re-pull keeps its bridge.
+   Before connecting a *fresh* sandbox for the same PR, disconnect the old one:
+   `ch-chhound {action: "mcp.disconnect", target: "<old-path-or-id>"}` (operator fallback
+   `/ch-mcp <old-id> --disconnect`). Two live bridges with the same prefix would be
+   ambiguous.
 
-## Tool names (prefix `chh_pr<n>`, fixed at connect)
+## Tool names (`{ch_prefix}` per connection)
 
 | Tool | Purpose | When |
 |---|---|---|
-| `chh_pr<n>_code_research` | architecture / data-flow research ("how does X work end-to-end?") | **first**, before deep reading; follow-up queries chain on it |
-| `chh_pr<n>_search` | pinpointing (regex / semantic) | after research, to locate exact symbols and lines |
-| `chh_pr<n>_daemon_status` | index health only | when results look stale; never proof of index freshness vs the subject |
-| `chh_pr<n>_websearch`, `chh_pr<n>_fetchurl` | external / host documentation | never for the subject tree |
+| `{ch_prefix}_code_research` | architecture / data-flow research ("how does X work end-to-end?") | **first**, before deep reading; follow-up queries chain on it |
+| `{ch_prefix}_search` | pinpointing (regex / semantic) | after research, to locate exact symbols and lines |
+| `{ch_prefix}_daemon_status` | index health only | when results look stale; never proof of index freshness vs the subject |
+| `websearch`, `fetchurl` (global, unprefixed) | external / host documentation | never for the subject tree |
+
+`{ch_prefix}` is the connection's actual prefix, read from `ch-chhound status`: `chh_pr<n>`
+when the operator set it at `/ch-mcp --prefix`, otherwise derived from the worktree
+checkout folder (a model-side `connect: true` on a `pull/<n>` checkout yields e.g.
+`chh_pull-123`).
 
 Spawned children **inherit the live `chh_*` tools automatically** (extension-factory
 replay) while the parent session holds the connection — no per-child setup; children never
@@ -60,7 +81,8 @@ spawn daemons. A resumed session auto-restores its recorded connections.
 ## Evidence rule (mandatory)
 
 MCP output is **discovery only**. The index carries no manifest-SHA provenance — its
-baseline and top-up can lag the checkout — so:
+baseline and top-up can lag the checkout (after an in-place re-pull the live re-index
+converges on the new subject, transiently mixing old- and new-subject chunks) — so:
 
 - every `file:line` surfaced by a research tool is **re-read in the subject checkout**
   before it may become finding evidence;
@@ -146,21 +168,36 @@ the manifest in fallback runs (notebook-plan-contract.md).
 
 ## Fallbacks (never block)
 
-- Rail unconfirmed (install detection negative, or the operator's `/ch-status` report shows no rail) → plain-worktree pull (intake-and-scope.md §0.1).
-- Connect fails / daemon dies: reconnect once; else record the fallback in the run frame
-  and use git/rg.
+- Rail unconfirmed (no `ch-chhound` tool, `modelTools=off`, or the operator's `/ch-status`
+  shows no rail) → plain-worktree pull (intake-and-scope.md §0.1).
+- A mutating action blocked (read-only model tools, headless/no-UI consent) → the operator
+  runs the equivalent `/ch` command; record the mechanism in the run frame.
+- Connect fails / daemon dies: reconnect once (`ch-chhound {action: "mcp.connect", target}`
+  or `/ch-mcp`); else record the fallback in the run frame and use git/rg.
+- Baseline stale/missing: `ch-chhound {action: "baseline.refresh", repo: "<path>"}` re-primes
+  the repo's baseline ref; a fresh sandbox can also be created with `refreshBaseline: true`.
+  The index is discovery only — a stale baseline never blocks.
 - `chh_*` tools missing in a child session: fall back to git/rg and note it in the child's
   return record.
 
 ## Re-pull (new review state)
 
 New commits on the PR are **not an error** — the operator decides at a gate. A re-pull is
-a **strict state transition** (same operator/coordinator division as Phase 0: the operator
-runs the `/ch` commands; the coordinator captures and verifies): after all children of the
-current state have settled,
+a **strict state transition** (the operator decides; the coordinator executes and captures):
+after all children of the current state have settled,
 
-1. fresh sandbox: `/chworktree <PR-URL> --dest <new-unique-dir>` (or plain worktree),
-2. disconnect the old bridge (`/ch-mcp <old-id> --disconnect`),
-3. capture the new subject OID into a new manifest/frame,
+1. update the existing subject **in place**: fetch the new head into the tree's repo and
+   check it out detached (`git -C <subject_path> fetch …` + `git -C <subject_path> checkout --detach <new head>`).
+   A rail sandbox updates the same way — plain git, no rail action: its live daemon
+   re-indexes the sandbox automatically and the MCP bridge stays connected (same dir, no
+   reconnect, no fresh baseline copy).
+2. pull fresh instead when the tree is gone/broken, the mechanism changes, or the operator
+   prefers a clean tree: create + connect per Phase 0 and replace the old bridge per MCP
+   lifecycle above (operator fallback: `/ch-worktree <PR-URL> --dest <new-dir>` +
+   `/ch-mcp`); the plain path gets a fresh worktree/clone (intake-and-scope.md §0.1).
+3. capture the new subject OID (and the base OID) into a new manifest/frame — an in-place
+   re-pull records the same `subject_path` with the new `subject_oid`; the previous state's
+   content stays reachable at its own OID (`git show`).
 4. re-validate the old findings against the new tree via the closure loop
-   (closure-verification.md) — old children's outputs never roll into the new state.
+   (closure-verification.md) — old-state content is read at its own OID (the working tree
+   now holds the new subject), and old children's outputs never roll into the new state.

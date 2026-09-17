@@ -25,7 +25,7 @@ These seed the session so it can compile the review process. Fetch them in order
 9. `$RAW_BASE/kernel/references/blast-lens.md` — the `blast` lens (V2-owned: data × call-site blast radius, advisory rows vs blocking instances)
 10. `$RAW_BASE/kernel/references/yagni-pass.md` — the optional size/YAGNI pass (fresh-context, post-handoff)
 11. `$RAW_BASE/kernel/references/quality-lens.md` — the `quality` lens (V3-owned: maintainable shape, suite strength, consistency)
-12. `$RAW_BASE/kernel/references/chhound-driver.md` — the chunkhound research rail (pi-chhound plugin): sandbox pull, MCP connect, tool names, the symbol-sweep preflight recipe, discovery-only rule
+12. `$RAW_BASE/kernel/references/chhound-driver.md` — the chunkhound research rail (pi-chhound plugin): model-tool setup (`ch-chhound`), sandbox pull, MCP connect, tool names, the symbol-sweep preflight recipe, discovery-only rule
 13. `$RAW_BASE/kernel/references/evidence-format.md`
 
 ### Pi driver (notebook + handoff + model-groups binding — only if this runtime provides the pi notebook)

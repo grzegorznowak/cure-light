@@ -2,6 +2,20 @@
 
 ## Unreleased (working tree)
 
+### v0.5.11 — re-pull updates the subject tree in place: same tree, same bridge, live index
+
+**kernel/**
+- `intake-and-scope.md` §0.1 + subject rule — the **re-pull branch**: a new review state for an already-pulled PR updates the existing `subject_path` **in place** (fetch + detached checkout) instead of creating a fresh tree; a fresh pull is the fallback for a gone/broken tree or a mechanism change. The invariant is stated precisely: the tree is stable *within* a state — the operator-gated state boundary is its only mutation. The capture records the same `subject_path` with the new `subject_oid`; prior-state content stays reachable at its own OID.
+- `chhound-driver.md` — §Re-pull is in-place-first (no `/ch` command, no reconnect, no fresh baseline copy; the live daemon re-indexes, the bridge stays); fresh sandbox + disconnect/reconnect as the fallback; Phase 0's unique `--dest` applies to sandboxes being created; the Evidence rule notes the transient old/new-subject mix while the live re-index converges.
+- `closure-verification.md` / `evidence-format.md` — the moved-tree rule: old-state content is read at its own `subject_oid` (`git show <oid>:<path>`), never from the current checkout; rows keep their own OID until re-validated; a checkout whose HEAD differs from the row's OID is a different tree.
+- `SKILL.md` / `pipeline-model.md` / `README.md` — "never re-pull in place" becomes "nothing mutates mid-state; the gated re-pull updates in place"; `libs/pi-driver/references/notebook-plan-contract.md` / `requirements-check.md` — pages stay per state (same `subject_path`, new `subject_oid`), row 5 covers the first-pull create/connect and the in-place re-pull (bridge kept).
+
+**Model-tool rail setup (same branch)**
+- `chhound-driver.md` — the rail is driven through the pi-chhound **`ch-chhound` model tool** where the build provides it (read actions need no consent; mutations are consent-gated and blocked headless): presence becomes a `ch-chhound status` probe (install detection + the operator's `/ch-status` report move to the older-build fallback lane); Phase 0's one-go create is `worktree.create {pr, connect: true}` with the `/ch` commands as per-step fallbacks; the registered tool prefix is read from `ch-chhound status` (a model connect derives `chh_<checkout folder>`, e.g. `chh_pull-123`) instead of a fixed `/ch-mcp --prefix`; the tool table marks `websearch`/`fetchurl` global (unprefixed); Fallbacks cover blocked mutations and stale baselines.
+- `SKILL.md` / `intake-and-scope.md` / `libs/pi-driver` (`SKILL.md`, `requirements-check.md` rows 4/5/9 + row-4 semantics) / `KICKOFF.md` / `README.md` / `BOOTSTRAP.md` / `assets/child-pass-prompt-template.md` — presence and Phase 0 reworded to the model-tool path with the `/ch` fallback; row 4 probes `ch-chhound status` first; the child template's `ch_prefix` slot reads the registered prefix.
+
+Background: operator direction — a top-up review should continue in the same worktree. The rail's index updates live from the checkout (Watchman) and the MCP bridge binds to the sandbox dir, so a fresh sandbox + reconnect + re-index per state was pure overhead. The old rule's purpose (subject immutability during a review) is preserved: the only mutation is the operator-gated state boundary, and old-state evidence stays addressable by OID.
+
 ### v0.5.10 — the symbol map: the preflight builds one shared usage artifact (census + heat), reused by V2 blast, V3 debt, yagni, and the comment
 
 **kernel/**
