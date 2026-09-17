@@ -16,7 +16,7 @@ Vector 3 flagged four divergent "what can this group do" semantics (validation a
 
 ## 3. Moving-head race — RESOLVED by design (v0.5.3)
 
-Closed by the subject model: cure-light reviews a dedicated **pulled tree** (chunkhound sandbox or plain worktree) that nothing mutates mid-run; the pull's SHA is captured once at Phase 0 (`subject_oid`) and is the version under review — reviewing the latest is the point, not a risk. New commits only enter through a deliberate, operator-gated re-pull that starts a new review state (the tree is updated in place at the state boundary), and every finding row carries the `subject_oid` its evidence was read from — an older row is read at its own OID. The old race (a tree moving under an active review) cannot occur by construction. Residual: children still record `subject_oid` per row; a tree differing from the state's subject is `inconclusive` (evidence-format.md).
+Closed by the subject model: cure-light reviews a dedicated **pulled tree** (chunkhound sandbox or plain worktree) that nothing mutates mid-run; the pull's SHA is captured once at Phase 0 (`subject_oid`) and is the version under review — reviewing the latest is the point, not a risk. New commits only enter through a deliberate, operator-gated re-pull that starts a new review state, and every finding row carries the `subject_oid` its evidence was read from. The old race (a tree moving under an active review) cannot occur by construction. Residual: children still record `subject_oid` per row; a tree differing from the state's subject is `inconclusive` (evidence-format.md).
 
 ## 4. closed-by-operator scope
 

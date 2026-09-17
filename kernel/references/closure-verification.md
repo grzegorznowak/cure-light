@@ -10,7 +10,7 @@ Closure runs after a deliberate re-pull (the operator decides at the gate; the c
 git -C <subject-path> rev-parse HEAD   → the new state's subject_oid
 ```
 
-The delta is `git diff <last-reviewed subject_oid>..<new subject_oid>` — old findings re-validated against the new tree, never against an assumed remote tip. If the subject did not change, say so (no work has been pulled) or wait. Once the tree is updated in place, the working tree holds the new subject only: the previous state's content is read at its own OID (`git show <old_subject_oid>:<path>`).
+The delta is `git diff <last-reviewed subject_oid>..<new subject_oid>` — old findings re-validated against the new tree, never against an assumed remote tip. If the subject did not change, say so (no work has been pulled) or wait. Old-state content is read at its own OID (`git show <old_subject_oid>:<path>`) — the working tree holds the new subject only.
 
 ## 2. Map findings → touched paths
 

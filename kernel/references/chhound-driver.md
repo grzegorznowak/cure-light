@@ -27,8 +27,7 @@ The operator executes the `/ch` commands below (slash commands) — a first pull
 in-place re-pull needs no `/ch` command (see Re-pull). The coordinator verifies with
 model-side checks — capture commands, `chh_*` tool responses, fallback rules.
 
-1. **Create the sandbox** (one-go, non-interactive) — a **first pull**; a re-pull updates
-   the existing sandbox in place (see Re-pull):
+1. **Create the sandbox** (one-go, non-interactive):
    `/chworktree https://github.com/<owner>/<repo>/pull/<n> --dest <dir>`
    The PR URL carries the repo identity; the sandbox branch is `pull/<n>`. Use a **unique
    `--dest` per sandbox** — fresh sandboxes for the same PR must never collide in the
@@ -42,10 +41,9 @@ model-side checks — capture commands, `chh_*` tool responses, fallback rules.
    makes tool names deterministic. The operator verifies the footer `🔌 ch-mcp: 1
    connected`; the coordinator confirms the prefixed tools respond (`chh_pr<n>_daemon_status`
    — a tool-list registration alone does not prove a response).
-4. **MCP lifecycle**: one live bridge per sandbox. An in-place re-pull keeps its bridge
-   (same sandbox dir — nothing to reconnect); before connecting a *fresh* sandbox for the
-   same PR, disconnect the old one: `/ch-mcp <old-id> --disconnect`. Two live bridges with
-   the same prefix would be ambiguous.
+4. **MCP lifecycle**: one live bridge per sandbox; an in-place re-pull keeps its bridge.
+   Before connecting a *fresh* sandbox for the same PR, disconnect the old one:
+   `/ch-mcp <old-id> --disconnect`. Two live bridges with the same prefix would be ambiguous.
 
 ## Tool names (prefix `chh_pr<n>`, fixed at connect)
 

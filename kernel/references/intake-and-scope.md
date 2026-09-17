@@ -4,7 +4,7 @@ Phase 0 runs once per **review state**. Its output is the **run manifest** — t
 
 ## The subject rule
 
-cure-light reviews the tree it **pulls**, not the remote tip. Whatever SHA the pulled tree has at pull time is the version under review (reviewing the latest is desired, not a risk). The tree is stable for the whole state — nothing mutates it mid-run; a deliberate re-pull at an operator gate starts a **new review state** and updates the tree in place to the new head at that boundary (or pulls fresh when the tree is gone/broken, §0.1). Evidence is anchored to the subject; a state's findings never mix trees, and once the tree moves, an older state's content is read at its own OID (`git show <subject_oid>:<path>`).
+cure-light reviews the tree it **pulls**, not the remote tip. Whatever SHA the pulled tree has at pull time is the version under review (reviewing the latest is desired, not a risk). The tree is stable for the whole state — nothing mutates it mid-run; a deliberate re-pull at an operator gate starts a **new review state** and updates the tree in place to the new head at that boundary (or pulls fresh when the tree is gone/broken, §0.1). Evidence is anchored to the subject; a state's findings never mix trees.
 
 ## 0.1 Pull the subject (preflight, ground truth)
 
@@ -23,7 +23,7 @@ At Phase 0:
             - no local clone → clone the target repo into the review scratch dir (`git clone <target-url> <scratch>/tree`), fetch, then `git -C <scratch>/tree checkout --detach <current headRefOid>` — the clone is the subject.
       - `<scratch>` = the review scratch dir (e.g. `/tmp/cure-<owner>-<pr>/`); a fresh plain subject lands at `<scratch>/tree`, an in-place re-pull keeps the existing `subject_path`.
       - If the tree cannot be pulled at all, STOP (no evidence base).
-- [ ] **Capture the subject**: `git -C <subject-path> rev-parse HEAD` → manifest `subject_oid`; the tree dir → `subject_path`. If `subject_oid` ≠ the gh-reported `headRefOid`, record both in the manifest — the pulled tree is the subject regardless (informational divergence, not an error). On an in-place re-pull the same `subject_path` gets the new `subject_oid`; the previous state's content stays reachable at its own OID (`git show <old_subject_oid>:<path>`), since the tree's repo keeps the objects.
+- [ ] **Capture the subject**: `git -C <subject-path> rev-parse HEAD` → manifest `subject_oid`; the tree dir → `subject_path`. If `subject_oid` ≠ the gh-reported `headRefOid`, record both in the manifest — the pulled tree is the subject regardless (informational divergence, not an error). On an in-place re-pull the same `subject_path` gets the new `subject_oid`; the previous state's content stays reachable at its own OID (`git show <old_subject_oid>:<path>`).
 - [ ] Complete the deferred requirements rows on the pulled tree (requirements-check.md rows 5/8/9) — the requirements check is complete only after this.
 - [ ] (pi) `notebook_index` responds.
 - [ ] (pi, optional) chhound index health (`chh_pr<n>_daemon_status`); fallback = bash/rg/grep. A broken index never blocks.
