@@ -4,7 +4,7 @@ Phase 0 runs once per **review state**. Its output is the **run manifest** — t
 
 ## The subject rule
 
-cure-light reviews the tree it **pulls**, not the remote tip. Whatever SHA the pulled tree has at pull time is the version under review (reviewing the latest is desired, not a risk). The tree is stable for the whole state — nothing mutates it mid-run — and a deliberate re-pull at an operator gate starts a **new review state**. Evidence is anchored to the subject; a state's findings never mix trees.
+cure-light reviews the tree it **pulls**, not the remote tip. Whatever SHA the pulled tree has at pull time is the version under review (reviewing the latest is desired, not a risk). The tree is stable for the whole state — nothing mutates it mid-run; a deliberate re-pull at an operator gate starts a **new review state** and updates the tree in place to the new head at that boundary (or pulls fresh when the tree is gone/broken, §0.1). Evidence is anchored to the subject; a state's findings never mix trees, and once the tree moves, an older state's content is read at its own OID (`git show <subject_oid>:<path>`).
 
 ## 0.1 Pull the subject (preflight, ground truth)
 
@@ -16,13 +16,14 @@ At Phase 0:
 - [ ] `gh repo view <owner>/<repo>` reachable.
 - [ ] `gh pr view <pr> --json headRefOid,baseRefOid,state,title` — PR exists and is OPEN; capture `baseRefOid` + the remote `headRefOid` as **informational context** (what gh reports now; NOT the subject).
 - [ ] Pull the subject tree:
-      - **pi-chhound rail confirmed** (install detected at boot; operator `/ch-status` report at the frame gate) → chunkhound PR sandbox per [chhound-driver.md](chhound-driver.md): the **operator** runs `/chworktree https://github.com/<owner>/<repo>/pull/<n> --dest <unique-dir>` and `/ch-mcp <printed-path> --prefix chh_pr<n>`; the coordinator verifies the `chh_*` tools respond. The sandbox dir is the subject.
+      - **re-pull, tree exists** (a new review state for a PR already pulled at `subject_path`) → update it **in place**: fetch the new head into the tree's repo and check it out detached (`git -C <subject_path> fetch …` + `git -C <subject_path> checkout --detach <new head>`). The rail sandbox needs no `/ch` command: its live daemon re-indexes the sandbox automatically and the MCP bridge stays connected. A tree that is gone/broken (or a mechanism change) → pull fresh below.
+      - **pi-chhound rail confirmed** (install detected at boot; operator `/ch-status` report at the frame gate) and no subject tree for this PR yet → chunkhound PR sandbox per [chhound-driver.md](chhound-driver.md): the **operator** runs `/chworktree https://github.com/<owner>/<repo>/pull/<n> --dest <unique-dir>` and `/ch-mcp <printed-path> --prefix chh_pr<n>`; the coordinator verifies the `chh_*` tools respond. The sandbox dir is the subject.
       - **else** → plain detached worktree at the PR's current head, sourced as:
             - developer has an existing local clone of the target repo → source from that clone (fetch, then `git worktree add --detach <scratch>/tree <current headRefOid>`). Plumbing only — the clone is the git object source; its working tree is never read as context or evidence.
             - no local clone → clone the target repo into the review scratch dir (`git clone <target-url> <scratch>/tree`), fetch, then `git -C <scratch>/tree checkout --detach <current headRefOid>` — the clone is the subject.
-      - `<scratch>` = the review scratch dir (e.g. `/tmp/cure-<owner>-<pr>/`); the subject lands at `<scratch>/tree` in both cases.
+      - `<scratch>` = the review scratch dir (e.g. `/tmp/cure-<owner>-<pr>/`); a fresh plain subject lands at `<scratch>/tree`, an in-place re-pull keeps the existing `subject_path`.
       - If the tree cannot be pulled at all, STOP (no evidence base).
-- [ ] **Capture the subject**: `git -C <subject-path> rev-parse HEAD` → manifest `subject_oid`; the tree dir → `subject_path`. If `subject_oid` ≠ the gh-reported `headRefOid`, record both in the manifest — the pulled tree is the subject regardless (informational divergence, not an error).
+- [ ] **Capture the subject**: `git -C <subject-path> rev-parse HEAD` → manifest `subject_oid`; the tree dir → `subject_path`. If `subject_oid` ≠ the gh-reported `headRefOid`, record both in the manifest — the pulled tree is the subject regardless (informational divergence, not an error). On an in-place re-pull the same `subject_path` gets the new `subject_oid`; the previous state's content stays reachable at its own OID (`git show <old_subject_oid>:<path>`), since the tree's repo keeps the objects.
 - [ ] Complete the deferred requirements rows on the pulled tree (requirements-check.md rows 5/8/9) — the requirements check is complete only after this.
 - [ ] (pi) `notebook_index` responds.
 - [ ] (pi, optional) chhound index health (`chh_pr<n>_daemon_status`); fallback = bash/rg/grep. A broken index never blocks.

@@ -6,13 +6,13 @@ The notebook is the shared memory between phases, children, and handoff contexts
 
 | Page | Owner | Contents | Lifetime |
 |---|---|---|---|
-| `pipeline-frame-<owner>-<pr>-s<n>` | coordinator (seal → Phase 0) | frozen run options + planned subject mechanism (chhound sandbox | plain worktree) — no tree fields at the pre-pull gate; `subject_path` / `subject_oid`, changed-file list, contract ref (page or path), research binding (mode chhound-rail | direct-tree, `ch_prefix`, exact tool names, excluded namespaces, fallback reason) and fallback notes recorded at the Phase 0 gate once the pull lands | one review state; a deliberate re-pull starts a NEW frame (linked by diff), never overwritten in place |
+| `pipeline-frame-<owner>-<pr>-s<n>` | coordinator (seal → Phase 0) | frozen run options + planned subject mechanism (chhound sandbox | plain worktree) — no tree fields at the pre-pull gate; `subject_path` / `subject_oid`, changed-file list, contract ref (page or path), research binding (mode chhound-rail | direct-tree, `ch_prefix`, exact tool names, excluded namespaces, fallback reason) and fallback notes recorded at the Phase 0 gate once the pull lands | one review state; a deliberate re-pull starts a NEW frame (linked by diff), never overwritten in place — the subject tree is updated in place, so the new frame records the same `subject_path` with the new `subject_oid` |
 | `contract-<owner>-<pr>-s<n>` | coordinator (Phase 0) | the verbatim contract (§0.2): PR description, linked issues + locked decisions, changed-file list, subject/base OIDs | one review state, like the frame; a re-pull compiles the new state's contract |
 | `symbol-map-<owner>-<pr>-s<n>` | coordinator (preflight, before V2) | the state's symbol map: selected symbols, census heat table, capped outside locations, provenance/caps (chhound-driver.md, Symbol sweep) | one review state; kept through the state's consumers (V2 sweep, V3 seed, yagni), discarded when the state closes |
 | `pr-<n>-review` | coordinator (append per vector) | findings table (schema rows, each carrying `subject_oid`) + closure table | one PR, all review states |
 | `dis-<n>-review` (or the durable `decisions` page when follow-ups survive) | coordinator | deferred-decision + closed-by-operator records: author/time/rationale/scope | durable |
 
-A re-pull starts the next review state and writes **distinct** frame + contract pages for it — never overwrite an earlier state's pages in place.
+A re-pull starts the next review state and writes **distinct** frame + contract pages for it — never overwrite an earlier state's pages in place (pages are per state; the tree itself is reused in place, so the new frame records the same `subject_path` with the new `subject_oid`).
 
 Reference pages by name. Children `notebook_read` on demand; they do not preload bodies. The coordinator serializes writes with a process-local ordering so same-name writes don't race.
 

@@ -23,14 +23,16 @@ Nothing here is a hard requirement; each step has a recorded fallback.
 
 ## Phase 0 recipe (rail confirmed)
 
-The operator executes the `/ch` commands below (slash commands); the coordinator verifies
-with model-side checks — capture commands, `chh_*` tool responses, fallback rules.
+The operator executes the `/ch` commands below (slash commands) — a first pull only: an
+in-place re-pull needs no `/ch` command (see Re-pull). The coordinator verifies with
+model-side checks — capture commands, `chh_*` tool responses, fallback rules.
 
-1. **Create the sandbox** (one-go, non-interactive):
+1. **Create the sandbox** (one-go, non-interactive) — a **first pull**; a re-pull updates
+   the existing sandbox in place (see Re-pull):
    `/chworktree https://github.com/<owner>/<repo>/pull/<n> --dest <dir>`
    The PR URL carries the repo identity; the sandbox branch is `pull/<n>`. Use a **unique
-   `--dest` per review state** — fresh sandboxes for the same PR must never collide in the
-   shared root.
+   `--dest` per sandbox** — fresh sandboxes for the same PR must never collide in the
+   shared root (a re-pull reuses its own sandbox, so this applies only when one is created).
 2. **Capture the subject**: `git -C <sandbox-path> rev-parse HEAD` → manifest `subject_oid`;
    the sandbox dir → `subject_path`. Whatever SHA the pull has **is** the review subject
    (subject rule, intake-and-scope.md §0.1) — no refusal ladder when it differs from the
@@ -40,9 +42,10 @@ with model-side checks — capture commands, `chh_*` tool responses, fallback ru
    makes tool names deterministic. The operator verifies the footer `🔌 ch-mcp: 1
    connected`; the coordinator confirms the prefixed tools respond (`chh_pr<n>_daemon_status`
    — a tool-list registration alone does not prove a response).
-4. **MCP lifecycle**: one live bridge per sandbox. Before connecting a fresh sandbox for
-   the same PR, disconnect the old one: `/ch-mcp <old-id> --disconnect`. Two live bridges
-   with the same prefix would be ambiguous.
+4. **MCP lifecycle**: one live bridge per sandbox. An in-place re-pull keeps its bridge
+   (same sandbox dir — nothing to reconnect); before connecting a *fresh* sandbox for the
+   same PR, disconnect the old one: `/ch-mcp <old-id> --disconnect`. Two live bridges with
+   the same prefix would be ambiguous.
 
 ## Tool names (prefix `chh_pr<n>`, fixed at connect)
 
@@ -60,7 +63,8 @@ spawn daemons. A resumed session auto-restores its recorded connections.
 ## Evidence rule (mandatory)
 
 MCP output is **discovery only**. The index carries no manifest-SHA provenance — its
-baseline and top-up can lag the checkout — so:
+baseline and top-up can lag the checkout (after an in-place re-pull the live re-index
+converges on the new subject, transiently mixing old- and new-subject chunks) — so:
 
 - every `file:line` surfaced by a research tool is **re-read in the subject checkout**
   before it may become finding evidence;
@@ -155,12 +159,21 @@ the manifest in fallback runs (notebook-plan-contract.md).
 ## Re-pull (new review state)
 
 New commits on the PR are **not an error** — the operator decides at a gate. A re-pull is
-a **strict state transition** (same operator/coordinator division as Phase 0: the operator
-runs the `/ch` commands; the coordinator captures and verifies): after all children of the
-current state have settled,
+a **strict state transition** (the operator decides; the coordinator executes and captures):
+after all children of the current state have settled,
 
-1. fresh sandbox: `/chworktree <PR-URL> --dest <new-unique-dir>` (or plain worktree),
-2. disconnect the old bridge (`/ch-mcp <old-id> --disconnect`),
-3. capture the new subject OID into a new manifest/frame,
+1. update the existing subject **in place**: fetch the new head into the tree's repo and
+   check it out detached (`git -C <subject_path> fetch …` + `git -C <subject_path> checkout --detach <new head>`).
+   A rail sandbox updates the same way — plain git, no `/ch` command: its live daemon
+   re-indexes the sandbox automatically and the MCP bridge stays connected (same dir, no
+   reconnect, no fresh baseline copy).
+2. pull fresh instead when the tree is gone/broken, the mechanism changes, or the operator
+   prefers a clean tree: `/chworktree <PR-URL> --dest <new-dir>` and/or `/ch-mcp` — a new
+   sandbox means disconnect the old bridge (`/ch-mcp <old-id> --disconnect`) and connect
+   the new one; the plain path gets a fresh worktree/clone (intake-and-scope.md §0.1).
+3. capture the new subject OID (and the base OID) into a new manifest/frame — an in-place
+   re-pull records the same `subject_path` with the new `subject_oid`; the previous state's
+   content stays reachable at its own OID (`git show`).
 4. re-validate the old findings against the new tree via the closure loop
-   (closure-verification.md) — old children's outputs never roll into the new state.
+   (closure-verification.md) — old-state content is read at its own OID (the working tree
+   now holds the new subject), and old children's outputs never roll into the new state.

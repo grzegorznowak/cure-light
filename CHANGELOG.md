@@ -2,6 +2,17 @@
 
 ## Unreleased (working tree)
 
+### v0.5.11 — re-pull updates the subject tree in place: same tree, same bridge, live index
+
+**kernel/**
+- `intake-and-scope.md` §0.1 + subject rule — the pull step gains the **re-pull branch**: a new review state for an already-pulled PR updates the existing `subject_path` **in place** (fetch the new head + detached checkout) instead of creating a fresh tree; the rail sandbox needs no `/ch` command (its live daemon re-indexes, the bridge stays connected). The invariant is stated precisely — the tree is stable *within* a state; the operator-gated state boundary is its only mutation; a tree that is gone/broken (or a mechanism change) pulls fresh. The capture bullet records the same `subject_path` with the new `subject_oid` and keeps the previous state's content reachable at its own OID.
+- `chhound-driver.md` — §Re-pull: in-place git update first (no reconnect, no fresh baseline copy), fresh sandbox + disconnect/reconnect only as the fallback; Phase 0's unique `--dest` applies to sandboxes being created (a re-pull reuses its own); the Evidence rule notes that after an in-place re-pull the live re-index converges, transiently mixing old- and new-subject chunks.
+- `closure-verification.md` / `evidence-format.md` — the moved-tree rule: once the tree is updated in place, old-state content is read at its own `subject_oid` (`git show <oid>:<path>`), never from the current checkout; rows keep their own OID until re-validated; a checkout whose HEAD differs from the row's OID is a different tree.
+- `SKILL.md` / `pipeline-model.md` / `README.md` / `docs/OPEN-ISSUES.md` — "never re-pull in place" becomes "nothing mutates mid-state; the gated re-pull updates in place"; the closure loop names the in-place update step.
+- `libs/pi-driver/references/notebook-plan-contract.md` / `requirements-check.md` — pages stay per state (new frame/contract, same `subject_path`, new `subject_oid`); row 5 covers the first-pull create/connect and the in-place re-pull (bridge kept; reconnect only if it failed).
+
+Background: operator direction — a top-up review should continue in the same worktree. The rail's index updates live from the checkout (Watchman) and the MCP bridge binds to the sandbox dir, so a fresh sandbox + reconnect + re-index per state was pure overhead. The old rule's purpose (subject immutability during a review) is preserved: the only tree mutation happens at the operator-gated state boundary, and old-state evidence stays addressable by OID (`git show`).
+
 ### v0.5.10 — the symbol map: the preflight builds one shared usage artifact (census + heat), reused by V2 blast, V3 debt, yagni, and the comment
 
 **kernel/**

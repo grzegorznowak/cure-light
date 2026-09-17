@@ -24,7 +24,7 @@ call-site sweep is the preflight **symbol map**: a complete `rg` census of the
 selected diff symbols with usage heat and in-diff / outside classification,
 shared by V2, the V3 debt pass, the yagni pass, and the comment's `Symbol
 impact` (chhound-driver.md). It is a small OS for the review process itself: pull a dedicated subject tree (chunkhound PR sandbox when the [pi-chhound](https://github.com/grzegorznowak/pi-chunkhound) plugin is present), capture its SHA, spawn scoped fleets,
-and re-pull deliberately for the next review state — not the whole pipeline.
+and re-pull deliberately into that same tree for the next review state — not the whole pipeline.
 
 ## Layout
 
@@ -97,8 +97,9 @@ Vector 1 without re-reading the kernel. See `libs/pi-driver/SKILL.md`.
 
 - **One subject per review state.** Whatever SHA the pull has at Phase 0 is
   the version reviewed — captured into the manifest (`subject_oid`), stable for
-  the whole state; only a deliberate, operator-gated re-pull starts a new review
-  state.
+  the whole state (nothing mutates it mid-state); only a deliberate,
+  operator-gated re-pull starts a new review state, updating the tree in place
+  at that boundary.
 - **Three vector separations.** Later vectors build on a verified substrate.
   Gates between, operator-gated.
 - **ORIGIN classification is mandatory** — base-diff decides pre-existing vs

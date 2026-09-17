@@ -46,7 +46,7 @@ Ask once. If an operator already answered via a filled `KICKOFF.md`, honor it ve
 
 ### 2. Pull the review subject
 
-Pull the tree under review BEFORE any analysis or orientation in the target repo's checkouts: a chunkhound PR sandbox when the rail is confirmed (installed + the operator's `/ch-status` report at the frame gate), else a plain detached worktree (intake-and-scope.md §0.1). Until the pull, pre-pull work is remote-only (`gh repo view` / `gh pr view` / `gh pr diff --name-only`) plus presence probes (pi-chhound install checks; the operator runs `/ch-status` at the frame gate); the only pre-pull local git command is the cure-light source provenance capture (intake-and-scope.md, §Output). Whatever SHA the pull has is the **subject** — capture it (`subject_oid` / `subject_path`) into the run manifest at Phase 0. Every fleet child of this review state receives the same subject path + OID. The tree is stable for the whole state; only a deliberate re-pull at an operator gate starts a new review state — which obeys the same subject-first rule (never re-pull in place).
+Pull the tree under review BEFORE any analysis or orientation in the target repo's checkouts: a chunkhound PR sandbox when the rail is confirmed (installed + the operator's `/ch-status` report at the frame gate), else a plain detached worktree (intake-and-scope.md §0.1). Until the pull, pre-pull work is remote-only (`gh repo view` / `gh pr view` / `gh pr diff --name-only`) plus presence probes (pi-chhound install checks; the operator runs `/ch-status` at the frame gate); the only pre-pull local git command is the cure-light source provenance capture (intake-and-scope.md, §Output). Whatever SHA the pull has is the **subject** — capture it (`subject_oid` / `subject_path`) into the run manifest at Phase 0. Every fleet child of this review state receives the same subject path + OID. The tree is stable for the whole state — nothing mutates it mid-state; only a deliberate re-pull at an operator gate starts a new review state, which obeys the same subject-first rule and updates the tree **in place** at that boundary (fetch + detached checkout to the new head; a rail sandbox's live index follows it, the bridge stays connected). A tree that is gone or broken is pulled fresh instead (intake-and-scope.md §0.1).
 
 ### 3. Compile the process
 
@@ -70,7 +70,7 @@ Each vector is a **fleet pass** with a defined split, per-child prompt contract 
 
 ## Closure verification loop
 
-When the operator says the implementer "worked on the review" (or re-pulls the PR), do NOT re-run the whole pipeline. The re-pull is a new review state: capture the new subject OID, diff the finding-touched paths last-reviewed-subject → new-subject, and classify each finding:
+When the operator says the implementer "worked on the review" (or re-pulls the PR), do NOT re-run the whole pipeline. The re-pull is a new review state: update the subject tree in place to the new head (intake-and-scope.md §0.1), capture the new subject OID, diff the finding-touched paths last-reviewed-subject → new-subject, and classify each finding. Old-state content is read at its own OID (`git show <old_subject_oid>:<path>`) — the working tree holds the new subject.
 
 - `verified-fixed` — code + test evidence at old/new lines
 - `re-classified` — category/claim changed

@@ -25,7 +25,7 @@ Intake → Phase 0 → Vector 1 → Deterministic preflight → Vector 2 → Vec
 
 ## Cross-cutting rules
 
-1. **One stable subject per review state.** All vectors in a state analyze the same pulled tree (`subject_path` / `subject_oid`, see intake-and-scope.md); a re-pull is a new state — gated by the operator, never in-place. Findings carry the subject OID their evidence was read from.
+1. **One stable subject per review state.** All vectors in a state analyze the same pulled tree (`subject_path` / `subject_oid`, see intake-and-scope.md); nothing mutates it mid-state. A re-pull is a new state — gated by the operator and executed at that state boundary: the tree is updated **in place** to the new head (or pulled fresh when it is gone/broken). Findings carry the subject OID their evidence was read from; once the tree moves, older rows are read at their own OID (`git show`, evidence-format.md).
 2. **Origin classification is mandatory** (pre-existing vs PR-introduced), decided by base-diff.
 3. **Two-axis severity**: impact (HIGH/MED/LOW) × disposition (fix-in-PR / pre-existing-debt / deferred-decision / track-separately).
 4. **Notebook is the shared memory.** The coordinator writes run frame + findings pages; children return compact evidence records, they do not compete for writes.
