@@ -8,7 +8,7 @@ cure-light reviews the tree it **pulls**, not the remote tip. Whatever SHA the p
 
 ## 0.1 Pull the subject (preflight, ground truth)
 
-**Subject-first.** Until the subject is pulled, nothing in the target repo's local checkouts is read or used for orientation — per review state (a deliberate re-pull starts a new state under the same rule). Pre-pull access is remote-only (`gh repo view` / `gh pr view` / `gh pr diff --name-only`) plus presence probes (pi-chhound install checks; the operator's `/ch-status` report at the frame gate confirms the rail); the only pre-pull local git command is the cure-light source provenance capture (§Output below). The pulled subject is the first tree cure-light reads for context or evidence.
+**Subject-first.** Until the subject is pulled, nothing in the target repo's local checkouts is read or used for orientation — per review state (a deliberate re-pull starts a new state under the same rule). Pre-pull access is remote-only (`gh repo view` / `gh pr view` / `gh pr diff --name-only`) plus presence probes (the `ch-chhound status` model probe; on older builds, pi-chhound install checks + the operator's `/ch-status` report confirms the rail); the only pre-pull local git command is the cure-light source provenance capture (§Output below). The pulled subject is the first tree cure-light reads for context or evidence.
 
 At Phase 0:
 
@@ -16,8 +16,8 @@ At Phase 0:
 - [ ] `gh repo view <owner>/<repo>` reachable.
 - [ ] `gh pr view <pr> --json headRefOid,baseRefOid,state,title` — PR exists and is OPEN; capture `baseRefOid` + the remote `headRefOid` as **informational context** (what gh reports now; NOT the subject).
 - [ ] Pull the subject tree:
-      - **re-pull, tree exists** (a new review state for a PR already pulled at `subject_path`) → update it **in place**: fetch the new head into the tree's repo and check it out detached (`git -C <subject_path> fetch …` + `git -C <subject_path> checkout --detach <new head>`). The rail sandbox needs no `/ch` command: its live daemon re-indexes the sandbox automatically and the MCP bridge stays connected. A tree that is gone/broken (or a mechanism change) → pull fresh below.
-      - **pi-chhound rail confirmed** (install detected at boot; operator `/ch-status` report at the frame gate) and no subject tree for this PR yet → chunkhound PR sandbox per [chhound-driver.md](chhound-driver.md): the **operator** runs `/chworktree https://github.com/<owner>/<repo>/pull/<n> --dest <unique-dir>` and `/ch-mcp <printed-path> --prefix chh_pr<n>`; the coordinator verifies the `chh_*` tools respond. The sandbox dir is the subject.
+      - **re-pull, tree exists** (a new review state for a PR already pulled at `subject_path`) → update it **in place**: fetch the new head into the tree's repo and check it out detached (`git -C <subject_path> fetch …` + `git -C <subject_path> checkout --detach <new head>`). The rail sandbox needs no rail action: its live daemon re-indexes the sandbox automatically and the MCP bridge stays connected. A tree that is gone/broken (or a mechanism change) → pull fresh below.
+      - **pi-chhound rail live** (the `ch-chhound status` model probe; on older builds, install detected at boot + operator `/ch-status` report at the frame gate) and no subject tree for this PR yet → chunkhound PR sandbox per [chhound-driver.md](chhound-driver.md): the **coordinator** runs `ch-chhound {action: "worktree.create", pr: "<PR-URL>", connect: true}` (consent-gated) and verifies the connected tools respond; the operator-side fallback is `/ch-worktree <PR-URL> --dest <unique-dir>` + `/ch-mcp <printed-path> --prefix chh_pr<n>`. The sandbox's worktree checkout is the subject.
       - **else** → plain detached worktree at the PR's current head, sourced as:
             - developer has an existing local clone of the target repo → source from that clone (fetch, then `git worktree add --detach <scratch>/tree <current headRefOid>`). Plumbing only — the clone is the git object source; its working tree is never read as context or evidence.
             - no local clone → clone the target repo into the review scratch dir (`git clone <target-url> <scratch>/tree`), fetch, then `git -C <scratch>/tree checkout --detach <current headRefOid>` — the clone is the subject.
@@ -26,7 +26,7 @@ At Phase 0:
 - [ ] **Capture the subject**: `git -C <subject-path> rev-parse HEAD` → manifest `subject_oid`; the tree dir → `subject_path`. If `subject_oid` ≠ the gh-reported `headRefOid`, record both in the manifest — the pulled tree is the subject regardless (informational divergence, not an error). On an in-place re-pull the same `subject_path` gets the new `subject_oid`; the previous state's content stays reachable at its own OID (`git show <old_subject_oid>:<path>`).
 - [ ] Complete the deferred requirements rows on the pulled tree (requirements-check.md rows 5/8/9) — the requirements check is complete only after this.
 - [ ] (pi) `notebook_index` responds.
-- [ ] (pi, optional) chhound index health (`chh_pr<n>_daemon_status`); fallback = bash/rg/grep. A broken index never blocks.
+- [ ] (pi, optional) chhound index health (`{ch_prefix}_daemon_status`); fallback = bash/rg/grep. A broken index never blocks.
 
 If any hard requirement fails: state the fallback (git/rg instead of chhound; plain worktree instead of sandbox; inherit-parent instead of fleet groups) or STOP before fleet cost.
 
@@ -82,7 +82,7 @@ notebook (when available): pipeline-frame-<owner>-<pr>-s<n> + contract-<owner>-<
 lens_matrix: {type: preflight, dead: preflight+v3, read: v2+v3, name: v3, blast: preflight+v2, quality: v3}   # see hygiene-lens.md + blast-lens.md + quality-lens.md
 symbol_sweep: <artifact ref — state's symbol map page/file (symbol-map-<owner>-<pr>-s<n> | scratch path); mode: chhound-rail | rg>   # preflight symbol map, recipe in chhound-driver.md (Symbol sweep); reused by V2/V3/yagni + the comment render
 symbol_sweep_symbols: [..]   # optional: explicit identifiers the operator adds to the extracted sweep set
-research: {mode: chhound-rail | direct-tree, ch_prefix: <chh_pr<n> | none>, excluded: [<other live chh_* prefixes>], v2_protocol: code-research-if-ready, v3_protocol: search-extensive-if-ready, shadow: off}   # protocols in implementation-pass.md + debt-pass.md; shadow on only by explicit operator choice
+research: {mode: chhound-rail | direct-tree, ch_prefix: <registered chh_* prefix | none>, excluded: [<other live chh_* prefixes>], v2_protocol: code-research-if-ready, v3_protocol: search-extensive-if-ready, shadow: off}   # protocols in implementation-pass.md + debt-pass.md; shadow on only by explicit operator choice
 cure_light_source_head_oid: <cure-light source HEAD at intake>   # review provenance, frozen once (see evidence-format.md)
 ```
 

@@ -58,9 +58,10 @@ draft_comment: [false]   # prepare the single review comment for operator approv
 - [x] chunkhound PR sandbox as the review subject (recommended; plain worktree otherwise)
 ```
 
-If checked and the rail is detected as installed, expect one request: run `/ch-status` at
-the frame gate and report the output — the rail's `/ch` commands are operator-side, not
-model tools.
+If checked and the rail is detected as installed, expect the coordinator to probe and
+drive it itself (`ch-chhound`; consent prompts on the sandbox create/connect). Where model
+tools are unavailable, expect one fallback request: run `/ch-status` at the frame gate and
+report the output.
 
 ---
 

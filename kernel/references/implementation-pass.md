@@ -20,7 +20,7 @@ The split is derived from the Vector 1 matrix — you drill into the surfaces th
 
 Vector 2 uses the run manifest's research policy (`research.mode`) before direct source inspection, so each split understands its subsystem beyond the assigned files. The mandate is **uniform**: it applies to every split, including test-integrity concepts — deeper subsystem understanding yields better insights regardless of split type.
 
-When `research.mode = chhound-rail` (sandbox index under the frame's prefix `chh_pr<n>`), every child MUST:
+When `research.mode = chhound-rail` (sandbox index under the frame's registered prefix `{ch_prefix}`), every child MUST:
 
 1. Call the exact `{ch_prefix}_daemon_status` tool and record `query_ready`.
 2. If ready, call the exact `{ch_prefix}_code_research` tool with ONE question scoped to its sealed invariant — end-to-end callers, state transitions, failure paths, persistence/version boundaries, tests, correlated sites.

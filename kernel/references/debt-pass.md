@@ -42,7 +42,7 @@ Each child receives: contract context, the relevant architecture files + diff, a
 
 ## Search-extensive research protocol (Vector 3)
 
-Debt claims are repo-wide by nature ("no consumers", "count the touch points a 2nd type needs", "re-declared elsewhere") — when `research.mode = chhound-rail` (sandbox index under the frame's prefix `chh_pr<n>`), the exact `{ch_prefix}_search` tool is Vector 3's **default lead generator** and is used extensively:
+Debt claims are repo-wide by nature ("no consumers", "count the touch points a 2nd type needs", "re-declared elsewhere") — when `research.mode = chhound-rail` (sandbox index under the frame's registered prefix `{ch_prefix}`), the exact `{ch_prefix}_search` tool is Vector 3's **default lead generator** and is used extensively:
 
 Before the first search, read the run's **symbol map** (`symbol_sweep` artifact — chhound-driver.md, Symbol sweep): the diff symbols' occurrence census and usage heat, shared with this vector as a lead inventory. It is a convenience, not an exemption — the census covers the selected diff symbols only (literal-name occurrences, not resolved symbols), and the search requirements below are unchanged.
 
