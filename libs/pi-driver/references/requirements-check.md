@@ -18,7 +18,7 @@ Two groups: **pre-pull rows** run at boot and feed the frame gate (they need onl
 | 8 | Phase 0 | git diff base..subject works on the **pulled** tree | `git -C <subject-path> diff <base_oid>..<subject_oid> --stat` | fetch the base ref into the tree's repo and retry; if still failing → STOP |
 | 9 | Phase 0 | (chhound rail) index health | `{ch_prefix}_daemon_status` | use bash/rg/grep; never block |
 
-Row 4 semantics: the rail is driven through the `ch-chhound` model tool where the build provides it (read actions need no consent; mutations are consent-gated; chhound-driver.md) — the coordinator probes it directly; the operator-side `/ch` commands remain the fallback lane (older builds, `modelTools=off`, headless). The frame's planned mechanism is a **plan**, never a sandbox guarantee — a sandbox failure at Phase 0 falls back per chhound-driver.md (plain worktree + git/rg). Row 8 is a post-pull check on the pulled tree only: `gh pr diff` NEVER substitutes the subject diff — the remote head may differ from the pulled subject, and diffing the wrong tree would corrupt scope and origin classification.
+Row 4 semantics: the `ch-chhound` probe and the fallback ladder are defined in chhound-driver.md §Presence. The frame's planned mechanism is a **plan**, never a sandbox guarantee — a sandbox failure at Phase 0 falls back per chhound-driver.md (plain worktree + git/rg). Row 8 is a post-pull check on the pulled tree only: `gh pr diff` NEVER substitutes the subject diff — the remote head may differ from the pulled subject, and diffing the wrong tree would corrupt scope and origin classification.
 
 ## Fallback policy
 

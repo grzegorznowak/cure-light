@@ -8,7 +8,7 @@ cure-light reviews the tree it **pulls**, not the remote tip. Whatever SHA the p
 
 ## 0.1 Pull the subject (preflight, ground truth)
 
-**Subject-first.** Until the subject is pulled, nothing in the target repo's local checkouts is read or used for orientation — per review state (a deliberate re-pull starts a new state under the same rule). Pre-pull access is remote-only (`gh repo view` / `gh pr view` / `gh pr diff --name-only`) plus presence probes (the `ch-chhound status` model probe; on older builds, pi-chhound install checks + the operator's `/ch-status` report confirms the rail); the only pre-pull local git command is the cure-light source provenance capture (§Output below). The pulled subject is the first tree cure-light reads for context or evidence.
+**Subject-first.** Until the subject is pulled, nothing in the target repo's local checkouts is read or used for orientation — per review state (a deliberate re-pull starts a new state under the same rule). Pre-pull access is remote-only (`gh repo view` / `gh pr view` / `gh pr diff --name-only`) plus presence probes (chhound-driver.md §Presence); the only pre-pull local git command is the cure-light source provenance capture (§Output below). The pulled subject is the first tree cure-light reads for context or evidence.
 
 At Phase 0:
 
@@ -17,7 +17,7 @@ At Phase 0:
 - [ ] `gh pr view <pr> --json headRefOid,baseRefOid,state,title` — PR exists and is OPEN; capture `baseRefOid` + the remote `headRefOid` as **informational context** (what gh reports now; NOT the subject).
 - [ ] Pull the subject tree:
       - **re-pull, tree exists** (a new review state for a PR already pulled at `subject_path`) → update it **in place**: fetch the new head into the tree's repo and check it out detached (`git -C <subject_path> fetch …` + `git -C <subject_path> checkout --detach <new head>`). The rail sandbox needs no rail action: its live daemon re-indexes the sandbox automatically and the MCP bridge stays connected. A tree that is gone/broken (or a mechanism change) → pull fresh below.
-      - **pi-chhound rail live** (the `ch-chhound status` model probe; on older builds, install detected at boot + operator `/ch-status` report at the frame gate) and no subject tree for this PR yet → chunkhound PR sandbox per [chhound-driver.md](chhound-driver.md): the **coordinator** runs `ch-chhound {action: "worktree.create", pr: "<PR-URL>", connect: true}` (consent-gated) and verifies the connected tools respond; the operator-side fallback is `/ch-worktree <PR-URL> --dest <unique-dir>` + `/ch-mcp <printed-path> --prefix chh_pr<n>`. The sandbox's worktree checkout is the subject.
+      - **pi-chhound rail live** (chhound-driver.md §Presence) and no subject tree for this PR yet → create/connect the PR sandbox per [chhound-driver.md](chhound-driver.md) §Phase 0; the sandbox's worktree checkout is the subject.
       - **else** → plain detached worktree at the PR's current head, sourced as:
             - developer has an existing local clone of the target repo → source from that clone (fetch, then `git worktree add --detach <scratch>/tree <current headRefOid>`). Plumbing only — the clone is the git object source; its working tree is never read as context or evidence.
             - no local clone → clone the target repo into the review scratch dir (`git clone <target-url> <scratch>/tree`), fetch, then `git -C <scratch>/tree checkout --detach <current headRefOid>` — the clone is the subject.

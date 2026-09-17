@@ -9,13 +9,10 @@ plain detached worktree (intake-and-scope.md §0.1) and git/rg research — the 
 blocks a review.
 
 The rail is driven through the **`ch-chhound` model tool** when the running pi-chhound
-build provides it. Read actions (`status`, `worktree.list`, `mcp.list`, `setup.show`) are
-model-executable without consent; mutating actions (`worktree.create`, `baseline.refresh`,
-`mcp.connect`, `mcp.disconnect`, `setup.update`) ask the operator to confirm and are
-blocked in headless/no-UI runs. `worktree.create` makes a sandbox from a PR URL (`pr`) or
-from a repo path + ref (`repo` with `branch` / `newBranch` / `from`), with `connect: true`
-attempting the bridge connect in the same call. Where the tool is absent (older builds) or an
-action is unavailable (`modelTools=off`, read-only for mutations, no UI for consent), the
+build provides it: read actions (e.g. `status`) need no consent; mutating actions
+(`worktree.create`, `mcp.connect`, `mcp.disconnect`, `baseline.refresh`) are consent-gated
+and blocked in headless/no-UI runs. Where the tool is absent (older builds) or an action
+is unavailable (`modelTools=off`, read-only for mutations, no UI for consent), the
 **operator-side `/ch` commands** are the fallback lane — `/ch-status`, `/ch-worktree`,
 `/ch-mcp`, `/ch-setup` — the coordinator cannot run them and their UI output reaches the
 model only when the operator reports it.
@@ -31,40 +28,30 @@ model only when the operator reports it.
    the `chunkhound` CLI is on PATH — plus the operator's `/ch-status` report at the frame
    gate: the authoritative check that the rail is live in this session.
 
-No confirmed rail → the plain-worktree plan stands. Nothing here is a hard requirement;
-each step has a recorded fallback.
-
 ## Phase 0 recipe (rail live)
 
-The coordinator executes the `ch-chhound` actions below; each mutating one shows the
-operator a consent prompt (headless: the operator-side fallback runs the equivalent `/ch`
-command). A first pull only: an in-place re-pull needs no rail action and no new sandbox
-(see Re-pull). The coordinator verifies with model-side checks — capture commands,
+The coordinator executes the `ch-chhound` actions below; headless/no-UI runs use the
+operator fallback. A first pull only: an in-place re-pull needs no rail action and no new
+sandbox (see Re-pull). The coordinator verifies with model-side checks — capture commands,
 `{ch_prefix}_*` tool responses, fallback rules.
 
-1. **Create the sandbox** (one-go, non-interactive):
+1. **Create and connect** (one-go, non-interactive):
    `ch-chhound {action: "worktree.create", pr: "https://github.com/<owner>/<repo>/pull/<n>", connect: true}`
-   The PR URL carries the repo identity; the sandbox slot is `pull/<n>`. The action
-   discovers (or mirrors) the repo, fetches the PR head, indexes the baseline + the PR's
-   own diff, records the PR head identity, and attempts the MCP connect (`connect: true`).
-   Use a **unique `dest`
-   per sandbox** for fresh creations of the same PR (a re-pull reuses its own sandbox, so
-   this applies only when one is created). Fallback: operator
+   The PR URL carries the repo identity; the slot is `pull/<n>`; `connect: true` attempts
+   the MCP connect. Use a **unique `dest` per sandbox** for fresh creations of the same PR
+   (a re-pull reuses its own sandbox). Fallback: operator
    `/ch-worktree https://github.com/<owner>/<repo>/pull/<n> --dest <dir>`.
-2. **Capture the subject**: `git -C <subject_path> rev-parse HEAD` → manifest
-   `subject_oid`, where `subject_path` is the **worktree checkout** — the `worktree:` path
-   the create reports (inside its sandbox storage dir, which also holds the index state;
-   `ch-chhound status` lists it). Whatever SHA the pull has **is** the review subject
+2. **Capture the subject**: the reported `worktree:` path → `subject_path` (the checkout
+   inside its sandbox storage dir — not the storage dir itself); `git -C <subject_path>
+   rev-parse HEAD` → `subject_oid`. Whatever SHA the pull has **is** the review subject
    (subject rule, intake-and-scope.md §0.1) — no refusal ladder when it differs from the
    gh-reported remote head; record the difference in the manifest as informational context.
-3. **Verify the connection**: a failed connect never fails the create, so check the
-   bridge explicitly. Read
-   the actual tool names from `ch-chhound {action: "status"}` — the connection's `tools:`
-   line lists the registered names (the first in full), so the actual prefix is read off
-   it (a model connect derives the prefix from the worktree checkout folder, e.g.
-   `chh_pull-123`); render those exact names into child prompts. Confirm a
-   `{ch_prefix}_daemon_status` call responds: a tool-list registration alone does not prove a
-   response. Fallback connect: `ch-chhound {action: "mcp.connect", target: "<path-or-id>"}`,
+3. **Verify the connection**: a failed connect never fails the create, so verify with
+   `ch-chhound {action: "status"}` — no connection for the sandbox → connect via the
+   fallback below. Read the registered names from the same output (derivation under Tool
+   names) and render those exact names into child prompts; then confirm a
+   `{ch_prefix}_daemon_status` call responds — a tool-list registration alone does not
+   prove a response. Fallback connect: `ch-chhound {action: "mcp.connect", target: "<path-or-id>"}`,
    or operator `/ch-mcp <printed-path> --prefix chh_pr<n>` (then the prefix is the fixed
    `chh_pr<n>`).
 4. **MCP lifecycle**: one live bridge per sandbox; an in-place re-pull keeps its bridge.
@@ -205,10 +192,9 @@ after all children of the current state have settled,
    re-indexes the sandbox automatically and the MCP bridge stays connected (same dir, no
    reconnect, no fresh baseline copy).
 2. pull fresh instead when the tree is gone/broken, the mechanism changes, or the operator
-   prefers a clean tree: `ch-chhound {action: "worktree.create", pr: "<PR-URL>", connect: true}`
-   plus disconnect of the old bridge (`ch-chhound {action: "mcp.disconnect", target: "<old>"}`);
-   operator fallback: `/ch-worktree <PR-URL> --dest <new-dir>` + `/ch-mcp`; the plain path
-   gets a fresh worktree/clone (intake-and-scope.md §0.1).
+   prefers a clean tree: create + connect per Phase 0 and replace the old bridge per MCP
+   lifecycle above (operator fallback: `/ch-worktree <PR-URL> --dest <new-dir>` +
+   `/ch-mcp`); the plain path gets a fresh worktree/clone (intake-and-scope.md §0.1).
 3. capture the new subject OID (and the base OID) into a new manifest/frame — an in-place
    re-pull records the same `subject_path` with the new `subject_oid`; the previous state's
    content stays reachable at its own OID (`git show`).

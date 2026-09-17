@@ -75,9 +75,8 @@ Paste into the fresh session (also `templates/KICKOFF.md`):
 `libs/pi-driver/references/requirements-check.md` verifies: gh auth, target repo
 reach, PR base + remote head OIDs, the planned subject mechanism (chhound sandbox
 when the [pi-chhound](https://github.com/grzegorznowak/pi-chunkhound) plugin's rail is
-live — the coordinator's `ch-chhound status` probe, or on builds without model tools an
-install check plus the operator's `/ch-status` report at the frame gate — plain detached
-worktree otherwise), notebook writable, fleet groups present
+live (chhound-driver.md §Presence), plain detached worktree otherwise), notebook writable,
+fleet groups present
 ([model-groups](https://github.com/agenticoding/pi-agenticoding)).
 Subject-tree rows (sandbox connect, git diff base..subject on the pulled tree,
 index health) defer to the Phase 0 gate — before the subject pull, nothing local
