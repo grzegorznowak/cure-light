@@ -13,7 +13,7 @@ Two groups: **pre-pull rows** run at boot and feed the frame gate (they need onl
 | 3 | pre-pull | PR exists, OPEN; base OID + remote head OID captured (informational) | `gh pr view <pr> --json headRefOid,baseRefOid,state,title` | STOP or ask |
 | 4 | pre-pull | subject mechanism planned: rail live via the `ch-chhound status` model probe → chunkhound PR sandbox; where the probe is blocked (`modelTools=off`) or absent (older build) install detected (pi settings `packages` / extension dirs + `chunkhound` CLI on PATH) → sandbox **pending the operator's `/ch-status` confirmation at the frame gate**; neither → plain detached worktree | `ch-chhound {action: "status"}`; inspect pi settings / extension dirs; `chunkhound` on PATH | record the fallback mechanism in the frame; never a stop by itself |
 | 5 | Phase 0 | (chhound rail) sandbox/bridge ready; prefixed tool responds (an in-place re-pull retains the bridge) | first pull: `ch-chhound {action: "worktree.create", pr: "<PR-URL>", connect: true}` (fallback `/ch-mcp … --prefix chh_pr<n>`); re-pull: `git -C <subject_path> fetch/checkout`; then `{ch_prefix}_daemon_status` | reconnect once (`ch-chhound {action: "mcp.connect", target: "…"}` or operator `/ch-mcp`); else record fallback (plain worktree + git/rg), never stop |
-| 6 | pre-pull | notebook writable (pi) | `notebook_index` returns pages | fallback: session-scratch dir (frame/findings) + contract on disk; note durability loss |
+| 6 | pre-pull | notebook writable (pi) | `notebook_index` returns pages | fallback: session-scratch dir (frame/findings) + contract on disk; **no authoritative coverage ledger or claim registry** — Vector 1's completeness flags cannot all clear; note durability loss |
 | 7 | pre-pull | fleet groups present (pi + model-groups) | inspect group list (flash/code-review/…) | fallback: inherit-parent spawn, note in frame |
 | 8 | Phase 0 | git diff base..subject works on the **pulled** tree | `git -C <subject-path> diff <base_oid>..<subject_oid> --stat` | fetch the base ref into the tree's repo and retry; if still failing → STOP |
 | 9 | Phase 0 | (chhound rail) index health | `{ch_prefix}_daemon_status` | use bash/rg/grep; never block |
@@ -24,7 +24,7 @@ Row 4 semantics: the `ch-chhound` probe and the fallback ladder are defined in c
 
 - Research tools missing → git diff, `rg`, `grep`, direct `read`. Evidence quality stays the same; cost rises a little.
 - Fleet groups missing → single-agent review with inherit-parent spawning; the pipeline still runs, each "child" is a serialized pass. Note the downgrade in the frame.
-- Notebook missing → scratch dir with the same page layout; findings survive until context compaction (warning given).
+- Notebook missing → scratch dir for frame/findings (same layout minus the authoritative coverage store); findings survive until context compaction (warning given). Vector 1 accounting has no authoritative ledger and the run must not assert complete coverage (conformance-pass.md; notebook-plan-contract.md).
 
 ## Stop conditions
 

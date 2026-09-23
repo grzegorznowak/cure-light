@@ -48,22 +48,30 @@ The contract holds:
 
 Rule: the contract is the PR's own words plus the issue's locked decisions — never the reviewer's paraphrase of intent. Preserve verbatim blocks.
 
+The capture also compiles the **claim registry** — the state's complete claim universe. Each claim gets a deterministic, state-local `claim_id` derived from its source block + the exact UTF-8 byte `[start,end)` offsets into that immutable block + quote hash, plus parent/group links (overlapping clauses keep explicit parent refs) and context/nonclaim span labels, so section extraction cannot silently drop whole blocks. Long contracts are inventoried in bounded source windows with overlap reconciliation; an incomplete source inventory means the claim universe is incomplete, and negative attribution cannot finalize from it. The complete claim directory is paged as the state's claim-registry page(s) (`claims-<owner>-<pr>-s<n>`, notebook-plan-contract.md), and the manifest records its `coverage.claims_ref`/hash (Output below).
+
 ## 0.3 Split vectors into pass slices
 
-Each vector's fleet splits the contract surface. Example split for a model-group/spawn PR:
+### 0.3a Mechanical changed-range census
 
-- conformance: derivation core · persistence/schema guard · spawn/router gate · main-session+TUI · tests
+After the pull and before any split, the coordinator runs the **changed-range census** over `base_oid..subject_oid` with the pinned recipe: `git diff --no-ext-diff --no-textconv --no-color --diff-algorithm=myers --no-indent-heuristic --no-renames -U0 base_oid..subject_oid` parsed as a path-safe stream, reconciled against a NUL-delimited file inventory (`--name-status -z` / `--numstat -z`; `--stat` is orientation only, never the denominator). Parent units are the `-U0` edit blocks; deletions, renames, mode/binary/submodule changes and other no-text edits are explicit metadata events with old/new path/blob or OID evidence. The census records the git version, exact flags, the two-dot `base..subject` comparison semantics (never a silent merge-base substitution), recipe hashes, errors, and totals — parent and event counts plus unique changed-line counts by side. Scripts stream the O(D) enumeration and joins; no agent ingests the whole diff. Contract-token ↔ path/symbol overlap may optionally yield candidate claim links (cheap, discovery-only); a missing candidate link never removes a unit from the denominator.
+
+### 0.3b Capacity-bounded split compile
+
+Each vector's fleet splits the contract surface, capacity-bounded within the approved budget. Example split for a model-group/spawn PR:
+
+- conformance: contract surfaces (derivation core · persistence/schema guard · spawn/router gate · main-session+TUI · tests), each compiled into bounded claim/range shards — one verdict owner per claim, one accounting owner per unit — plus residual attribution shards for changed units with no candidate claim (work packaging only, never invented contracts)
 - implementation: sealed concepts the review already established (never open-ended), + **`read` lens and the `blast` judgment rows** (the once-per-state sweep runs in the deterministic preflight)
 - debt: pluggability · boundary ownership · versioning/migrations · projections · perf/operability, + **`dead`/`name`/`quality` lens ownership**
 
-Slice granularity is chosen so each child reads a bounded file set + the relevant CONTRACT slice, and returns under a defined evidence budget.
+Slice granularity is chosen so each child reads a bounded file set + the relevant contract slice + only its ledger shard pages, and returns under a defined evidence budget.
 
-The lens matrix (hygiene-lens.md) is compiled here and validated: every active lens must map to ≥1 owner. Deterministic preflight (strict tsc / lint) is the `type` sweep and `dead` accelerant; it also produces the state's once-per-state `symbol_sweep` symbol map (recipe: chhound-driver.md, Symbol sweep) — consumed by the V2 splits for the `sweep` row, seeded into V3 debt and the yagni pass, and rendered as the comment's `Symbol impact`.
+The split compile asserts **Vector 1 coverage** — a verdict owner for every captured claim, an accounting owner for every eligible (non-excluded) changed unit — distinct from the lens assertion below. The lens matrix (hygiene-lens.md) is compiled here and validated: every active lens must map to ≥1 owner. Deterministic preflight (strict tsc / lint) is the `type` sweep and `dead` accelerant; it also produces the state's once-per-state `symbol_sweep` symbol map (recipe: chhound-driver.md, Symbol sweep) — consumed by the V2 splits for the `sweep` row, seeded into V3 debt and the yagni pass, and rendered as the comment's `Symbol impact`.
 
 ## 0.4 Operator gates
 
 - **Plan gate (pre-pull).** Before Phase 0 mutates anything external, surface the compiled plan for confirmation: subject mechanism (chhound sandbox | plain worktree) and planned location, vectors, splits, groups, gates, output policy. The planned research mode (chhound-rail when the sandbox rail is planned, else direct-tree — pipeline-model.md) is part of the plan. The frame carries **no tree fields yet** — `subject_path` / `subject_oid` cannot exist before the pull (subject-first, §0.1).
-- **Phase 0 gate (post-pull).** Surface the manifest with the recorded reality: actual `subject_path` / `subject_oid`, `base_oid`, changed-file list from the pulled tree, deferred requirements-row outcomes, fallback notes — a chhound-rail fallback (rail confirmed but sandbox pull/connect failed) also flips `research.mode` to `direct-tree` and `ch_prefix` to `none` (pipeline-model.md), so children render Variant B, never a rail variant whose tools are not connected. The run proceeds to Vector 1 only after this gate.
+- **Phase 0 gate (post-pull).** Surface the manifest with the recorded reality: actual `subject_path` / `subject_oid`, `base_oid`, changed-file list from the pulled tree, the census actual counts (parents/events + unique changed lines by side, completion flags) and the exclusion policy (evidence-linked classes — a path suffix alone is never sufficient), coverage-page location and budgets it approves, deferred requirements-row outcomes, fallback notes — a chhound-rail fallback (rail confirmed but sandbox pull/connect failed) also flips `research.mode` to `direct-tree` and `ch_prefix` to `none` (pipeline-model.md), so children render Variant B, never a rail variant whose tools are not connected. A thin or empty contract stops deeper planning here: request author scope, or run an explicitly limited V1-only review as an operator choice — reviewer-invented claims are never an option. The run proceeds to Vector 1 only after this gate.
 
 ## Output
 
@@ -78,7 +86,8 @@ vectors: [..]  groups: {flash, code-review}
 draft_comment, pauses
 changed_files: [...]
 contract_ref: contract-<owner>-<pr>-s<n>   # notebook page (pi); disk path in fallback runs
-notebook (when available): pipeline-frame-<owner>-<pr>-s<n> + contract-<owner>-<pr>-s<n> + symbol-map-<owner>-<pr>-s<n> + pr-<n>-review   # per review state (pr-<n>-review: per PR); the map is the state's symbol_sweep artifact
+coverage: {version, owner: v1, status, summary_ref: coverage-<owner>-<pr>-s<n>, ledger_refs: [coverage-<owner>-<pr>-s<n>-p<k>], claims_ref/hash, census: {recipe, version, flags, hash}, scope, exclusions: {policy, classes, approvals}, counts_by_state_and_side, completion_flags: {enumeration, accounting, attribution, claim_conformance}, budget, assignment_ref/hash (per-shard digests on the summary page), audit, errors}   # coverage pages are in-notebook only — never authoritative scratch files; retired at state close after durable snapshots (notebook-plan-contract.md, Coverage pages)
+notebook (when available): pipeline-frame-<owner>-<pr>-s<n> + contract-<owner>-<pr>-s<n> + claims-<owner>-<pr>-s<n> + coverage-<owner>-<pr>-s<n> (+ ledger shards) + symbol-map-<owner>-<pr>-s<n> + pr-<n>-review   # per review state (pr-<n>-review: per PR); the map is the state's symbol_sweep artifact
 lens_matrix: {type: preflight, dead: preflight+v3, read: v2+v3, name: v3, blast: preflight+v2, quality: v3}   # see hygiene-lens.md + blast-lens.md + quality-lens.md
 symbol_sweep: <artifact ref — state's symbol map page/file (symbol-map-<owner>-<pr>-s<n> | scratch path); mode: chhound-rail | rg>   # preflight symbol map, recipe in chhound-driver.md (Symbol sweep); reused by V2/V3/yagni + the comment render
 symbol_sweep_symbols: [..]   # optional: explicit identifiers the operator adds to the extracted sweep set

@@ -17,7 +17,7 @@ Read these references completely before establishing a process:
 6. [references/closure-verification.md](references/closure-verification.md) — the re-review loop
 7. [references/hygiene-lens.md](references/hygiene-lens.md) — the lens dimension: code-hygiene family, deterministic preflight, lens trail
 8. [references/blast-lens.md](references/blast-lens.md) — the `blast` lens (V2-owned: data × call-site blast radius, advisory rows vs blocking instances)
-9. [references/yagni-pass.md](references/yagni-pass.md) — the optional size/YAGNI pass (fresh-context, post-handoff)
+9. [references/yagni-pass.md](references/yagni-pass.md) — the optional over-engineering/YAGNI pass (fresh-context, post-handoff)
 10. [references/quality-lens.md](references/quality-lens.md) — the `quality` lens (V3-owned: maintainable shape, suite strength, consistency)
 11. [references/evidence-format.md](references/evidence-format.md) — finding schema, severity, origin
 12. [references/chhound-driver.md](references/chhound-driver.md) — the chunkhound research rail (pi-chhound plugin): sandbox pull, MCP connect, tool names, the symbol-sweep preflight recipe, discovery-only rule
@@ -57,12 +57,12 @@ From the intake fields, compile: the vector set and their fleet groups, the phas
 ```text
 Intake → Requirements check (pre-pull rows; subject-tree rows defer to Phase 0)
   → [operator gate: frame] — approves the PLAN: subject mechanism (chhound sandbox | plain worktree) + planned location, vectors, gates, output policy; no tree fields yet
-  → Phase 0 pull subject + contract → [gate: manifest records reality — subject_path / subject_oid]
-  → Vector 1 conformance (flash) → [gate]
+  → Phase 0 pull subject + contract + 0.3a changed-range census → 0.3b split compile → [gate: manifest records reality — subject_path / subject_oid, census counts, exclusions/budgets]
+  → Vector 1 conformance (flash; two-ended — claim adjudication + changed-unit accounting) → [gate]
   → Deterministic preflight (type/dead + the state's symbol map)
   → Vector 2 implementation (code-review) → [gate]
   → Vector 3 debt (code-review) → [gate]
-  → Optional yagni pass (code-review; size/YAGNI — operator-enabled, fresh-context post-handoff) → [gate]
+  → Optional yagni pass (code-review; over-engineering/YAGNI — operator-enabled, fresh-context post-handoff) → [gate]
   → Output (one operator-gated review comment) → [closure loop on deliberate re-pull]
 ```
 
@@ -85,10 +85,14 @@ Publish a closure table. See closure-verification.md.
 - **Review the pulled subject tree, not the remote tip.** Whatever SHA the pull has is the version reviewed; capture it at Phase 0 and anchor every finding to it.
 - **Subject-first: no orientation before the subject pull.** Until Phase 0 pulls the subject, nothing in the target repo's local checkouts is read or used for orientation — per review state (a deliberate re-pull starts a new state under the same rule). Pre-pull access is remote-only plus presence probes (chhound-driver.md §Presence); the only pre-pull local git command is the cure-light source provenance capture.
 - **Findings need file:line evidence and a concrete failure mode.** Opinion without evidence does not enter the report.
+- **Coverage accounting is not a findings taxonomy.** Vector 1 keeps `EXPLAINED` / `UNCLAIMED` / `EXCLUDED` / `UNRESOLVED` per-unit states in the in-notebook coverage pages; approved exclusions are evidence-linked policy records, and an unread / truncated / disputed range stays `UNRESOLVED` — disclosed, never silently dropped, relabeled, or inferred from a sibling.
+- **Unclaimed delivery is blocking.** A confirmed `unclaimed-delivery` finding is in-scope Vector 1 conformance the owner must address in the PR body — declare/justify the delivered behavior or remove it; never demoted to a follow-up. Severity stays LOW default / MED material / never HIGH from the absence of a declaration alone (evidence-format.md).
+- **Partial coverage is stated honestly.** Mechanical enumeration and accounting are always complete for a complete-coverage claim; semantic residue and any accepted partial review are reported with their limits and require explicit operator acceptance at the gate (conformance-pass.md).
+- **Closure discloses coverage gaps.** A closure re-review surfaces newly added unexplained ranges outside finding-touched paths, or states plainly that Vector 1 coverage was not re-run — it never claims new full coverage from old dispositions (closure-verification.md).
 - **Pre-existing vs PR-introduced is a first-class classification**, decided by base-diff, not vibes — and scope routes the comment: introduced-or-enforced items are addressed, never deferred downstream; out-of-scope items are only recommended or suggested.
 - **Never draft external artifacts automatically.** The single review comment is operator-gated; the `before_post` gate is mandatory whenever drafting is enabled.
 - **Deferred is not closed.** Record it in the decisions page with rationale.
 - **Fleets are budgeted.** Cap children, timeouts, output; serialize notebook writes via the coordinator.
 - **Lens coverage is a frame assertion.** The run frame must map every active lens to an owning pass (lens matrix, see hygiene-lens.md); a lens without an owner blocks the run.
-- **Optional passes are opt-in.** The yagni pass runs only when the operator enables it; a skipped pass deactivates its lens (matrix shows `off`, exempt from the coverage assertion).
+- **Optional passes are opt-in.** The yagni pass (over-engineering of the claimed delivery — not size accounting, yagni-pass.md) runs only when the operator enables it; a skipped pass deactivates its lens (matrix shows `off`, exempt from the coverage assertion).
 - **Subsystem research is mandatory-if-ready on the chhound rail.** When the frame's research mode is `chhound-rail`, Vector 2 runs the code-research protocol (implementation-pass.md) and Vector 3 the search-extensive protocol (debt-pass.md): exact registered tool names are rendered into every child prompt, and a missing RESEARCH TRACE footer makes a split `inconclusive`. In `direct-tree` mode (plain worktree) children never invoke a `chh_*` namespace. Shadow splits are off unless the operator opts in.
