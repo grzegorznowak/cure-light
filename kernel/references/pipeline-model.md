@@ -4,7 +4,7 @@ cure-light reviews a pull request through **three independent vectors**. Each an
 
 | Vector | Question | Fleet group | Focus |
 |---|---|---|---|
-| 1. Conformance | Does the code deliver what the PR *claims* it delivers? | `flash` | PR description + issue + locked decisions → code |
+| 1. Conformance | Does the code deliver what the PR *claims* it delivers — and is every changed unit accounted for against the contract? | `flash` | Two ends: claim adjudication (PR description + issue + locked decisions → code) and changed-unit accounting (census ranges/events → claims) |
 | 2. Implementation | Does the shipped code actually *work* safely? | `code-review` | Sealed concepts / invariants, drilling from established facts |
 | 3. Debt | Is the *way* it's built sustainable? | `code-review` | Bigger concepts, future-change cost, not line-by-line |
 
@@ -16,7 +16,7 @@ cure-light reviews a pull request through **three independent vectors**. Each an
 ## Sequenced, gated
 
 ```text
-Intake → Phase 0 → Vector 1 → Deterministic preflight → Vector 2 → Vector 3 → Output (single review comment) → Closure loop (after a deliberate re-pull)
+Intake → Phase 0 (pull + contract capture + 0.3a changed-range census → 0.3b capacity-bounded split compile, presented at the Phase-0 gate) → Vector 1 (two-ended: claim adjudication + changed-unit accounting) → Deterministic preflight → Vector 2 → Vector 3 → Output (single review comment) → Closure loop (after a deliberate re-pull)
 ```
 
 - Vector 2 runs only when Vector 1 has a clean/accepted disposition (or the operator explicitly allows skipping).
@@ -32,6 +32,8 @@ Intake → Phase 0 → Vector 1 → Deterministic preflight → Vector 2 → Vec
 5. **Inconclusive = no pass.** A child timeout/truncation means the finding is unverified, not accepted.
 6. **Fleets are budgeted.** Per-phase child counts, timeouts, output caps, and a cheap re-review path (delta-only) are mandatory.
 7. **Review is diagnostic.** cure-light proposes; the operator gates the single external review comment (see evidence-format.md, External routing).
+8. **Coverage completeness is asserted per run.** Vector 1 owes two obligations: a verdict for every captured claim, and exactly one accounting state for every eligible changed unit (conformance-pass.md). The run reports four distinct completion flags — enumeration, accounting, attribution, claim conformance — and keeps mechanical completeness separate from semantic judgment: `UNRESOLVED` residue is disclosed and requires explicit operator acceptance at the gate, never a silent pass.
+9. **Vector 1 coverage is a frame assertion, separate from the lens table.** The run must map an owner for every claim and every eligible changed unit (intake-and-scope.md §0.3); the lens table proves only that each active lens has an owning pass. A claim or unit without an owner is a frame error, like an unowned lens.
 
 ## The research accelerator (cross-cutting; Vector 2 + Vector 3)
 
@@ -82,11 +84,12 @@ Rules:
    symbol map may surface as the comment's `Symbol impact` section
    (chhound-driver.md / evidence-format.md).
 
-## Optional pass: yagni (size / YAGNI)
+## Optional pass: yagni (over-engineering / YAGNI)
 
 Beyond the three vectors sits one **optional, vector-shaped pass**: yagni — is
-the PR's physical size in lines changed justified by its contract, and what is
-YAGNI? It runs only when the operator enables it (intake checkbox or on-demand
+the engineering used to deliver the claimed behavior justified, or over-built?
+It owns no size accounting — that is Vector 1's changed-unit accounting
+(yagni-pass.md). It runs only when the operator enables it (intake checkbox or on-demand
 after the Vector 3 gate), post-handoff in a fresh context, on the same run manifest and subject tree. It owns the `yagni` lens while active (yagni-pass.md); when skipped,
 that lens is inactive (`off`) and needs no owner. Hits route to the lens trail,
 never the bug/debt table.

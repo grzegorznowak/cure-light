@@ -13,13 +13,18 @@ summary: one line
 evidence:
   file: path:line            # primary anchor in the subject tree
   code: <verbatim or exact shape>
+  side: subject | base | metadata    # optional; required when the anchor is not a surviving subject-tree line
+  oid: <tree OID the anchor was read from>   # optional; old/base-side or metadata-event provenance
+  range_or_event: <old-side range / metadata event ref at its OID>   # optional; deletion / rename / mode / binary anchors
 severity: HIGH | MED | LOW
 origin: PR-introduced | pre-existing   # Vector 2+ ; conformance is PR-only by definition
 disposition: fix-in-PR | pre-existing-debt | deferred-decision | track-separately
              # fix-in-PR = in scope (introduced or enforced); pre-existing-debt = out-of-scope
              # follow-up (recommended or downstream); deferred-decision / track-separately record
              # an accepted deferral or an own ticket
-failure_mode: <concrete user-visible or future failure>
+conformance_kind: claim-gap | unclaimed-delivery   # optional; Vector-1 findings only (see below)
+coverage_ref: <coverage page ref + unit group/selector + hash>   # optional; ties a V1 finding to ledger records
+failure_mode: <concrete failure: divergence for claim-gap; undeclared delivered behavior for unclaimed-delivery>
 status: open | verified-fixed | re-classified | test-only | doc-only | deferred-decision | closed-by-operator | re-opened
 owner: <implementer | operator | subsystem>
 subject_oid: <tree OID this row's evidence was read from>   # optional in schema; the coordinator fills it on every new/updated row
@@ -30,6 +35,17 @@ linked: <external follow-up URL | none>
 are optional (a conformance finding usually has `lens: none`); when they are
 absent the row still counts toward the vector, but the **lens matrix** (see
 pipeline-model.md) is what proves per-lens coverage of the run.
+
+**Coverage is not a taxonomy.** Vector 1 keeps per-unit accounting in the
+coverage ledger (notebook pages, below); only two narrow kinds become findings:
+`conformance_kind: claim-gap` (the old GAP shape — missing backing,
+contradiction, overstatement) and `conformance_kind: unclaimed-delivery` —
+delivered behavior absent from the captured declared scope, evidenced by unit
+IDs plus the attribution audit. An unclaimed-delivery finding is **in-scope and
+blocking**: the owner declares/justifies the behavior in the PR description or
+removes it (a declaration changes the contract and lands as a closed/new state,
+closure-verification.md). It is never demoted to a follow-up; its narrow
+failure-mode exception is documented under Writing findings.
 
 `subject_oid` is schema-optional for backward compatibility but **rule-required**
 for every new or updated row: it records which review-state tree the row's
@@ -48,6 +64,7 @@ compiler output — never a silent skip and never a finding-status by itself.
 - **HIGH** — data loss / security / wrong routing / a contract-mandated behavior is contradicted or unverifiable at the core and no backstop exists.
 - **MED** — real user-visible defect or race, or a behavior claim missing the test that would catch its regression; backstopped so not catastrophic.
 - **LOW** — brittle, fragile, or coverage-without-assurance; cosmetic; deferred by design.
+- **Unclaimed-delivery findings (`conformance_kind`)**: LOW default; MED only for material undeclared behavior / API / operational commitment with an articulated review or compatibility consequence — never HIGH from the absence of a declaration alone; independent current harm is a Vector 2 finding.
 - **Yagni rows (`yagni` lens)**: LOW default, MED ceiling — existence questions are advisory (non-blocking); current harm is V2's, future-change cost is V3's.
 - **Quality rows (`quality` lens)**: LOW default, MED only when the quality problem's *own scale* is material — never HIGH, rated independently of product criticality (a spaghetti tree in a payments feature is not elevated because payments is critical); advisory (non-blocking), lens-trail only.
 - **Blast rows (`blast` lens)**: LOW default, MED ceiling — never HIGH, suggestion-only; the concrete hazard instance is a Vector 2 finding at its own severity (blast-lens.md).
@@ -66,7 +83,8 @@ Vector-2 and Vector-3 children attach a RESEARCH TRACE footer (implementation-pa
 
 ## Writing findings
 
-- Every finding needs a **concrete failure mode** — not a style opinion.
+- Every finding needs a **concrete failure mode** — not a style opinion. The narrow exception: `unclaimed-delivery` states the undeclared delivered behavior and its unit evidence instead of an invented runtime failure; coverage states themselves are ledger records, not findings.
+- Deletion / metadata findings state the anchor's `side`, `oid`, path and `range_or_event`, plus the checked subject absence (or the surviving subject anchor) — never a bare "file is gone".
 - `NOT-A-BUG` results are listed too (checked and dismissed), cheap honesty that keeps the fleet honest.
 - Hygiene hits follow the **lens trail** (hygiene-lens.md): detection mandatory, LOW by default, operator-suppressible per instance — they never pollute the bug table.
 - `yagni` rows (yagni pass) follow the same lens trail with the same suppression/closure semantics — suggestion-only, never bug/debt tables.
@@ -78,6 +96,8 @@ Vector-2 and Vector-3 children attach a RESEARCH TRACE footer (implementation-pa
 
 - `pipeline-frame-<owner>-<pr>-s<n>` — frozen run options, base OID, planned subject mechanism; the manifest's tree fields (`subject_path` / `subject_oid`, changed-file list) are recorded at the Phase 0 gate (notebook-plan-contract.md). Written at seal, completed at Phase 0.
 - `symbol-map-<owner>-<pr>-s<n>` — the preflight symbol map (chhound-driver.md, Symbol sweep): selected symbols, census heat table, capped outside locations, provenance/caps. One per review state; a bounded state cache kept while the state's consumers run (V2 sweep, V3 seed, yagni), discarded when the state closes.
+- `coverage-<owner>-<pr>-s<n>` — Vector 1 coverage summary/index: denominator and counts by state and side, completion flags, exclusion classes/policy, exact refs to the ledger shards. The paged ledger records themselves live in `coverage-<owner>-<pr>-s<n>-p<k>` pages (bounded, coordinator-owned, **in-notebook** — never scratch files); workers read only their assigned pages/slices. Kept through the state's closure/finalization window, retired after durable snapshots land.
+- `claims-<owner>-<pr>-s<n>` — the state's compiled claim registry: deterministic claim IDs, source spans + quote hashes, parent/group links, context/nonclaim labels; the queryable complete claim directory for Vector 1 negative attribution (paged `-p<k>` when long).
 - `pr-<n>-review` — findings table (schema rows) + closure table. Appended per vector.
 - `decisions` (durable, survives the PR) — deferred-decision and closed-by-operator records with author/time/rationale/scope, plus the leading subarea open questions.
 
@@ -90,7 +110,8 @@ Finalization is **one aggregated review comment per run** — never per-finding 
 The single review comment contains:
 
 ```text
-## Summary                     — owner/repo pr# @ head OID, vectors run
+## Summary                     — owner/repo pr# @ head OID, vectors run; coverage
+                                accounting totals/limits by state and side
 ## Findings                    — in scope of this PR (introduced or enforced by it;
                                 origin may still be pre-existing): file:line evidence,
                                 severity, origin — to be addressed
@@ -110,6 +131,7 @@ The single review comment contains:
 ```
 
 **Scope routes the comment.** `origin` is base-diff evidence, not the routing key. **In scope** = the PR owns the issue: introduced by the PR, or pre-existing on a path the PR's own change now depends on, routes through, or claims to guarantee (a new gate, validation, dependency, standard, or contract claim). **Out of scope** = the PR neither introduces the issue nor depends on/claims that path — a passing touch does not make it enforced. In-scope items go to Findings, to be addressed — never a follow-up suggestion; only out-of-scope items may appear under follow-ups.
+- **Coverage accounting renders in Summary; confirmed unclaimed delivery renders in Findings.** `EXPLAINED` / `EXCLUDED` / `UNRESOLVED` totals, exclusion classes and honest limits stay in the summary and the coverage pages; grouped `unclaimed-delivery` rows are in-scope, blocking, to be addressed — never follow-ups. No fourth comment section.
 
 - **Never auto-post.** The single draft is operator-gated at the `before_post` pause — mandatory whenever `draft_comment` is enabled — and the operator may edit or veto it.
 - **Lens-trail rows stay in the notebook** (hygiene / blast / quality / yagni) and are never included in the comment; the one exception is the mechanical `Symbol impact` table — outside-occurrence counts with census scope, provenance, and caps (chhound-driver.md, Symbol sweep), never a row's advisory judgment.

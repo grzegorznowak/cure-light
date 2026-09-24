@@ -7,14 +7,16 @@
 > closure loop.
 
 cure-light encodes the three-vector method: **conformance** (does the code deliver
-what the PR claims?), **implementation** (does the shipped code work?), **debt**
+what the PR claims — and is every changed unit accounted for?),
+**implementation** (does the shipped code work?), **debt**
 (is the way it's built sustainable?). A cross-cutting **lens** dimension forces
 coverage of the code-hygiene family (dead code, strict-type hygiene, readability,
 naming) — detected by named lens atoms and accelerated by the repo's
 own deterministic tooling where cheap — the full sweep runs when Vectors 2-3 do,
 and a V1-only shortcut still exercises the mechanical `type`/`dead` preflight
-(pipeline-model.md). An optional **yagni** pass challenges the PR's size and
-speculative surface when the operator enables it (yagni-pass.md), and a
+(pipeline-model.md). An optional **yagni** pass challenges over-engineering of
+the claimed delivery — unnecessary mechanisms and speculative surface — when
+the operator enables it (yagni-pass.md), and a
 V3-owned **quality** lens judges maintainable shape, suite strength, and
 consistency by best absolute judgment (quality-lens.md); a V2-owned **blast**
 lens asks what existing data and call sites will meet the change — uninspected

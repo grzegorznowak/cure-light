@@ -59,6 +59,28 @@ section; old-state counts are never carried into a new-state comment.
 - **Do not resurrect closed-by-operator items** unless the operator reopens them or new evidence clearly falls outside the suppression scope.
 - **Doc/test-only closures are acknowledged as such**, so the operator knows the behavior itself is untouched.
 
+## Coverage in closure
+
+A closure run is a new review state: the prior state's coverage pages describe
+their own `subject_oid`, and the delta loop above re-validates findings without
+re-running the Vector 1 census. Two rules keep that honest:
+
+- **New ranges are surfaced, or their absence is disclosed.** Compare the
+delta's added ranges against the old state's coverage page or its durable
+snapshot (`coverage-<owner>-<pr>-s<n>`, notebook-plan-contract.md — the durable
+snapshot in findings/decisions once retired): newly added
+unexplained ranges outside the finding-touched paths are either checked in the
+closure run or the closure render states plainly that V1 coverage was not
+re-run. Old dispositions are never presented as coverage of the new head —
+never claim new full coverage from them.
+- **`unclaimed-delivery` closes only through the contract.** When an author
+declaration/justification resolves such a finding, the PR body changed the
+captured contract: recapture it in the new state with the author declaration
+recorded as a source of that capture before closing the
+row, and record that basis with it. Never rewrite the contract silently, and
+never close the finding on silence. Removing the delivered behavior closes the
+row on the ordinary code+tests basis.
+
 ## Lens trail in closure
 
 Lens-trail rows (hygiene, `blast`, `quality`, `yagni`) are classified with the

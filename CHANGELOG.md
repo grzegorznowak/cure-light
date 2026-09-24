@@ -2,6 +2,25 @@
 
 ## Unreleased (working tree)
 
+### v0.5.12 — Vector 1 detects both ends; yagni refocuses on over-engineering
+
+**kernel/**
+- `conformance-pass.md` — Vector 1 now owes **claim adjudication** (every captured claim gets a verdict) *and* **changed-unit accounting** (every census range/event gets exactly one of `EXPLAINED` / `UNCLAIMED` / `EXCLUDED` / `UNRESOLVED`). The child return is two orthogonal blocks — `CLAIM` verdicts plus unit records closed by `CLOSE <digest>` — with coordinator validation/reconciliation rules, the claim matrix kept distinct from the coverage ledger, a paged **matrix projection** for V2, an honest partial-review gate, and grouped **blocking** `unclaimed-delivery` findings the owner addresses in the PR body (declare/justify the delivered behavior or remove it).
+- `yagni-pass.md` — refocused from size accounting to **over-engineering of the claimed delivery**: the untraceable-hunk atom and the "traceable = NOT-A-HIT" dismissal are gone; the return replaces `SIZE` with `ENGINEERING: JUSTIFIED | CHALLENGED`; EXPLAINED range groups and the claim matrix are leads; the historical operator launch quote is preserved.
+- `pipeline-model.md` / `intake-and-scope.md` — Phase 0 gains **0.3a mechanical changed-range census** (pinned `-U0` patch recipe, parent edit blocks + metadata events, totals by side) before the **0.3b** capacity-bounded split compile; four completeness flags; the V1 coverage assertion is separate from the lens table; immutable claim-registry capture; the Phase-0 gate shows counts and approves exclusions/budgets; a thin/empty contract stops planning.
+- `evidence-format.md` / `assets/finding-schema.json` — additive optional `conformance_kind: claim-gap | unclaimed-delivery`, `coverage_ref`, and evidence `side` / `range_or_event` / `oid` anchors for deletions and metadata events; unclaimed severity LOW default / MED material / never HIGH from absence alone; coverage accounting renders in the comment Summary, grouped unclaimed delivery in Findings (no fourth section).
+- `chhound-driver.md` — the symbol sweep may reuse the census inventory but stays distinct from V1 attribution; `in-diff` is navigation, not coverage. `blast-lens.md` / `quality-lens.md` — boundaries: attribution ≠ outside-consumer clearance; yagni ≠ quality. `implementation-pass.md` / `debt-pass.md` — V2/V3 consume the bounded matrix projection and prior facts, never census breadth.
+- `kernel/SKILL.md` / `templates/KICKOFF.md` — phase sequences carry the census and the two-ended Vector 1; operating rules for blocking unclaimed delivery, honest partial coverage, and closure disclosure.
+
+**pi-driver**
+- `notebook-plan-contract.md` — coverage pages (`coverage-<owner>-<pr>-s<n>` summary/index + `-p<k>` ledger shards) are the authoritative **in-notebook** store for changed-unit accounting; the compiled claim registry gets `claims-<owner>-<pr>-s<n>`; coverage pages stay through the closure/finalization window and retire after durable snapshots.
+- `closure-verification.md` — newly added unexplained ranges are surfaced or V1 coverage is declared not re-run; `unclaimed-delivery` closes only through a recaptured contract / recorded author declaration.
+- `requirements-check.md` — notebook-less fallback: no authoritative coverage ledger or claim registry; Vector 1 completeness flags cannot all clear, so the run must not assert complete coverage.
+
+**top-level** — `README.md` / `BOOTSTRAP.md` descriptions synced; `assets/child-pass-prompt-template.md` gains the Vector 1 coverage assignment/return block and yagni coverage inputs (A/B/C research variants and coordinator-only writing unchanged).
+
+Background: operator direction — V1 must detect both claim-without-code and code-without-claim; untraceable-hunk accounting moves out of yagni, which now challenges over-engineering of the claimed delivery. Coverage records live in the notebook (no ambient scratch state); confirmed unclaimed delivery is a blocking in-scope finding.
+
 ### v0.5.11 — re-pull updates the subject tree in place: same tree, same bridge, live index
 
 **kernel/**

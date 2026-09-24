@@ -18,10 +18,10 @@
 
 ## 3. Vectors to run
 
-- [x] Conformance (does code match the PR's own claims?)
+- [x] Conformance (are the PR's claims delivered and every changed unit accounted for?)
 - [x] Implementation bugs (does the shipped code work?)
 - [x] Code debt (is the way it's built sustainable?)
-- [ ] Yagni — optional pass (is the change's size justified? any YAGNI?)
+- [ ] Yagni — optional pass (is the engineering used to deliver the claimed behavior over-built? any YAGNI?)
 - [ ] Subset only: <list which>
 
 ## 4. Fleet groups (if this runtime provides the model-groups plugin)
@@ -85,6 +85,6 @@ report the output.
 3. It asks the intake fields **once** — usually nothing is missing if KICKOFF is filled.
 4. It compiles the run frame and shows it for confirmation.
 5. It saves the frame + findings pages, and (if the runtime provides handoff) seals and hands off.
-6. Phase 0 runs in the new context: pull the subject (the first tree read — no orientation in local target checkouts before it), compile the contract (notebook page on pi runs, CONTRACT.md otherwise), record subject path/OID + changed files into the frame, complete the deferred requirements rows, split vectors. Gate.
-7. Vector 1 (conformance) fleets out; report; gate. Then the deterministic preflight (symbol map), Vector 2, Vector 3, then output.
+6. Phase 0 runs in the new context: pull the subject (the first tree read — no orientation in local target checkouts before it), compile the contract + claim registry (notebook page on pi runs, CONTRACT.md otherwise — a notebook-less fallback cannot assert complete coverage), record subject path/OID + changed files into the frame, complete the deferred requirements rows, run the mechanical changed-range census (0.3a), compile the capacity-bounded splits (0.3b), and show the actual counts, the exclusion policy, coverage-page location and budgets at the Phase-0 gate.
+7. Vector 1 (conformance — claim adjudication + changed-unit accounting) fleets out; report; gate. Then the deterministic preflight (symbol map), Vector 2, Vector 3, then output.
 8. On "the implementer worked on the review", the closure loop re-validates per finding and publishes the table.
