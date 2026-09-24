@@ -8,10 +8,9 @@
 
 ## Harness status
 
-The repo ships **no F1–F10 campaign harness**: no CI config and no build/test manifest for the validation scenarios.
-The pilot tool units under `tools/` (`claim-registry`, `gate-check`, `census`) ship with their own unit/E2E tests and a
-built-artifact demo, but this plan remains the deliverable for the scenarios; F1–F10 fixtures become executable only
-when the campaign harness is built — the implementation checkpoint in the converged direction §8.
+The repo ships **no test/fixture harness**: no `tests/`, `fixtures/` or `scripts/` directories, no CI config and no build/test manifest
+(checked in the working tree at 6f2a408 plus the contract-adequacy doc edits). This plan is the deliverable for now; fixtures become executable
+only when the pilot tooling exists — the implementation checkpoint in the converged direction §8.
 
 ## Scenarios (F1–F5)
 
