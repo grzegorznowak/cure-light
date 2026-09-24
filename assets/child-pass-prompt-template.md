@@ -36,10 +36,13 @@ names, the namespace binding, the fallback rule, and the mandatory RESEARCH TRAC
 footer. MCP output is discovery only — every cited line is re-read in the
 subject tree at {SUBJECT_OID} before it becomes evidence.
 
-Your contract is the verbatim locked decisions + PR description — never a
-summary of intent. Cite file:line in the subject tree. Do NOT run tests unless
-told; do NOT propose large refactors; keep style mentions on the lens trail
-(unrouted style noise is dropped).
+Your contract is the verbatim captured sources — PR description/title, linked
+issue + locked decisions, and any explicitly designated in-diff source — never
+a summary of intent or an unpointed lookalike. A source clause states an
+expectation; its own bytes never verify its delivery (`declares` is source
+provenance, not an EXPLAINED edge). Cite file:line in the subject tree. Do NOT
+run tests unless told; do NOT propose large refactors; keep style mentions on
+the lens trail (unrouted style noise is dropped).
 
 Return per {return}: the vector's blocks/rows, plus a closing for any surface you
 check and clear; include the RESEARCH TRACE footer when {research_protocol}
@@ -55,7 +58,7 @@ Under {budget} lines.
 | SUBJECT_PATH | the subject tree root (sandbox or worktree dir) — run manifest `subject_path` |
 | SUBJECT_OID | run manifest subject_oid |
 | owner/repo | the review target `<owner>/<repo>` (intake `owner/repo`) — Variants A/C subject description |
-| contract_ref | run-manifest `contract_ref`: the notebook page `contract-<owner>-<pr>-s<n>` (pi runs) or the disk CONTRACT slice (fallback runs) |
+| contract_ref | run-manifest `contract_ref`: the notebook page `contract-<owner>-<pr>-s<n>` (captured sources incl. designated in-diff sources; pi runs) or the disk CONTRACT slice (fallback runs) |
 | symbol_map_ref | run manifest `symbol_sweep` — the state's symbol map ref (notebook page `symbol-map-<owner>-<pr>-s<n>` on pi runs; scratch path in fallback runs) |
 | file_list | the assigned files for this surface/split |
 | diff_paths | the focused diff hunks for the surface |
@@ -68,6 +71,7 @@ Under {budget} lines.
 | claim_ids | the claim IDs assigned to this shard (V1) / the unit's matrix rows (yagni) |
 | unit_ids | the changed-unit/range IDs assigned to this shard (V1) |
 | candidate_scope | the alternate claim/attribution scope to check before returning `UNCLAIMED_CANDIDATE` |
+| authorized_scope | the V1 gate's recorded allowed next scope + explicit omissions (`review_basis` record, conformance-pass.md) — rendered into V2/V3 prompts; expands nothing |
 | coverage_ref | the state's coverage summary page + the ledger shard pages for this assignment (notebook-plan-contract.md) |
 | assignment_digest | coordinator-computed digest of this shard's assignment (claims + units + contract/ledger refs) |
 | research_protocol | run-manifest `research` block rendered per the variants below (Vector 2: Variant A; Vector 3: Variant C; Vector 1/yagni: omitted) |
@@ -79,13 +83,13 @@ Under {budget} lines.
 ## Child contract invariants (always)
 
 1. Analyze the **subject tree** at {SUBJECT_PATH} only; every row carries `subject_oid`; a tree whose HEAD differs from {SUBJECT_OID} is `inconclusive` (should not happen — the tree is stable for the state).
-2. Compare against the **verbatim** contract, never a paraphrase.
+2. Compare against the **verbatim** captured sources and their designation/interpretation, never a paraphrase or an unpointed lookalike.
 3. Evidence = file:line in the subject tree, plus base evidence for origin (Vector 2+).
 4. No **unrouted** style nits, no redesign, no unrequested tests. Style hits go to the lens trail.
 5. Explicitly label `NOT-A-BUG` when a checked suspicion clears — that keeps the coordinator from re-checking.
 6. Return compact records; do not write the notebook (coordinator owns writes).
 7. When {research_protocol} is present, run it and close with the RESEARCH TRACE footer; a missing trace is `inconclusive`, never a pass.
-8. Vector 1: close with `CLOSE <assignment digest> — processed n/total`. An absent unit, digest mismatch, or missing claim verdict stays unresolved; `NONE` never substitutes for accounting. The complete claim directory must be queryable before any negative attribution — read the scope you need; insufficient access means `UNRESOLVED`, not `UNCLAIMED`.
+8. Vector 1: close with `CLOSE <assignment digest> — processed n/total`. An absent unit, digest mismatch, or missing claim verdict stays unresolved; `NONE` never substitutes for accounting. The complete claim directory must be queryable before any negative attribution — read the scope you need; insufficient access means `UNRESOLVED`, not `UNCLAIMED`. Before returning `UNCLAIMED_CANDIDATE`, check every qualifying designated in-diff clause; a doc/spec unit is explained only through `documents/specifies` against an independent purpose/target anchor (conformance-pass.md).
 
 ## Given budget & cost
 
@@ -97,7 +101,10 @@ Under {budget} lines.
 Vector 1 always fills the slot; the yagni pass fills it with its coverage
 inputs; V2/V3 add no coverage-assignment block — their matrix-projection /
 prior-vector facts travel with the prior findings and contract slots, and their
-`{return}` is unchanged.
+`{return}` is unchanged. The coordinator still renders the V1 gate's
+**authorized scope + explicit omissions** into every V2/V3 prompt
+(`{authorized_scope}`, from the `review_basis` record — conformance-pass.md):
+a child may not widen beyond the recorded scope.
 
 ### Vector 1 — assignment + accounting
 
@@ -108,9 +115,12 @@ coverage page {coverage_ref}; one accounting owner per unit, one verdict owner
 per claim. Input digest: {assignment_digest}.
 The captured contract is verbatim at {contract_ref}; the complete claim
 directory is paged at {claim_directory_ref} — read the pages you need; your
-local contract slice is never the whole universe. Before returning
-UNCLAIMED_CANDIDATE for a unit, check the candidate scope {candidate_scope}
-(alternate claims / attribution surfaces); insufficient access → UNRESOLVED.
+local contract slice is never the whole universe. Designated in-diff clauses
+are ordinary claim sources with recorded provenance — never evidence that
+their own deliverable exists. Before returning UNCLAIMED_CANDIDATE for a unit,
+check the candidate scope {candidate_scope} (alternate claims / attribution
+surfaces, including qualifying designated in-diff clauses); insufficient
+access → UNRESOLVED.
 Return per conformance-pass.md: claim block (VERIFIED / GAP / INCONCLUSIVE)
 plus unit block (ATTRIBUTED / UNCLAIMED_CANDIDATE / EXCLUSION_REQUEST /
 UNRESOLVED), closed by CLOSE <digest> — processed n/total, returned, remaining.

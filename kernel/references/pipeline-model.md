@@ -4,7 +4,7 @@ cure-light reviews a pull request through **three independent vectors**. Each an
 
 | Vector | Question | Fleet group | Focus |
 |---|---|---|---|
-| 1. Conformance | Does the code deliver what the PR *claims* it delivers — and is every changed unit accounted for against the contract? | `flash` | Two ends: claim adjudication (PR description + issue + locked decisions → code) and changed-unit accounting (census ranges/events → claims) |
+| 1. Conformance | Does the code deliver what the PR *claims* it delivers — and is every changed unit accounted for against the contract? | `flash` | Two ends: claim adjudication (captured sources — PR description + issue + locked decisions + explicitly designated in-diff sources → code) and changed-unit accounting (census ranges/events → claims) |
 | 2. Implementation | Does the shipped code actually *work* safely? | `code-review` | Sealed concepts / invariants, drilling from established facts |
 | 3. Debt | Is the *way* it's built sustainable? | `code-review` | Bigger concepts, future-change cost, not line-by-line |
 
@@ -16,10 +16,10 @@ cure-light reviews a pull request through **three independent vectors**. Each an
 ## Sequenced, gated
 
 ```text
-Intake → Phase 0 (pull + contract capture + 0.3a changed-range census → 0.3b capacity-bounded split compile, presented at the Phase-0 gate) → Vector 1 (two-ended: claim adjudication + changed-unit accounting) → Deterministic preflight → Vector 2 → Vector 3 → Output (single review comment) → Closure loop (after a deliberate re-pull)
+Intake → Phase 0 (pull + contract/claim capture + source-consistency pass → 0.3a changed-range census → 0.3b capacity-bounded split compile, presented at the Phase-0 gate; a provisional `repair_required` defaults to pause before Vector 1) → Vector 1 (two-ended: claim adjudication + changed-unit accounting) → [gate: `review_basis` + repair status] → Deterministic preflight → Vector 2 → Vector 3 → Output (single review comment) → Closure loop (after a deliberate re-pull or contract repair)
 ```
 
-- Vector 2 runs only when Vector 1 has a clean/accepted disposition (or the operator explicitly allows skipping).
+- Vector 2 runs only when the V1 gate recorded `review_basis: ready` with no outstanding `repair_required` — or the operator explicitly authorizes a named limited scope (exact accepted basis + omissions) or an explicit skip. `limited-only`/`blocked`/`unknown` never continue as ordinary V2; V3 and skip routes observe the same boundary.
 - Vector 3 runs only when the implementation evidence is stable.
 - The operator gates between phases. No autonomous new-commit loops.
 
@@ -34,6 +34,7 @@ Intake → Phase 0 (pull + contract capture + 0.3a changed-range census → 0.3b
 7. **Review is diagnostic.** cure-light proposes; the operator gates the single external review comment (see evidence-format.md, External routing).
 8. **Coverage completeness is asserted per run.** Vector 1 owes two obligations: a verdict for every captured claim, and exactly one accounting state for every eligible changed unit (conformance-pass.md). The run reports four distinct completion flags — enumeration, accounting, attribution, claim conformance — and keeps mechanical completeness separate from semantic judgment: `UNRESOLVED` residue is disclosed and requires explicit operator acceptance at the gate, never a silent pass.
 9. **Vector 1 coverage is a frame assertion, separate from the lens table.** The run must map an owner for every claim and every eligible changed unit (intake-and-scope.md §0.3); the lens table proves only that each active lens has an owning pass. A claim or unit without an owner is a frame error, like an unowned lens.
+10. **Contract adequacy gates continuation.** A bounded source-consistency pass after claim capture pauses the run before Vector 1 on a witnessed material contradiction unless the operator records a named evidence-only V1 authorization (intake-and-scope.md §0.2/§0.4); any other `repair_required` defect (missing designation/orientation) defaults to the same repair pause. After Vector 1 the coordinator records `review_basis` (`ready` / `limited-only` / `blocked` / `unknown`) plus any outstanding `repair_required` status before the V1 gate (conformance-pass.md). Sources enter the contract only by explicit designation; convention interprets, never authorizes. A contract repair — including a body-only edit with an unchanged subject OID — is a new review state, never an in-place reconciliation. This is a gate classification, not a fourth vector, lens, finding kind or comment section.
 
 ## The research accelerator (cross-cutting; Vector 2 + Vector 3)
 

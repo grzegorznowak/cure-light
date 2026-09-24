@@ -1,6 +1,6 @@
 # conformance-pass.md — Vector 1: contract vs changed units (both ends)
 
-**Question:** does the code deliver what the PR description + linked issue (incl. locked decisions) claim — and is every changed unit accounted for against that contract?
+**Question:** does the delivered change match what the captured contract — PR description + linked issue (incl. locked decisions) + explicitly designated in-diff sources — claims, and is every changed unit accounted for against that contract?
 
 **Fleet group:** `flash`. **Stance:** *prove every stated behavior and compatibility claim; account for every changed unit; cite evidence; do not redesign.*
 
@@ -24,7 +24,7 @@ By **contract surface first**, not by file — same pattern as before (adjust to
 
 Test claims may draw evidence from other surfaces' shards without duplicating accountability. All V1 children stay `flash`.
 
-Each child receives: subject/base identity, its contract source slices and a queryable complete claim directory (paged — not injected wholesale), its assigned claim IDs and unit/range IDs plus input digest, exact diff slices, optional enclosing context, the scope of alternate claims it must check, budgets, and the coverage-return shape. Negative attribution requires enough claim access; otherwise the child returns the unit `UNRESOLVED`.
+Each child receives: subject/base identity, its contract source slices (captured sources + designated in-diff sources with their provenance) and a queryable complete claim directory (paged — not injected wholesale), its assigned claim IDs and unit/range IDs plus input digest, exact diff slices, optional enclosing context, the scope of alternate claims it must check, budgets, and the coverage-return shape. Negative attribution requires enough claim access; otherwise the child returns the unit `UNRESOLVED`.
 
 ## Child return — two orthogonal blocks
 
@@ -39,7 +39,7 @@ CLAIM <claim_id> — INCONCLUSIVE: <what could not be decided and why>
 Unit block, per assigned unit / leaf range:
 
 ```text
-ATTRIBUTED <unit_id> → <claim_id[,…]> — role: implements | tests | necessary-support | removes/changes — why: <why this change serves this clause> — anchors: <file:line / range>
+ATTRIBUTED <unit_id> → <claim_id[,…]> — role: implements | tests | necessary-support | removes/changes | documents/specifies — why: <why this change serves this clause> — anchors: <file:line / range>
 UNCLAIMED_CANDIDATE <unit_id> — <delivered behavior> — checked: <claim-directory scope searched>
 EXCLUSION_REQUEST <unit_id> — class: <generated | vendor | lockfile | fixture | format | …> — proof: <evidence/tool output>
 UNRESOLVED <unit_id> — reason: <unread | truncated | disputed | failed | insufficient claim access>
@@ -50,11 +50,17 @@ Always explicit: `NONE` never substitutes for accounting, and the CLOSE line clo
 
 Supporting infrastructure need not be named verbatim by the author, but the dependency must be demonstrated. Same filename, lexical resemblance, a broad feature slogan, mere test existence, or a claim's VERIFIED status alone cannot explain a whole hunk. A change can be *attributable yet contradict* its claim — attribution and claim satisfaction are separate axes.
 
+### Sources declare; delivery explains (no self-proof)
+
+A source clause defines an expected behavior for changed targets — its own bytes never verify that the behavior is implemented, nor excuse the source unit's own attribution. `declares` is a **source/provenance role** (which captured block asserts the clause), **not** an EXPLAINED edge. A changed doc/spec unit is explained only through `documents/specifies` against an **independent purpose/target anchor** — e.g. the body/issue asking to revise X to require Y, or a distinct objective in an explicitly designated package whose repo-native change-process interprets its spec deltas as the package deliverable; necessary-support needs a demonstrated dependency, never "same package". Same-unit and mutual self-ratification are prohibited: a spec cannot clear itself by existing, and two documents cannot ratify each other. A missing or disputed anchor leaves the unit `UNRESOLVED` pending clarification — never invented intent, never speculative `UNCLAIMED`. Missing **designation** is a different case: without any pointed source the affected units are `UNCLAIMED` against the captured contract with `repair_required` recorded (intake-and-scope.md §0.2); `UNRESOLVED` is for a designated source whose purpose/target anchor cannot be established.
+
+A docs-only PR that updates the actual specification is a **real deliverable**: compare the claimed text delta with the actual version, check scope/coherence/precedence, and mark well-anchored spec units `EXPLAINED` even with no executable code change — no phantom code, no behavior claim. A design-only deliverable with no code and no promise to implement code is not automatically a GAP. Multiple roles on one unit do not multiply the denominator; claim verdict and unit attribution stay orthogonal.
+
 ## Accounting states (exactly one per changed leaf)
 
 | State | Meaning |
 |---|---|
-| `EXPLAINED` | at least one validated attribution edge to a captured claim (many edges allowed) |
+| `EXPLAINED` | at least one validated attribution edge to a captured claim (many edges allowed) — roles `implements` / `tests` / `necessary-support` / `removes/changes` / `documents/specifies`; source provenance (`declares`) is not an edge |
 | `UNCLAIMED` | inspected delivered change with no defensible clause in the *captured contract*, after the documented claim-directory check: the child returns `UNCLAIMED_CANDIDATE`, the coordinator finalizes after an alternate-surface check |
 | `EXCLUDED` | explicit approved waiver of attribution (generated/vendor/whitespace bulk, …), recorded with class, exact units, evidence, producer/source linkage, rationale and policy — a path suffix alone is never sufficient |
 | `UNRESOLVED` | initial / unread / truncated / disputed / failed — never quietly relabeled |
@@ -64,8 +70,8 @@ Unclaimed is **not** "no lexical match", "no owner assigned", or child silence: 
 ## Coordinator reconciliation
 
 1. Initialize all census units `UNRESOLVED`; load claims, assignments, approved exclusions.
-2. Validate each return: output OID, assignment digest, claim/unit references, range containment, a partition with no overlap/hole in the returned set, required rationale/evidence, budget/completion. Conflicts become `UNRESOLVED`; an unrelated claim ID cannot clear a unit.
-3. Merge interval edges and claim verdicts separately; route cross-surface contributions to the verdict owner; finalize `UNCLAIMED` only after the alternate attribution check; keep contradictory claim evidence visible.
+2. Validate each return: output OID, assignment digest, claim/unit references, range containment, a partition with no overlap/hole in the returned set, required rationale/evidence, no self-ratifying or cyclic source→deliverable edge, budget/completion. Conflicts become `UNRESOLVED`; an unrelated claim ID cannot clear a unit.
+3. Merge interval edges and claim verdicts separately; route cross-surface contributions to the verdict owner; finalize `UNCLAIMED` only after the alternate attribution check — including every qualifying designated in-diff source clause; keep contradictory claim evidence visible.
 4. Compute `D = EXPLAINED ⊎ UNCLAIMED ⊎ EXCLUDED ⊎ UNRESOLVED`; report counts and changed lines/events per state, exclusion classes, claim totals, noncompliant children. Enumeration, accounting, attribution and claim conformance are four distinct flags.
 5. Retry/reslice bounded failures within budget; otherwise the gate offers the operator: extend budget, accept explicitly partial review, request richer contract / smaller PR, or stop.
 6. Ledger detail is validated and materialized by coordinator scripts into the coverage pages; the gate shows the compact claim matrix plus coverage summary and exception groups — not full hunk returns.
@@ -93,8 +99,18 @@ Claim gaps keep their concrete divergence; the old "GAP without a user-visible d
 - **False coverage from a broad slogan** — exact range edges, role + rationale, separate satisfaction, split mixed parents.
 - **Over-claiming from tests** — "tested" ≠ "true"; mock-reality mismatch is itself a finding.
 - **Mechanical completeness sold as semantic proof** — counts prove accounting, not correctness.
+- **Guessed negatives** — every definitive `GAP` / `UNCLAIMED` and every basis blocker needs a concrete witness; a hunch, a high unclaimed ratio, a feature-like filename, "not clear", or the mere absence of a VERIFIED claim never decides. Check alternative attributions — including qualifying designated in-diff clauses — before finalizing.
 - **Whole-diff ingestion** — no agent reads the full diff; ledger access is page/range-scoped.
 
 ## Disposition on completion
 
-The claim matrix and coverage summary go to `pr-<n>-review` / the state's coverage pages. Operator gate: proceed to Vector 2 when Vector 1 has a clean or explicitly accepted disposition — open gaps and unresolved units don't block Vector 2 mechanically, but they are carried into it and disclosed. Mechanical completeness is always required for a complete coverage claim; valid `UNRESOLVED` units require explicit operator acceptance (extend / partial-review / stop).
+The claim matrix and coverage summary go to `pr-<n>-review` / the state's coverage pages. After the semantic verdicts and attribution reconciliation, and before the gate, the coordinator records the state's **review basis** — a planning disposition, not a finding and not a score:
+
+- `ready` — a grounded basis supports the declared planned continuation (not "all claims VERIFIED" and not full-diff bug coverage).
+- `limited-only` — a defensible bounded subset exists; the whole requested review implies unsupported scope.
+- `blocked` — no worthwhile requested split exists.
+- `unknown` — budget/evidence/source classification is insufficient; not an author-fault verdict and never a pass by default.
+
+The record names the viable candidate surfaces (locked clauses, coherent expected behavior, implementation/absence anchors, material uncertainty), the **basis blockers** (requested surface, unavailable/incompatible source, affected claim IDs/findings/coverage groups, concrete witness, surviving permitted subset), the allowed next scope, and any operator disposition ref; it is bound to the state's base/subject OIDs, source versions/hashes, claim-registry + coverage hashes and V1 projection identity. A separate **`repair_required`** status records description defects and unresolved material source contradictions (provisional from Phase 0, final here) — it never computes evidence backing and is never waived by a ready basis. A provisional early-pass finding is never silently upgraded or downgraded at this gate: its witness records (conflicting quotes/offsets/source hashes/affected claim IDs) are carried as-is, and only a new review state with repaired sources can clear them.
+
+Operator gate: Vector 2 proceeds when the basis is `ready` and no `repair_required` status is outstanding. Open gaps and unresolved units still don't block Vector 2 mechanically, but they are carried and disclosed; an accepted finding disposition never establishes readiness, and a ready basis never erases a blocking finding. `limited-only` proceeds only through an explicit, named operator authorization of the exact accepted basis, omissions, rationale, scope guard and state identity; `blocked` or `unknown` cannot proceed to ordinary Vector 2/V3 — the operator requests author repair, chooses a V1-only finish (findings/accounting preserved; V2/V3 recorded "not run — insufficient basis / explicit omission", never passed), authorizes a named bounded investigation, or stops. A blanket "proceed anyway" does not satisfy this gate: an override names the exact affected findings/surfaces/omissions, reason and authority, never waives truthful scope reporting, and never relabels `unknown` as known, a GAP as VERIFIED, or an unclaimed unit as explained. Mechanical completeness is always required for a complete coverage claim; valid `UNRESOLVED` units require explicit operator acceptance (extend / partial-review / stop).

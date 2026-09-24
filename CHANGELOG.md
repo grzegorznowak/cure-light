@@ -2,6 +2,23 @@
 
 ## Unreleased (working tree)
 
+### v0.5.13 — contract adequacy: designated sources, pre-V1 consistency pause, review-basis gate
+
+**kernel/**
+- `intake-and-scope.md` — §0.2 gains **designated in-diff sources** (an explicit pointer in the PR body / linked issue / locked decision is the trust stamp; repo convention only interprets a designated package), **immutable source pinning** (subject/base blob OIDs, spans/hashes, body/issue version refs; drift → new state) and the **early source-consistency pass** (bounded within-/cross-source comparison after claim extraction; a material unresolved contradiction → provisional `repair_required` + default pause before Vector 1, with a named operator-recorded **evidence-only V1 run** as the narrow exception; non-material wording recorded without pause). §0.4 records the pause/authorization, judges thinness across designated sources and applies the repair-pause default to any `repair_required` defect; the manifest gains `contract_sources` / `source_consistency` / `review_basis` records; a contract-only repair is a new review state.
+- `conformance-pass.md` — Vector 1 adds `documents/specifies` as a delivery role and the **no-self-proof** rule (`declares` is source provenance, not an EXPLAINED edge; doc/spec units need an independent purpose/target anchor; no same-unit or mutual cycles; docs-only spec rewrites are real deliverables); witness discipline for definitive `GAP`/`UNCLAIMED`/basis blockers; the completion disposition becomes the **review-basis gate** — `ready` / `limited-only` / `blocked` / `unknown` plus a separate `repair_required` status, with `limited-only`/`blocked`/`unknown` barred from ordinary V2/V3 unless explicitly named by the operator.
+- `pipeline-model.md` / `kernel/SKILL.md` — the phase order carries the source-consistency pause and the V1 basis gate; operating rules for designated sources, a recorded basis, and contract repair as a new state.
+- `implementation-pass.md` / `debt-pass.md` — the V2 compiler validates only named grounded splits under the gate result; unmet clear requirements stay valid invariants; docs-only deliverables are not forced into code invariants; generic debt axes never reconstruct inadequate intent.
+- `closure-verification.md` — “no work pulled” is reconciled as “no **code** work pulled”: a body/issue repair with an unchanged subject OID is a new state with a recaptured contract and identity-checked census reuse; in-diff source repair repulls a new subject; code-unchanged findings stay open unless specifically reclassified.
+- `evidence-format.md` — contract adequacy is a gate disposition, not a finding kind; the comment Summary renders the review basis / repair requirement; claim-registry pages carry per-source designation/interpretation and consistency records.
+
+**pi-driver**
+- `notebook-plan-contract.md` — frame/contract/claims pages record source pins/designation, the consistency outcome and the `review_basis`; contract repair writes a new `-s<n>` set. `requirements-check.md` — the notebook-less fallback cannot assert `ready`; contract-adequacy dispositions stay separate from the bootstrap requirement table.
+
+**top-level** — `README.md` / `templates/KICKOFF.md` expectation sync; `assets/child-pass-prompt-template.md` carries the captured-sources contract, the `documents/specifies` anchor rule and the designation-aware `UNCLAIMED_CANDIDATE` check; `docs/contract-adequacy-validation-plan.md` adds the fixture scenarios.
+
+Background: operator direction — a PR contract is only as good as its designated sources; a half-assed description defaults to a repair pause, and V1's accounting completion is not by itself a continuation/readiness verdict.
+
 ### v0.5.12 — Vector 1 detects both ends; yagni refocuses on over-engineering
 
 **kernel/**

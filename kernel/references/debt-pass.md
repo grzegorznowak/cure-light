@@ -77,4 +77,5 @@ The coordinator groups findings:
 
 - **Presenting debt as bug.** Debt lacks a current failure; if there is a live failure path, it belongs in Vector 2.
 - **Unchecked "extensible" claims.** An aspiration in the spec is a debt when the code doesn't back it — verify, don't take the claim's word.
+- **Inadequate intent recovered by generic axes.** Debt concepts consume the V1 matrix projection and disclosed uncertainty as leads; they never reconstruct a thin/contradictory captured contract, re-adjudicate attribution, or expand a `limited-only` scope.
 - **Hiding defers.** Acknowledged-but-unfixed debt must be recorded, not silently dropped.

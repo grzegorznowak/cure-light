@@ -47,6 +47,17 @@ removes it (a declaration changes the contract and lands as a closed/new state,
 closure-verification.md). It is never demoted to a follow-up; its narrow
 failure-mode exception is documented under Writing findings.
 
+**Contract adequacy is a gate disposition, not a finding kind.** Description
+defects — a misleading/empty body, missing source designation or orientation, a
+material unresolved source contradiction — are author-facing conformance items
+with the existing kinds/severity and a concrete remedy (source-declaration vs
+delivery-role separation: conformance-pass.md §Sources declare); a
+`review_basis` value (`ready` / `limited-only` / `blocked` / `unknown`) and its
+basis blockers are coordinator process records (frame/claims pages), never an
+omnibus "bad contract" finding, a new severity class, or a new comment section.
+A ready basis never erases a blocking finding, and an accepted finding
+disposition never establishes readiness.
+
 `subject_oid` is schema-optional for backward compatibility but **rule-required**
 for every new or updated row: it records which review-state tree the row's
 evidence was read from, so a findings page spanning several review states never
@@ -94,10 +105,10 @@ Vector-2 and Vector-3 children attach a RESEARCH TRACE footer (implementation-pa
 
 ## Notebook layout
 
-- `pipeline-frame-<owner>-<pr>-s<n>` — frozen run options, base OID, planned subject mechanism; the manifest's tree fields (`subject_path` / `subject_oid`, changed-file list) are recorded at the Phase 0 gate (notebook-plan-contract.md). Written at seal, completed at Phase 0.
+- `pipeline-frame-<owner>-<pr>-s<n>` — frozen run options, base OID, planned subject mechanism; the manifest's tree fields (`subject_path` / `subject_oid`, changed-file list), contract-source pins/designation, the source-consistency outcome (provisional `repair_required` / evidence-only authorization) and the post-V1 `review_basis` record are recorded at their gates (notebook-plan-contract.md). Written at seal, completed at Phase 0 and the V1 gate.
 - `symbol-map-<owner>-<pr>-s<n>` — the preflight symbol map (chhound-driver.md, Symbol sweep): selected symbols, census heat table, capped outside locations, provenance/caps. One per review state; a bounded state cache kept while the state's consumers run (V2 sweep, V3 seed, yagni), discarded when the state closes.
 - `coverage-<owner>-<pr>-s<n>` — Vector 1 coverage summary/index: denominator and counts by state and side, completion flags, exclusion classes/policy, exact refs to the ledger shards. The paged ledger records themselves live in `coverage-<owner>-<pr>-s<n>-p<k>` pages (bounded, coordinator-owned, **in-notebook** — never scratch files); workers read only their assigned pages/slices. Kept through the state's closure/finalization window, retired after durable snapshots land.
-- `claims-<owner>-<pr>-s<n>` — the state's compiled claim registry: deterministic claim IDs, source spans + quote hashes, parent/group links, context/nonclaim labels; the queryable complete claim directory for Vector 1 negative attribution (paged `-p<k>` when long).
+- `claims-<owner>-<pr>-s<n>` — the state's compiled claim registry: deterministic claim IDs, source spans + quote hashes, parent/group links, context/nonclaim labels, per-source class/designating pointer/selection rule/interpretation (normative vs advisory, precedence); the queryable complete claim directory for Vector 1 negative attribution (paged `-p<k>` when long). Source-consistency contradiction records (exact quotes/offsets/source hashes/affected claim IDs, materiality witness) live with it.
 - `pr-<n>-review` — findings table (schema rows) + closure table. Appended per vector.
 - `decisions` (durable, survives the PR) — deferred-decision and closed-by-operator records with author/time/rationale/scope, plus the leading subarea open questions.
 
@@ -110,8 +121,10 @@ Finalization is **one aggregated review comment per run** — never per-finding 
 The single review comment contains:
 
 ```text
-## Summary                     — owner/repo pr# @ head OID, vectors run; coverage
-                                accounting totals/limits by state and side
+## Summary                     — owner/repo pr# @ head OID, vectors run, review
+                                basis + any outstanding repair requirement,
+                                approved/omitted scope; coverage accounting
+                                totals/limits by state and side
 ## Findings                    — in scope of this PR (introduced or enforced by it;
                                 origin may still be pre-existing): file:line evidence,
                                 severity, origin — to be addressed

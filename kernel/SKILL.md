@@ -57,8 +57,8 @@ From the intake fields, compile: the vector set and their fleet groups, the phas
 ```text
 Intake → Requirements check (pre-pull rows; subject-tree rows defer to Phase 0)
   → [operator gate: frame] — approves the PLAN: subject mechanism (chhound sandbox | plain worktree) + planned location, vectors, gates, output policy; no tree fields yet
-  → Phase 0 pull subject + contract + 0.3a changed-range census → 0.3b split compile → [gate: manifest records reality — subject_path / subject_oid, census counts, exclusions/budgets]
-  → Vector 1 conformance (flash; two-ended — claim adjudication + changed-unit accounting) → [gate]
+  → Phase 0 pull subject + contract/claim capture + source-consistency pass → 0.3a changed-range census → 0.3b split compile → [gate: manifest records reality — subject_path / subject_oid, census counts, exclusions/budgets, consistency outcome; provisional repair defaults to pause before V1]
+  → Vector 1 conformance (flash; two-ended — claim adjudication + changed-unit accounting) → [gate: review_basis + repair status]
   → Deterministic preflight (type/dead + the state's symbol map)
   → Vector 2 implementation (code-review) → [gate]
   → Vector 3 debt (code-review) → [gate]
@@ -70,7 +70,7 @@ Each vector is a **fleet pass** with a defined split, per-child prompt contract 
 
 ## Closure verification loop
 
-When the operator says the implementer "worked on the review" (or re-pulls the PR), do NOT re-run the whole pipeline. The re-pull is a new review state: update the subject tree in place to the new head (intake-and-scope.md §0.1), capture the new subject OID, diff the finding-touched paths last-reviewed-subject → new-subject, and classify each finding:
+When the operator says the implementer "worked on the review" (or re-pulls the PR), do NOT re-run the whole pipeline. The re-pull or contract repair is a new review state: update the subject tree in place to the new head (intake-and-scope.md §0.1; a contract-only repair pulls no new code but recaptures the contract), capture the new subject OID, diff the finding-touched paths last-reviewed-subject → new-subject, and classify each finding:
 
 - `verified-fixed` — code + test evidence at old/new lines
 - `re-classified` — category/claim changed
@@ -87,6 +87,9 @@ Publish a closure table. See closure-verification.md.
 - **Findings need file:line evidence and a concrete failure mode.** Opinion without evidence does not enter the report.
 - **Coverage accounting is not a findings taxonomy.** Vector 1 keeps `EXPLAINED` / `UNCLAIMED` / `EXCLUDED` / `UNRESOLVED` per-unit states in the in-notebook coverage pages; approved exclusions are evidence-linked policy records, and an unread / truncated / disputed range stays `UNRESOLVED` — disclosed, never silently dropped, relabeled, or inferred from a sibling.
 - **Unclaimed delivery is blocking.** A confirmed `unclaimed-delivery` finding is in-scope Vector 1 conformance the owner must address in the PR body — declare/justify the delivered behavior or remove it; never demoted to a follow-up. Severity stays LOW default / MED material / never HIGH from the absence of a declaration alone (evidence-format.md).
+- **Sources enter the contract only by explicit designation.** The PR body, linked issue or a locked decision must point at any in-diff spec/design material; repo convention interprets a designated package, never authorizes one (intake-and-scope.md §0.2). A material unresolved source contradiction pauses the run before Vector 1 unless the operator records a named evidence-only V1 authorization — and any other `repair_required` defect (missing designation/orientation) defaults to the same repair pause; never a reviewer-reconciled contract.
+- **Continuation is a recorded basis, not an accounting side effect.** After Vector 1, the coordinator records `review_basis` (`ready` / `limited-only` / `blocked` / `unknown`) with any outstanding `repair_required` status; ordinary V2/V3 proceeds only from `ready` with no outstanding repair, and `limited-only` proceeds only through an explicit named scope (conformance-pass.md). A basis disposition never relabels findings, and an accepted finding never establishes readiness.
+- **Contract repair is a new state.** A body/issue edit with an unchanged subject OID, or an in-diff source edit with unchanged code blobs, starts a new review state with a recaptured contract; reuse only identity-checked census, re-adjudicate affected claims — never silently inherit findings (closure-verification.md).
 - **Partial coverage is stated honestly.** Mechanical enumeration and accounting are always complete for a complete-coverage claim; semantic residue and any accepted partial review are reported with their limits and require explicit operator acceptance at the gate (conformance-pass.md).
 - **Closure discloses coverage gaps.** A closure re-review surfaces newly added unexplained ranges outside finding-touched paths, or states plainly that Vector 1 coverage was not re-run — it never claims new full coverage from old dispositions (closure-verification.md).
 - **Pre-existing vs PR-introduced is a first-class classification**, decided by base-diff, not vibes — and scope routes the comment: introduced-or-enforced items are addressed, never deferred downstream; out-of-scope items are only recommended or suggested.
