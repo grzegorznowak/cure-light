@@ -24,13 +24,7 @@ import pytest
 
 UNIT = Path(__file__).resolve().parents[1]
 # Repo layout: <tools>/gate-check and <tools>/claim-registry are siblings.
-# Staging layout keeps the same relative shape; the workspace baseline is only
-# a fallback for standalone runs.
-_CANDIDATE_ROOTS = [
-    UNIT.parent / "claim-registry",
-    Path("/workspaces/chunkhound_workspace/claim-registry"),
-]
-PRODUCER_ROOT = next((p for p in _CANDIDATE_ROOTS if (p / "dist").exists()), _CANDIDATE_ROOTS[0])
+PRODUCER_ROOT = UNIT.parent / "claim-registry"
 PRODUCER_PYZ = PRODUCER_ROOT / "dist" / "claim-registry-0.2.0.pyz"
 PRODUCER_TOOL_JSON = PRODUCER_ROOT / "TOOL.json"
 

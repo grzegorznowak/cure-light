@@ -1,7 +1,9 @@
 """Build a real gate-check fixture from the read-only baseline producer.
 
 Runs the baseline ``claim_registry.cli`` subcommands (capture/assemble/validate)
-against ``/tmp/pr17-body-v2.md`` inside a temp directory and constructs the
+against the committed in-tree fixture
+``tools/claim-registry/tests/fixtures/pr17-body-v2.md`` (sha256-pinned below so
+drift fails loudly) inside a temp directory, and constructs the
 ``claim-run-manifest/1`` in-process with hashlib + the vendored canonical JSON.
 Nothing is ever written into the baseline or any repo.
 
@@ -26,17 +28,20 @@ if str(COMMON) not in sys.path:
 
 from toolkit import canonical_json  # noqa: E402
 
-SOURCE = Path("/tmp/pr17-body-v2.md")
-_BASELINE_CANDIDATES = (
-    Path("/workspaces/chunkhound_workspace/claim-registry"),
-    UNIT.parent / "claim-registry",
-)
+SOURCE = UNIT.parent / "claim-registry" / "tests" / "fixtures" / "pr17-body-v2.md"
+SOURCE_SHA256 = "10b5b3018d8928ce607735a6c31181be463f983bbc21ba07aa1985b9b4e1c2a7"
+SOURCE_BYTE_LENGTH = 10385
+
+
+class FixtureSourceError(RuntimeError):
+    """Committed fixture source missing or drifted: hard failure, never skip."""
 
 
 def find_baseline() -> Path | None:
-    for candidate in _BASELINE_CANDIDATES:
-        if (candidate / "claim_registry" / "cli.py").is_file():
-            return candidate
+    """The producer is always the sibling ``tools/claim-registry`` unit."""
+    candidate = UNIT.parent / "claim-registry"
+    if (candidate / "claim_registry" / "cli.py").is_file():
+        return candidate
     return None
 
 
@@ -46,6 +51,20 @@ def sha256_file(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def load_source() -> Path:
+    """Resolve the committed fixture source; missing/drifted -> hard failure."""
+    if not SOURCE.is_file():
+        raise FixtureSourceError(f"committed fixture source missing: {SOURCE}")
+    actual_sha = sha256_file(SOURCE)
+    actual_len = SOURCE.stat().st_size
+    if actual_sha != SOURCE_SHA256 or actual_len != SOURCE_BYTE_LENGTH:
+        raise FixtureSourceError(
+            f"committed fixture source drift: {SOURCE} sha256 {actual_sha} "
+            f"({actual_len} B) != pinned {SOURCE_SHA256} ({SOURCE_BYTE_LENGTH} B)"
+        )
+    return SOURCE
 
 
 def _run_producer(baseline: Path, args: list[str], cwd: Path) -> str:
@@ -90,22 +109,21 @@ def build_fixture(dest: Path) -> dict:
     baseline = find_baseline()
     if baseline is None:
         raise RuntimeError("baseline producer not found")
-    if not SOURCE.is_file():
-        raise RuntimeError(f"fixture source missing: {SOURCE}")
+    source = load_source()
     dest = Path(dest)
     dest.mkdir(parents=True, exist_ok=True)
 
-    locator = SOURCE.name
+    locator = source.name
     captures = dest / "captures"
     proposals = dest / "proposals.json"
     registry = dest / "registry.json"
     report = dest / "report.json"
 
     _run_producer(baseline, [
-        "capture", "--in", str(SOURCE), "--locator", locator, "--out", str(captures),
+        "capture", "--in", str(source), "--locator", locator, "--out", str(captures),
     ], dest)
     frame = json.loads(_run_producer(baseline, [
-        "frame", "--in", str(SOURCE), "--locator", locator,
+        "frame", "--in", str(source), "--locator", locator,
     ], dest))
     proposals.write_text(json.dumps(build_proposals(frame), indent=2), encoding="utf-8")
     _run_producer(baseline, [

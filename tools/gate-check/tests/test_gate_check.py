@@ -2,8 +2,9 @@
 
 The happy-path fixture is produced once per session by
 ``tests/fixture_builder.py`` (baseline ``claim-registry`` capture/assemble/
-validate on ``/tmp/pr17-body-v2.md``).  Each tamper test copies the fixture into
-``tmp_path`` first; the baseline and all repos stay read-only.
+validate on the committed in-tree fixture
+``../claim-registry/tests/fixtures/pr17-body-v2.md``).  Each tamper test copies
+the fixture into ``tmp_path`` first; the baseline and all repos stay read-only.
 """
 
 from __future__ import annotations
@@ -43,6 +44,8 @@ def fixture(tmp_path_factory):
     dest = tmp_path_factory.mktemp("gate-fixture")
     try:
         return fixture_builder.build_fixture(dest)
+    except fixture_builder.FixtureSourceError:
+        raise  # committed fixture missing/drifted: hard failure, never skip
     except Exception as exc:  # environment/deps issue -> skip, never fail blind
         pytest.skip(f"cannot build producer fixture: {exc}")
 

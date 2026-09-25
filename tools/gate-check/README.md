@@ -115,6 +115,7 @@ python3 build.py            # dist/gate-check-0.1.0.pyz (+ .sha256), TOOL.json
 python3 -m pytest tests/ -q # real baseline-produced fixture + tamper matrix
 ```
 
-The producer is read from the sibling `../claim-registry` (falling back to the
-workspace baseline `/workspaces/chunkhound_workspace/claim-registry`); tests
-skip if absent. Nothing is ever written into the baseline or any git repo.
+The producer and its golden fixture are read from the sibling
+`../claim-registry` unit; `tests/fixtures/pr17-body-v2.md` is sha256-pinned, so
+absence or drift fails loudly. Tests skip only when the producer unit itself is
+absent. Nothing is ever written into the producer or any git repo.
