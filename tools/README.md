@@ -48,7 +48,8 @@ same tool identity.
    never overwritten).
    Designation/pointer rules stay in the kernel docs; the tool stores bytes,
    locator, hash, and synthetic blob OID.
-3. **Frame/window** the sources (`claim-registry frame`, `windows`). Sources
+3. **Frame** the sources (`claim-registry frame`; the legacy `windows` command is
+   post-assembly context only). Sources
    that exceed the full-label caps (≤16 KiB raw / ≤80 units / ≤64 KiB worker
    input) use the bounded sliced path instead: `frame-slices` frames each
    source once and writes byte-exact worker payloads (`frame-slice-input/1`),

@@ -7,7 +7,8 @@ cure-light claim registry: `capture` → `frame` → `assemble` → `validate` �
 
 **When to run.** The coordinator agent uses this unit whenever a V1 claim
 registry must be produced or re-validated.  Labeling children never run it;
-they only author `claim-proposals/1` files from `frame`/`windows` output.
+they only author `claim-proposals/1` / `slice-proposals/1` files from `frame` /
+`frame-slices` output.
 
 **Trust boundary.** Agents orchestrate and author proposals only.  The unit
 computes every ID, span, and hash.  Never hand-edit registry JSON; never
@@ -58,7 +59,7 @@ python3 claim-registry-0.3.0.pyz capture \
   --in body.md --locator 'repo#17:body' \
   --in plan.md --locator 'repo#17:plan' --out captures/
 
-# 2. frame (context for labeling children), optionally windows
+# 2. frame (context for labeling children); frame-slices covers sources past the caps
 python3 claim-registry-0.3.0.pyz frame --in body.md --locator 'repo#17:body' --out frame.json
 # labeling children return claim-proposals/1 assignments only
 
