@@ -25,7 +25,7 @@ except ModuleNotFoundError:  # dev checkout: ../common is not on sys.path yet
     from toolkit import tool_unit
 
 NAME = "claim-registry"
-VERSION = "0.2.0"
+VERSION = "0.3.0"
 SUMMARY = (
     "Deterministic pilot producer for cure-light claim registries: verbatim "
     "capture, strict atomic-unit Markdown frame, claim-json/1 canonical "
@@ -293,29 +293,38 @@ COMMANDS = {
         "usage": (
             "claim-registry manifest --captures DIR [--proposals P.json ...] "
             "[--registry R.json] [--report V.json] [--windows W.json] "
-            "[--tool-manifest TOOL.json] --out MANIFEST.json"
+            "[--tool-manifest TOOL.json] --out MANIFEST.json | "
+            "claim-registry manifest --captures DIR --slices S.json "
+            "--slice-proposal C.json ... --reconciliation R.json "
+            "--proposals MERGED.json [...] --out MANIFEST.json"
         ),
         "summary": (
-            "Seal a completed run into a canonical claim-run-manifest/1: tool "
-            "identity/pin, and each input path + sha256 plus registry/report key fields."
+            "Seal a completed run into a canonical claim-run-manifest/1 (legacy) "
+            "or /2 when --slices/--slice-proposal/--reconciliation are given: tool "
+            "identity/pin, input paths + sha256, registry/report key fields and the "
+            "mandatory sliced labeling block (slices manifest, every child "
+            "proposal, merged proposals, reconciliation report)."
         ),
         "params": [
             _param("--captures", "path", True, None, "capture directory from capture"),
-            _param("--proposals", "path", False, None, "claim-proposals/1 file; repeatable, recorded in CLI order"),
+            _param("--proposals", "path", False, None, "claim-proposals/1 file; repeatable (sliced mode: exactly one merged file)"),
+            _param("--slices", "path", False, None, "frame-slices/1 manifest.json (claim-run-manifest/2)"),
+            _param("--slice-proposal", "path", False, None, "slice-proposals/1 child file; repeatable, one per slice"),
+            _param("--reconciliation", "path", False, None, "proposal-reconciliation/1 report (claim-run-manifest/2)"),
             _param("--registry", "path", False, None, "registry envelope from assemble"),
             _param("--report", "path", False, None, "validation report from validate"),
             _param("--windows", "path", False, None, "optional window manifests from windows"),
             _param("--tool-manifest", "path", False, None, "TOOL.json of the tool unit (artifact pin); else self-hash when running from a .pyz"),
-            _param("--out", "path", True, None, "claim-run-manifest/1 output (canonical, no trailing newline)"),
+            _param("--out", "path", True, None, "claim-run-manifest/1|2 output (canonical, no trailing newline)"),
         ],
         "outputs": {
             "stdout": "JSON summary {out, schema_version, tool}",
-            "<out>": "claim-run-manifest/1 canonical JSON",
+            "<out>": "claim-run-manifest/1 or claim-run-manifest/2 canonical JSON",
         },
         "exit_codes": {
             "0": "run manifest written",
-            "1": "malformed JSON input, non-canonical registry, or capture verification failure",
-            "2": "missing/unreadable input file or capture directory",
+            "1": "malformed/non-canonical sliced evidence, incomplete reconciliation, or capture verification failure",
+            "2": "missing/unreadable input file, capture directory, or incomplete new-flag combination",
         },
     },
 }
@@ -326,6 +335,7 @@ RECIPE_PINS = {
     "parser": "tree-sitter-markdown 0.5.1",
     "runtime": "tree-sitter 0.26.0",
     "canonicalization": "claim-json/1",
+    "run_manifest_schema": "claim-run-manifest/2 (sliced) / claim-run-manifest/1 (legacy)",
     "window_recipe": (
         "claim-registry-window/1 max_units=64 max_bytes=65536 overlap_units=8"
     ),

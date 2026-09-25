@@ -31,6 +31,7 @@ from toolkit import tool_unit
 
 CAPTURE_MANIFEST = "capture-manifest/1"
 RUN_MANIFEST_SCHEMA = "claim-run-manifest/1"
+RUN_MANIFEST_SCHEMA_V2 = "claim-run-manifest/2"
 PROPOSALS_SCHEMA_VERSION = "claim-proposals/1"
 
 #: Mirrors claim_registry.registry.DEFAULT_WINDOW_RECIPE; kept as literals so
@@ -517,6 +518,164 @@ def _tool_block(args: argparse.Namespace) -> dict:
     }
 
 
+def _run_relative_ref(path: str, run_root: str) -> str:
+    """Record a /2 labeling ref relative to the run root; refuse escapes."""
+    absolute = os.path.abspath(path)
+    root = os.path.abspath(run_root)
+    try:
+        inside = os.path.commonpath([os.path.realpath(absolute), os.path.realpath(root)])
+    except ValueError as exc:
+        raise SemanticError(
+            f"manifest: sliced artifact {path!r} cannot be located under {root!r}: {exc}"
+        ) from exc
+    if inside != os.path.realpath(root):
+        raise SemanticError(
+            f"manifest: sliced artifact {path!r} is outside the run directory {root!r}"
+        )
+    rel = os.path.relpath(absolute, root)
+    if rel in (os.curdir, os.pardir) or rel.startswith(os.pardir + os.sep) or os.path.isabs(rel):
+        raise SemanticError(
+            f"manifest: sliced artifact {path!r} is outside the run directory {root!r}"
+        )
+    return rel.replace(os.sep, "/")
+
+
+def _seal_sliced_labeling(args: argparse.Namespace) -> tuple[dict, str, str]:
+    """Validate the sliced-run evidence and build the /2 labeling block.
+
+    Returns ``(labeling, merged_sha256, merged_path)``.  The producer verifies
+    schema/linkage only; the gate independently replays framing, slicing and
+    reconciliation from the captured bytes.
+    """
+    from claim_label_contract import schemas as contract_schemas
+
+    if args.slices is None or args.reconciliation is None or not args.slice_proposals:
+        raise tool_unit.UsageError(
+            "manifest: --slices, --slice-proposal and --reconciliation must be "
+            "given together to seal a claim-run-manifest/2"
+        )
+    if len(args.proposals or []) != 1:
+        raise tool_unit.UsageError(
+            "manifest: sliced sealing requires exactly one --proposals MERGED file"
+        )
+    run_root = os.path.dirname(os.path.abspath(args.out))
+
+    def _canonical(path: str) -> bytes:
+        raw = _read_bytes(path)
+        canonical.assert_canonical_bytes(raw)
+        return raw
+
+    slices_raw = _canonical(args.slices)
+    slices_doc = canonical.canonical_loads(slices_raw)
+    errors = contract_schemas.validate(contract_schemas.FRAME_SLICES_1, slices_doc)
+    if errors:
+        raise SemanticError(
+            f"manifest: {args.slices!r} is not a frame-slices/1 manifest: {errors[:3]}"
+        )
+    slices_by_id: dict[str, dict] = {}
+    for entry in slices_doc["slices"]:
+        sid = entry["slice_id"]
+        if sid in slices_by_id:
+            raise SemanticError(f"manifest: duplicate slice_id {sid} in slices manifest")
+        slices_by_id[sid] = entry
+
+    merged_path = args.proposals[0]
+    merged_raw = _canonical(merged_path)
+    merged_doc = canonical.canonical_loads(merged_raw)
+    if (
+        not isinstance(merged_doc, dict)
+        or merged_doc.get("schema_version") != PROPOSALS_SCHEMA_VERSION
+        or not isinstance(merged_doc.get("assignments"), list)
+    ):
+        raise SemanticError(
+            f"manifest: --proposals must be a claim-proposals/1 document: {merged_path!r}"
+        )
+
+    reconciliation_raw = _canonical(args.reconciliation)
+    reconciliation = canonical.canonical_loads(reconciliation_raw)
+    errors = contract_schemas.validate(
+        contract_schemas.PROPOSAL_RECONCILIATION_1, reconciliation
+    )
+    if errors:
+        raise SemanticError(
+            f"manifest: {args.reconciliation!r} is not a proposal-reconciliation/1 "
+            f"report: {errors[:3]}"
+        )
+    merged_sha = tool_unit.sha256_bytes(merged_raw)
+    if reconciliation["slices_sha256"] != tool_unit.sha256_bytes(slices_raw):
+        raise SemanticError(
+            "manifest: reconciliation slices_sha256 does not bind the given "
+            "--slices manifest"
+        )
+    if reconciliation["merged_sha256"] != merged_sha:
+        raise SemanticError(
+            "manifest: reconciliation merged_sha256 does not bind the given "
+            "--proposals file"
+        )
+    if reconciliation["complete"] is not True:
+        raise SemanticError(
+            "manifest: reconciliation report is not complete; a failed sliced "
+            "run cannot be sealed"
+        )
+
+    inputs: list[dict] = []
+    seen: set[str] = set()
+    for path in args.slice_proposals:
+        child_raw = _canonical(path)
+        child = canonical.canonical_loads(child_raw)
+        errors = contract_schemas.validate(contract_schemas.SLICE_PROPOSALS_1, child)
+        if errors:
+            raise SemanticError(
+                f"manifest: slice-proposal {path!r} is not slice-proposals/1: {errors[:3]}"
+            )
+        sid = child["slice_id"]
+        if sid in seen:
+            raise SemanticError(f"manifest: duplicate slice-proposal for slice {sid}")
+        seen.add(sid)
+        entry = slices_by_id.get(sid)
+        if entry is None:
+            raise SemanticError(
+                f"manifest: slice-proposal slice_id {sid} is not in the slices manifest"
+            )
+        if child["input_sha256"] != entry["input"]["sha256"]:
+            raise SemanticError(
+                f"manifest: slice-proposal {sid} input_sha256 "
+                f"{child['input_sha256']} != slices manifest {entry['input']['sha256']}"
+            )
+        inputs.append({
+            "slice_id": sid,
+            "path": _run_relative_ref(path, run_root),
+            "sha256": tool_unit.sha256_bytes(child_raw),
+        })
+    missing = sorted(set(slices_by_id) - seen)
+    if missing:
+        raise SemanticError(
+            f"manifest: no slice-proposal recorded for slice(s) {missing[:3]}"
+        )
+    inputs.sort(key=lambda item: item["slice_id"].encode("utf-8"))
+
+    labeling = {
+        "mode": "sliced",
+        "slices": {
+            "path": _run_relative_ref(args.slices, run_root),
+            "sha256": tool_unit.sha256_bytes(slices_raw),
+        },
+        "inputs": inputs,
+        "merged": {
+            "path": _run_relative_ref(merged_path, run_root),
+            "sha256": merged_sha,
+        },
+        "reconciliation": {
+            "path": _run_relative_ref(args.reconciliation, run_root),
+            "sha256": tool_unit.sha256_bytes(reconciliation_raw),
+        },
+    }
+    errors = contract_schemas.validate(contract_schemas.CLAIM_RUN_LABELING_1, labeling)
+    if errors:  # pragma: no cover - internal contract bug guard
+        raise SemanticError(f"manifest: internal labeling block violation: {errors[:3]}")
+    return labeling, merged_sha, merged_path
+
+
 def cmd_manifest(args: argparse.Namespace) -> int:
     captures = read_capture_dir(args.captures)  # verifies raw files vs manifest
     manifest_path = os.path.join(args.captures, "manifest.json")
@@ -525,9 +684,19 @@ def cmd_manifest(args: argparse.Namespace) -> int:
         "manifest_sha256": tool_unit.sha256_file(manifest_path),
     }
 
-    proposals_block = []
-    for path in args.proposals or []:
-        proposals_block.append({"path": path, "sha256": tool_unit.sha256_file(path)})
+    sliced = bool(args.slices or args.slice_proposals or args.reconciliation)
+    labeling = None
+    if sliced:
+        labeling, merged_sha, merged_path = _seal_sliced_labeling(args)
+        proposals_block = [{
+            "path": labeling["merged"]["path"],
+            "sha256": labeling["merged"]["sha256"],
+        }]
+    else:
+        proposals_block = [
+            {"path": path, "sha256": tool_unit.sha256_file(path)}
+            for path in (args.proposals or [])
+        ]
 
     registry_block = None
     if args.registry:
@@ -570,7 +739,7 @@ def cmd_manifest(args: argparse.Namespace) -> int:
         }
 
     value = {
-        "schema_version": RUN_MANIFEST_SCHEMA,
+        "schema_version": RUN_MANIFEST_SCHEMA_V2 if sliced else RUN_MANIFEST_SCHEMA,
         "tool": _tool_block(args),
         "captures": captures_block,
         "proposals": proposals_block,
@@ -578,10 +747,12 @@ def cmd_manifest(args: argparse.Namespace) -> int:
         "report": report_block,
         "windows": windows_block,
     }
+    if labeling is not None:
+        value["labeling"] = labeling
     tool_unit.json_write(args.out, value)
     _print_json({
         "out": args.out,
-        "schema_version": RUN_MANIFEST_SCHEMA,
+        "schema_version": value["schema_version"],
         "tool": {
             "name": value["tool"]["name"],
             "version": value["tool"]["version"],
@@ -679,10 +850,21 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--in", dest="input", required=True)
     p.set_defaults(func=cmd_hash)
 
-    p = sub.add_parser("manifest", help="seal a completed run into claim-run-manifest/1")
+    p = sub.add_parser(
+        "manifest",
+        help="seal a completed run into claim-run-manifest/1 (or /2 when sliced)",
+    )
     p.add_argument("--captures", required=True, help="capture directory")
     p.add_argument("--proposals", action="append", default=None,
-                   help="claim-proposals/1 file; repeatable, recorded in CLI order")
+                   help="claim-proposals/1 file; repeatable, recorded in CLI order "
+                        "(sliced mode: exactly one merged file)")
+    p.add_argument("--slices", default=None,
+                   help="frame-slices/1 manifest.json (claim-run-manifest/2)")
+    p.add_argument("--slice-proposal", dest="slice_proposals", action="append",
+                   default=None,
+                   help="slice-proposals/1 child file; repeatable, one per slice")
+    p.add_argument("--reconciliation", default=None,
+                   help="proposal-reconciliation/1 report (claim-run-manifest/2)")
     p.add_argument("--registry", default=None, help="registry envelope")
     p.add_argument("--report", default=None, help="validation report")
     p.add_argument("--windows", default=None, help="optional window manifests")

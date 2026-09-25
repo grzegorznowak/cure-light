@@ -7,8 +7,8 @@ Run from the unit root::
 
 Writes:
 
-* ``dist/claim-registry-0.2.0.pyz``       deterministic zipapp
-* ``dist/claim-registry-0.2.0.pyz.sha256`` ``"<sha256>  <artifact filename>\\n"``
+* ``dist/claim-registry-0.3.0.pyz``       deterministic zipapp
+* ``dist/claim-registry-0.3.0.pyz.sha256`` ``"<sha256>  <artifact filename>\\n"``
 * ``TOOL.json``                           describe payload + artifact pin block
 
 Same sources -> same artifact bytes -> same sha256.

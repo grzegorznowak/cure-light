@@ -3,22 +3,20 @@
 # artifacts, exercised exactly as the coordinator agent would run them.
 #
 # Usage: demo/e2e_claim_registry.sh [pr-body.md]
-# Default fixture: claim-registry/tests/fixtures/pr17-body-v2.md (fallback /tmp).
+# Default fixture: claim-registry/tests/fixtures/pr17-body-v2.md (no external fallback).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PR_BODY="${1:-}"
 if [ -z "$PR_BODY" ]; then
-  for candidate in "$ROOT/claim-registry/tests/fixtures/pr17-body-v2.md" /tmp/pr17-body-v2.md; do
-    if [ -f "$candidate" ]; then PR_BODY="$candidate"; break; fi
-  done
+  PR_BODY="$ROOT/claim-registry/tests/fixtures/pr17-body-v2.md"
 fi
 
 PU="$ROOT/claim-registry"
 GU="$ROOT/gate-check"
 CU="$ROOT/census"
-PRZ="$PU/dist/claim-registry-0.2.0.pyz"
-GCZ="$GU/dist/gate-check-0.1.0.pyz"
+PRZ="$PU/dist/claim-registry-0.3.0.pyz"
+GCZ="$GU/dist/gate-check-0.2.0.pyz"
 CZ="$CU/dist/census-0.1.0.pyz"
 
 if [ ! -f "$PR_BODY" ]; then
@@ -88,6 +86,116 @@ assert len(gate["checks"]) >= 20, len(gate["checks"])
 print(f"claim-registry PASS: {units} units / {claims} claims; "
       f"validate permission granted; gate-check {len(gate['checks'])} checks ok")
 PY
+
+# --- sliced labeling flow (claim-run-manifest/2 + --require-sliced) -------
+cat > "$WORK/sliced-companion.md" <<'MD'
+# Sliced companion
+
+Companion paragraph one with enough words to form a standalone block.
+
+- companion item a
+- companion item b
+
+```
+companion fence line
+```
+
+Final companion paragraph.
+MD
+
+python3 "$PRZ" capture --in "$PR_BODY" --locator 'repo#17:body' \
+  --in "$WORK/sliced-companion.md" --locator 'repo#17:companion' \
+  --out sliced-captures >/dev/null
+python3 "$PRZ" frame-slices --captures sliced-captures --out-dir slices \
+  --max-bytes 2048 --max-units 10 --overlap-units 3 --max-slices 32 >/dev/null
+
+# deterministic mechanical children (one per slice; mirrors the fixture-builder style)
+python3 - <<'PY'
+import json
+import os
+
+manifest = json.load(open("slices/manifest.json"))
+os.makedirs("children", exist_ok=True)
+for index, entry in enumerate(manifest["slices"]):
+    with open(os.path.join("slices", entry["input"]["path"])) as fh:
+        payload = json.load(fh)
+    kinds = {u["unit_id"]: u["kind"] for u in payload["units"]}
+    assignments = [
+        {"source_ref": entry["source_ref"], "unit_ids": [uid], "state": "claim",
+         "rationale": "demo mechanical claim"}
+        for uid in entry["core_ids"] if kinds[uid] != "separator"]
+    overlap_votes = [
+        {"unit_id": uid, "state": "claim", "label": None, "role_ref": None,
+         "rationale": "demo mechanical claim"}
+        for uid in entry["overlap_ids"] if kinds[uid] != "separator"]
+    visible = entry["overlap_ids"] + entry["core_ids"]
+    grouping = [
+        {"left_unit_id": left, "right_unit_id": right, "grouping": "separate",
+         "rationale": "demo mechanical pair"}
+        for left, right in zip(visible, visible[1:])
+        if kinds[left] != "separator" and kinds[right] != "separator"]
+    child = {
+        "schema_version": "slice-proposals/1", "slice_id": entry["slice_id"],
+        "input_sha256": entry["input"]["sha256"], "assignments": assignments,
+        "overlap_votes": overlap_votes, "grouping_votes": grouping,
+        "boundary": {"left": "clear", "right": "clear"},
+    }
+    with open(f"children/{index:04d}.json", "wb") as fh:
+        fh.write(json.dumps(child, sort_keys=True, separators=(",", ":"),
+                            ensure_ascii=False).encode("utf-8"))
+PY
+
+CHILD_ARGS=()
+for f in children/*.json; do CHILD_ARGS+=(--proposal "$f"); done
+python3 "$PRZ" proposal-reconcile --captures sliced-captures \
+  --slices slices/manifest.json "${CHILD_ARGS[@]}" \
+  --out merged-sliced.json --report-out reconciliation.json >/dev/null
+
+SEAL_ARGS=()
+for f in children/*.json; do SEAL_ARGS+=(--slice-proposal "$f"); done
+python3 "$PRZ" assemble --captures sliced-captures --proposals merged-sliced.json \
+  --out sliced-registry.json >/dev/null
+python3 "$PRZ" validate --registry sliced-registry.json --captures sliced-captures \
+  --report-out sliced-report.json >/dev/null
+python3 "$PRZ" manifest --captures sliced-captures --slices slices/manifest.json \
+  "${SEAL_ARGS[@]}" --reconciliation reconciliation.json \
+  --proposals merged-sliced.json --registry sliced-registry.json \
+  --report sliced-report.json --out sliced-manifest.json >/dev/null
+python3 "$GCZ" check --manifest sliced-manifest.json --base-dir . \
+  --require-sliced > sliced-gate-report.json
+
+python3 - <<'PY'
+import json
+
+sealed = json.load(open("sliced-manifest.json"))
+slices = json.load(open("slices/manifest.json"))
+gate = json.load(open("sliced-gate-report.json"))
+assert sealed["schema_version"] == "claim-run-manifest/2"
+assert sealed["labeling"]["mode"] == "sliced"
+assert sealed["proposals"] == [{
+    "path": sealed["labeling"]["merged"]["path"],
+    "sha256": sealed["labeling"]["merged"]["sha256"],
+}]
+assert len(slices["slices"]) > 1, len(slices["slices"])
+assert any(s["overlap_ids"] for s in slices["slices"])
+assert gate["valid"] is True, gate["errors"][:3]
+assert gate["permission"]["complete_registry_claims"] is True
+ids = {c["id"] for c in gate["checks"]}
+for cid in ("manifest.sliced_required", "sliced.reconcile_replay.merged",
+            "sliced.reconcile_replay.report", "sliced.registry_match",
+            "sliced.payload_replay", "sliced.units_replay"):
+    assert cid in ids, cid
+print(f"sliced PASS: {len(slices['slices'])} slices / "
+      f"{len(sealed['labeling']['inputs'])} children; /2 replay verified")
+PY
+
+# --require-sliced must reject the legacy /1 manifest from the section above
+if python3 "$GCZ" check --manifest run-manifest.json --base-dir . \
+    --require-sliced >/dev/null 2>&1; then
+  echo "E2E: --require-sliced accepted a legacy /1 manifest" >&2
+  exit 1
+fi
+echo "gate-check PASS: --require-sliced rejects the legacy /1 manifest"
 
 # --- census smoke (optional artifact) --------------------------------------
 if [ -f "$CZ" ] && command -v git >/dev/null 2>&1; then

@@ -16,10 +16,15 @@ import re
 from pathlib import Path
 from typing import Any
 
+from claim_label_contract import reconciliation as contract_reconciliation
+from claim_label_contract import schemas as contract_schemas
+from claim_label_contract import slicing as contract_slicing
 from toolkit import canonical_json
 from toolkit.tool_unit import UsageError, sha256_file
 
 RUN_MANIFEST_SCHEMA = "claim-run-manifest/1"
+RUN_MANIFEST_SCHEMA_V2 = "claim-run-manifest/2"
+RUN_LABELING_SCHEMA = contract_schemas.CLAIM_RUN_LABELING_VERSION
 GATE_REPORT_SCHEMA = "gate-check-report/1"
 CAPTURE_MANIFEST_SCHEMA = "capture-manifest/1"
 BLOB_ALGORITHM = "git-blob-sha256"
@@ -37,6 +42,7 @@ MANIFEST_KEYS = {
     "schema_version", "tool", "captures", "proposals", "registry", "report",
     "windows",
 }
+MANIFEST_KEYS_V2 = MANIFEST_KEYS | {"labeling"}
 TOOL_KEYS = {"name", "version", "describe_sha256", "artifact"}
 ARTIFACT_KEYS = {"file", "sha256"}
 CAPTURES_KEYS = {"path", "manifest_sha256"}
@@ -111,15 +117,44 @@ def _check_subset_keys(obj: Any, required: set[str], where: str) -> str | None:
 
 
 def validate_manifest_shape(value: Any) -> tuple[bool, str]:
-    """Strict flat ``claim-run-manifest/1`` shape; first violation returned."""
+    """Strict ``claim-run-manifest/1`` or ``/2`` shape; first violation returned."""
+    if not isinstance(value, dict):
+        return False, "manifest is not an object"
+    version = value.get("schema_version")
+    if version == RUN_MANIFEST_SCHEMA_V2:
+        err = _check_exact_keys(value, MANIFEST_KEYS_V2, "manifest")
+        if err:
+            return False, err
+        ok, err = _validate_manifest_blocks(value)
+        if not ok:
+            return False, err
+        errors = contract_schemas.validate(
+            contract_schemas.CLAIM_RUN_LABELING_1, value["labeling"]
+        )
+        if errors:
+            return False, "manifest.labeling: " + "; ".join(errors)
+        merged = value["labeling"]["merged"]
+        if value["proposals"] != [
+            {"path": merged["path"], "sha256": merged["sha256"]}
+        ]:
+            return False, (
+                "manifest.proposals must equal [manifest.labeling.merged] in "
+                "claim-run-manifest/2"
+            )
+        return True, ""
     err = _check_exact_keys(value, MANIFEST_KEYS, "manifest")
     if err:
         return False, err
     if value["schema_version"] != RUN_MANIFEST_SCHEMA:
         return False, (
-            f"schema_version {value['schema_version']!r} != {RUN_MANIFEST_SCHEMA!r}"
+            f"schema_version {value['schema_version']!r} != {RUN_MANIFEST_SCHEMA!r} "
+            f"or {RUN_MANIFEST_SCHEMA_V2!r}"
         )
+    return _validate_manifest_blocks(value)
 
+
+def _validate_manifest_blocks(value: dict) -> tuple[bool, str]:
+    """Shared flat-block validation for /1 and /2 (root keys already checked)."""
     tool = value["tool"]
     # ``artifact`` may be absent-as-null or an object; every other key is required.
     err = _check_subset_keys(tool, {"name", "version", "describe_sha256"}, "manifest.tool")
@@ -636,6 +671,533 @@ def check_proposals(g: Gate, items: list[tuple[str, Path, Any]]) -> None:
 
 
 # --------------------------------------------------------------------------
+# sliced-run replay (claim-run-manifest/2)
+# --------------------------------------------------------------------------
+
+def _read_maybe(path: Path | None) -> bytes | None:
+    if path is None:
+        return None
+    try:
+        return path.read_bytes()
+    except OSError:
+        return None
+
+
+def _resolve_run_ref(base: Path, raw: Any) -> tuple[Path | None, str | None]:
+    """Resolve a /2 recorded ref under the run root; reject escapes/aliases."""
+    if not isinstance(raw, str) or not raw:
+        return None, "empty path"
+    path = Path(raw)
+    if path.is_absolute():
+        return None, "absolute path"
+    if ".." in path.parts:
+        return None, "parent-directory traversal"
+    resolved = (base / path).resolve()
+    try:
+        resolved.relative_to(base)
+    except ValueError:
+        return None, "escapes the run root"
+    if resolved == base:
+        return None, "resolves to the run root"
+    return resolved, None
+
+
+def _compare_registry_to_merged(registry_payload: dict, merged: dict) -> list[str]:
+    """Reconciled ownership/grouping/rationales vs the actual registry labels."""
+    problems: list[str] = []
+    assignments = merged.get("assignments", [])
+    unit_records = {
+        u["unit_id"]: u for u in registry_payload.get("units", [])
+        if isinstance(u, dict) and isinstance(u.get("unit_id"), str)
+    }
+    labels = {
+        label["unit_id"]: label for label in registry_payload.get("labels", [])
+        if isinstance(label, dict) and isinstance(label.get("unit_id"), str)
+    }
+    expected_owner: dict[str, int] = {}
+    for index, assignment in enumerate(assignments):
+        for uid in assignment.get("unit_ids", []):
+            if uid in expected_owner:
+                problems.append(f"merged proposals assign {uid} more than once")
+            expected_owner[uid] = index
+    for uid in sorted(expected_owner):
+        if uid not in unit_records:
+            problems.append(f"merged proposals assign unknown unit {uid}")
+
+    merged_claims = [
+        tuple(a.get("unit_ids", [])) for a in assignments if a.get("state") == "claim"
+    ]
+    registry_claims = [
+        tuple(c.get("unit_ids", [])) for c in registry_payload.get("claims", [])
+    ]
+    if merged_claims != registry_claims:
+        problems.append(
+            "registry claims (membership/order) differ from the merged claim "
+            "assignments"
+        )
+    claim_id_by_uid: dict[str, Any] = {}
+    for claim in registry_payload.get("claims", []):
+        for uid in claim.get("unit_ids", []):
+            claim_id_by_uid[uid] = claim.get("claim_id")
+
+    for uid in sorted(unit_records):
+        unit = unit_records[uid]
+        label = labels.get(uid)
+        if label is None:
+            problems.append(f"{uid}: no registry label")
+            continue
+        index = expected_owner.get(uid)
+        if index is None:
+            if unit.get("kind") != "separator":
+                problems.append(
+                    f"{uid}: non-separator unit is not owned by the merged proposals"
+                )
+            elif (
+                label.get("state") != "nonclaim"
+                or label.get("nonclaim_label") != "context"
+                or label.get("role_ref") != "spec:claim-registry/1#separator"
+            ):
+                problems.append(f"{uid}: separator is not mechanically nonclaim context")
+            continue
+        assignment = assignments[index]
+        if label.get("state") != assignment.get("state"):
+            problems.append(
+                f"{uid}: registry state {label.get('state')!r} != merged "
+                f"{assignment.get('state')!r}"
+            )
+            continue
+        if assignment.get("state") == "claim":
+            if claim_id_by_uid.get(uid) is None:
+                problems.append(f"{uid}: claim label has no registry claim membership")
+            elif label.get("claim_id") != claim_id_by_uid.get(uid):
+                problems.append(f"{uid}: label claim_id differs from its claim membership")
+            if label.get("rationale", "") != assignment.get("rationale", ""):
+                problems.append(
+                    f"{uid}: claim rationale {label.get('rationale')!r} != merged "
+                    f"{assignment.get('rationale')!r}"
+                )
+        else:
+            for merged_key, label_key in (
+                ("label", "nonclaim_label"),
+                ("role_ref", "role_ref"),
+                ("rationale", "rationale"),
+            ):
+                if label.get(label_key) != assignment.get(merged_key):
+                    problems.append(
+                        f"{uid}: {label_key} differs from the merged nonclaim assignment"
+                    )
+                    break
+    return problems
+
+
+def check_sliced(
+    g: Gate,
+    *,
+    base: Path,
+    labeling: dict,
+    captures_dir: Path,
+    registry_payload: dict | None,
+) -> None:
+    """Replay a claim-run-manifest/2 labeling block from the recorded bytes.
+
+    The gate never reparses Markdown (producer-side ``validate`` owns parser
+    correctness): it re-verifies span identity against captured bytes, re-plans
+    the recipe-determined partition and payloads, re-runs deterministic
+    reconciliation over the recorded children, and compares the outcome with
+    the recorded merged/report bytes and the actual registry labels/claims.
+    """
+    ref_problems: list[str] = []
+    slices_path, problem = _resolve_run_ref(base, labeling["slices"]["path"])
+    if problem:
+        ref_problems.append(f"slices: {problem}")
+    merged_path, problem = _resolve_run_ref(base, labeling["merged"]["path"])
+    if problem:
+        ref_problems.append(f"merged: {problem}")
+    reconciliation_path, problem = _resolve_run_ref(
+        base, labeling["reconciliation"]["path"]
+    )
+    if problem:
+        ref_problems.append(f"reconciliation: {problem}")
+
+    input_paths: list[tuple[dict, Path | None]] = []
+    seen_sids: set[str] = set()
+    seen_paths: set[Path] = set()
+    for index, item in enumerate(labeling["inputs"]):
+        path, problem = _resolve_run_ref(base, item["path"])
+        if problem:
+            ref_problems.append(f"inputs[{index}]: {problem}")
+        if item["slice_id"] in seen_sids:
+            ref_problems.append(f"inputs[{index}]: duplicate slice_id {item['slice_id']}")
+        seen_sids.add(item["slice_id"])
+        if path is not None:
+            if path in seen_paths:
+                ref_problems.append(f"inputs[{index}]: duplicate path alias {path}")
+            seen_paths.add(path)
+        input_paths.append((item, path))
+    named_paths = {
+        p for p in (slices_path, merged_path, reconciliation_path) if p is not None
+    }
+    for index, (item, path) in enumerate(input_paths):
+        if path is not None and path in named_paths:
+            ref_problems.append(f"inputs[{index}]: aliases a recorded named artifact")
+    g.check("sliced.refs_safe", not ref_problems, "; ".join(ref_problems[:6]))
+
+    if slices_path is not None:
+        _file_check(g, "sliced.slices", slices_path, labeling["slices"]["sha256"])
+    if merged_path is not None:
+        _file_check(g, "sliced.merged", merged_path, labeling["merged"]["sha256"])
+    if reconciliation_path is not None:
+        _file_check(
+            g, "sliced.reconciliation", reconciliation_path,
+            labeling["reconciliation"]["sha256"],
+        )
+    for index, (item, path) in enumerate(input_paths):
+        label = f"sliced.inputs[{index}]"
+        if path is None:
+            g.check(f"file[{label}].exists", False, "unresolved recorded path")
+            continue
+        _file_check(g, label, path, item["sha256"])
+
+    # -- slices manifest: canonical + schema -------------------------------
+    slices_raw = _read_maybe(slices_path)
+    slices_doc: dict | None = None
+    if slices_raw is None:
+        g.check("sliced.slices_parse", False, "slices manifest unavailable")
+        g.check("sliced.slices_schema", False, "slices manifest unavailable")
+    else:
+        try:
+            parsed = canonical_json.canonical_loads(slices_raw)
+        except canonical_json.CanonicalizationError as exc:
+            g.check("sliced.slices_parse", False, f"not claim-json/1: {exc}")
+            g.check("sliced.slices_schema", False, "not claim-json/1")
+        else:
+            g.check("sliced.slices_parse", True)
+            errors = contract_schemas.validate(contract_schemas.FRAME_SLICES_1, parsed)
+            g.check("sliced.slices_schema", not errors, "; ".join(errors[:6]))
+            if not errors:
+                slices_doc = parsed
+
+    # -- captures: records + raw bytes -------------------------------------
+    capture_records: dict[str, dict] = {}
+    capture_raw: dict[str, bytes] = {}
+    capture_manifest_path = captures_dir / "manifest.json"
+    if capture_manifest_path.is_file():
+        try:
+            capture_manifest = json.loads(capture_manifest_path.read_bytes().decode("utf-8"))
+        except (UnicodeDecodeError, ValueError):
+            capture_manifest = None
+        if isinstance(capture_manifest, dict):
+            for record in capture_manifest.get("sources", []):
+                if not isinstance(record, dict) or not isinstance(record.get("source_ref"), str):
+                    continue
+                ref = record["source_ref"]
+                capture_records[ref] = record
+                raw_path = captures_dir / str(record.get("file", ""))
+                if raw_path.is_file():
+                    capture_raw[ref] = raw_path.read_bytes()
+
+    # -- captures_sha256 recompute -----------------------------------------
+    if slices_doc is not None and capture_records:
+        try:
+            identity = sorted(
+                ({k: v for k, v in record.items() if k != "file"}
+                 for record in capture_records.values()),
+                key=lambda record: record["source_ref"].encode("utf-8"),
+            )
+            recomputed = hashlib.sha256(
+                canonical_json.canonical_dumps(identity)
+            ).hexdigest()
+        except (canonical_json.CanonicalizationError, KeyError, TypeError) as exc:
+            g.check("sliced.captures_sha256", False, f"cannot recompute: {exc}")
+        else:
+            g.check(
+                "sliced.captures_sha256",
+                recomputed == slices_doc["captures_sha256"],
+                f"recomputed {recomputed} recorded {slices_doc['captures_sha256']}",
+            )
+    else:
+        g.check("sliced.captures_sha256", False, "capture records or slices manifest unavailable")
+
+    # -- sources binding + unit identity/span replay -----------------------
+    source_problems: list[str] = []
+    unit_problems: list[str] = []
+    units_by_ref: dict[str, dict[str, dict]] = {}
+    if slices_doc is None:
+        source_problems.append("slices manifest unavailable")
+        unit_problems.append("slices manifest unavailable")
+    else:
+        manifest_refs = [s["source_ref"] for s in slices_doc["sources"]]
+        if set(manifest_refs) != set(capture_records):
+            source_problems.append(
+                f"source set {sorted(manifest_refs)} != captures {sorted(capture_records)}"
+            )
+        for source in slices_doc["sources"]:
+            ref = source["source_ref"]
+            record = capture_records.get(ref)
+            if record is None:
+                source_problems.append(f"{ref}: no capture record")
+                continue
+            if (source["sha256"] != record.get("sha256")
+                    or source["byte_length"] != record.get("byte_length")):
+                source_problems.append(f"{ref}: sha256/byte_length differ from the capture")
+            raw = capture_raw.get(ref)
+            if raw is None:
+                source_problems.append(f"{ref}: captured raw bytes unavailable")
+                continue
+            units = source["units"]
+            units_by_ref[ref] = {u["unit_id"]: u for u in units}
+            if [u["ordinal"] for u in units] != list(range(len(units))):
+                unit_problems.append(f"{ref}: ordinals are not contiguous from 0")
+            if len({u["unit_id"] for u in units}) != len(units):
+                unit_problems.append(f"{ref}: duplicate unit_id")
+            for unit in units:
+                uid = unit["unit_id"]
+                if unit["source_ref"] != ref:
+                    unit_problems.append(f"{uid}: source_ref mismatch")
+                    continue
+                start, end = unit["start"], unit["end"]
+                if not (0 <= start <= end <= len(raw)):
+                    unit_problems.append(f"{uid}: span outside the captured bytes")
+                    continue
+                expected_id = f"{ref}:{start}-{end}:{unit['sha256']}"
+                if uid != expected_id:
+                    unit_problems.append(f"{uid}: unit_id does not recompute as {expected_id}")
+                actual = hashlib.sha256(raw[start:end]).hexdigest()
+                if actual != unit["sha256"]:
+                    unit_problems.append(
+                        f"{uid}: span sha256 {actual} != recorded {unit['sha256']}"
+                    )
+    g.check("sliced.sources_binding", not source_problems, "; ".join(source_problems[:6]))
+    g.check("sliced.units_replay", not unit_problems, "; ".join(unit_problems[:6]))
+
+    # -- global unit table equality with the registry ----------------------
+    if registry_payload is None:
+        g.check("sliced.registry_units_match", False, "registry payload unavailable")
+    elif slices_doc is None:
+        g.check("sliced.registry_units_match", False, "slices manifest unavailable")
+    else:
+        expected_units = [u for s in slices_doc["sources"] for u in s["units"]]
+        g.check(
+            "sliced.registry_units_match",
+            registry_payload.get("units") == expected_units,
+            "registry units differ from the frame-slices global unit table",
+        )
+
+    # -- recipe replay: partition + payload bytes --------------------------
+    plans: list = []
+    partition_problems: list[str] = []
+    if slices_doc is None:
+        partition_problems.append("slices manifest unavailable")
+    else:
+        for source in slices_doc["sources"]:
+            ref = source["source_ref"]
+            raw = capture_raw.get(ref, b"")
+            try:
+                plans.extend(contract_slicing.plan_slices(
+                    ref,
+                    slices_doc["frame_recipe_hash"],
+                    slices_doc["slice_recipe"],
+                    source["units"],
+                    raw,
+                    verify_spans=True,
+                ))
+            except Exception as exc:  # noqa: BLE001 - reported as a check failure
+                partition_problems.append(f"{ref}: {exc}")
+    recorded = slices_doc["slices"] if slices_doc is not None else []
+    if not partition_problems:
+        if len(plans) != len(recorded):
+            partition_problems.append(
+                f"recipe yields {len(plans)} slices, manifest records {len(recorded)}"
+            )
+        else:
+            for index, (plan, entry) in enumerate(zip(plans, recorded)):
+                if (
+                    plan.slice_id != entry["slice_id"]
+                    or plan.source_ref != entry["source_ref"]
+                    or list(plan.core_ids) != entry["core_ids"]
+                    or list(plan.overlap_ids) != entry["overlap_ids"]
+                    or list(plan.context_only_ids) != entry["context_only_ids"]
+                ):
+                    partition_problems.append(
+                        f"slice[{index}] {entry.get('slice_id')!r} differs from the recipe replay"
+                    )
+    g.check("sliced.partition_replay", not partition_problems, "; ".join(partition_problems[:6]))
+
+    payload_problems: list[str] = []
+    expected_slices: list[dict] = []
+    replay_ready = not partition_problems and len(plans) == len(recorded)
+    if not replay_ready:
+        payload_problems.append("partition replay failed; payloads not replayed")
+    else:
+        slices_dir = slices_path.parent if slices_path is not None else None
+        for index, (plan, entry) in enumerate(zip(plans, recorded)):
+            spec = entry["input"]
+            target, problem = (
+                _resolve_run_ref(slices_dir, spec["path"])
+                if slices_dir is not None else (None, "slices dir unavailable")
+            )
+            if problem:
+                payload_problems.append(f"slice[{index}]: payload path: {problem}")
+                continue
+            data = _read_maybe(target)
+            if data is None:
+                payload_problems.append(f"slice[{index}]: payload unreadable")
+                continue
+            if data != plan.payload_bytes:
+                payload_problems.append(
+                    f"slice[{index}] {plan.slice_id}: payload bytes differ from the replay"
+                )
+                continue
+            digest = hashlib.sha256(data).hexdigest()
+            if digest != spec["sha256"]:
+                payload_problems.append(f"slice[{index}]: input.sha256 mismatch")
+            if len(data) != spec["byte_length"]:
+                payload_problems.append(f"slice[{index}]: input.byte_length mismatch")
+            expected_slices.append({
+                "slice_id": plan.slice_id,
+                "source_ref": plan.source_ref,
+                "core_ids": list(plan.core_ids),
+                "overlap_ids": list(plan.overlap_ids),
+                "context_only_ids": list(plan.context_only_ids),
+                "payload_sha256": digest,
+                "payload_byte_length": len(data),
+            })
+    g.check("sliced.payload_replay", not payload_problems, "; ".join(payload_problems[:6]))
+
+    # -- child inputs: hash + schema + slice binding -----------------------
+    proposal_inputs: list[dict] = []
+    child_problems: list[str] = []
+    recorded_by_id = {entry["slice_id"]: entry for entry in recorded}
+    for index, (item, path) in enumerate(input_paths):
+        label = f"input[{index}]"
+        if path is None:
+            child_problems.append(f"{label}: unresolved recorded path")
+            proposal_inputs.append({"label": label, "sha256": item["sha256"],
+                                    "document": None, "error": "unresolved path"})
+            continue
+        data = _read_maybe(path)
+        if data is None:
+            child_problems.append(f"{label}: unreadable {path}")
+            proposal_inputs.append({"label": label, "sha256": item["sha256"],
+                                    "document": None, "error": "unreadable"})
+            continue
+        digest = hashlib.sha256(data).hexdigest()
+        if digest != item["sha256"]:
+            child_problems.append(f"{label}: file sha256 differs from the recorded digest")
+        try:
+            doc = canonical_json.canonical_loads(data)
+        except canonical_json.CanonicalizationError as exc:
+            child_problems.append(f"{label}: not claim-json/1: {exc}")
+            proposal_inputs.append({"label": label, "sha256": digest,
+                                    "document": None, "error": str(exc)})
+            continue
+        errors = contract_schemas.validate(contract_schemas.SLICE_PROPOSALS_1, doc)
+        if errors:
+            child_problems.append(f"{label}: not slice-proposals/1: {errors[0]}")
+        entry = recorded_by_id.get(doc.get("slice_id")) if isinstance(doc, dict) else None
+        if entry is None:
+            child_problems.append(
+                f"{label}: slice_id {doc.get('slice_id') if isinstance(doc, dict) else None!r} "
+                "is not in the frame-slices manifest"
+            )
+        elif doc.get("input_sha256") != entry["input"]["sha256"]:
+            child_problems.append(f"{label}: input_sha256 does not bind its slice payload")
+        proposal_inputs.append({"label": label, "sha256": digest,
+                                "document": doc, "error": None})
+    g.check("sliced.inputs_binding", not child_problems, "; ".join(child_problems[:6]))
+
+    # -- deterministic reconciliation replay -------------------------------
+    merged_replay: bytes | None = None
+    report_replay_bytes: bytes | None = None
+    replay_problems: list[str] = []
+    if not replay_ready or slices_doc is None:
+        replay_problems.append("partition replay unavailable")
+    else:
+        sources_index = {
+            ref: {uid: dict(record) for uid, record in units.items()}
+            for ref, units in units_by_ref.items()
+        }
+        try:
+            merged_replay, report_replay = contract_reconciliation.reconcile(
+                sources=sources_index,
+                expected_slices=expected_slices,
+                proposals=proposal_inputs,
+                slices_sha256=hashlib.sha256(slices_raw).hexdigest(),
+            )
+            report_replay_bytes = canonical_json.canonical_dumps(report_replay)
+        except Exception as exc:  # noqa: BLE001 - reported as a check failure
+            replay_problems.append(f"reconciliation replay error: {exc}")
+    merged_recorded = _read_maybe(merged_path)
+    reconciliation_recorded = _read_maybe(reconciliation_path)
+    if replay_problems:
+        g.check("sliced.reconcile_replay.merged", False, "; ".join(replay_problems))
+        g.check("sliced.reconcile_replay.report", False, "; ".join(replay_problems))
+    else:
+        g.check(
+            "sliced.reconcile_replay.merged",
+            merged_recorded is not None and merged_replay is not None
+            and merged_recorded == merged_replay,
+            "recorded merged proposals differ from the deterministic replay",
+        )
+        g.check(
+            "sliced.reconcile_replay.report",
+            reconciliation_recorded is not None and report_replay_bytes is not None
+            and reconciliation_recorded == report_replay_bytes,
+            "recorded reconciliation report differs from the deterministic replay",
+        )
+
+    # -- recorded merged / report shape ------------------------------------
+    merged_doc: dict | None = None
+    if merged_recorded is None:
+        g.check("sliced.merged_parse", False, "merged file unavailable")
+    else:
+        try:
+            parsed = canonical_json.canonical_loads(merged_recorded)
+        except canonical_json.CanonicalizationError as exc:
+            g.check("sliced.merged_parse", False, f"not claim-json/1: {exc}")
+        else:
+            ok = (
+                isinstance(parsed, dict)
+                and parsed.get("schema_version") == "claim-proposals/1"
+                and isinstance(parsed.get("assignments"), list)
+            )
+            g.check("sliced.merged_parse", ok,
+                    "recorded merged file is not a claim-proposals/1 document")
+            if ok:
+                merged_doc = parsed
+    if reconciliation_recorded is None:
+        g.check("sliced.reconciliation_parse", False, "reconciliation file unavailable")
+    else:
+        try:
+            parsed = canonical_json.canonical_loads(reconciliation_recorded)
+        except canonical_json.CanonicalizationError as exc:
+            g.check("sliced.reconciliation_parse", False, f"not claim-json/1: {exc}")
+        else:
+            errors = contract_schemas.validate(
+                contract_schemas.PROPOSAL_RECONCILIATION_1, parsed
+            )
+            g.check("sliced.reconciliation_parse", not errors, "; ".join(errors[:4]))
+
+    # -- reconciled ownership/grouping/rationales vs the registry ----------
+    reference: dict | None = None
+    if merged_replay is not None:
+        try:
+            reference = canonical_json.canonical_loads(merged_replay)
+        except canonical_json.CanonicalizationError:
+            reference = None
+    if reference is None:
+        reference = merged_doc
+    if registry_payload is None or reference is None:
+        g.check(
+            "sliced.registry_match", False,
+            "registry payload or replayed merged proposals unavailable",
+        )
+    else:
+        problems = _compare_registry_to_merged(registry_payload, reference)
+        g.check("sliced.registry_match", not problems, "; ".join(problems[:8]))
+
+
+# --------------------------------------------------------------------------
 # entry point
 # --------------------------------------------------------------------------
 
@@ -650,6 +1212,7 @@ def run_check(
     windows_override: Path | None = None,
     tool_manifest_override: Path | None = None,
     artifact_override: Path | None = None,
+    require_sliced: bool = False,
 ) -> dict:
     """Run every check and return the ``gate-check-report/1`` document.
 
@@ -681,6 +1244,23 @@ def run_check(
     g.check("manifest.shape", shape_ok, shape_detail)
     if not shape_ok:
         return g.finish()
+
+    sliced = value["schema_version"] == RUN_MANIFEST_SCHEMA_V2
+    if require_sliced and not sliced:
+        g.check(
+            "manifest.sliced_required",
+            False,
+            "manifest is claim-run-manifest/1 but --require-sliced was given; "
+            "a sliced run cannot be verified from a legacy manifest",
+        )
+    elif require_sliced:
+        g.check("manifest.sliced_required", True)
+    if sliced and proposals_override is not None:
+        raise UsageError(
+            "gate-check: --proposals override is not allowed for "
+            "claim-run-manifest/2 (the recorded labeling.inputs are authoritative "
+            "child inputs; --require-sliced and /2 replay are the audit path)"
+        )
 
     tool = value["tool"]
 
@@ -738,6 +1318,16 @@ def run_check(
     # -- captures ----------------------------------------------------------
     if (captures_dir / "manifest.json").is_file():
         check_captures(g, captures_dir, value["captures"]["manifest_sha256"])
+
+    # -- sliced labeling replay (claim-run-manifest/2) ---------------------
+    if sliced:
+        check_sliced(
+            g,
+            base=base,
+            labeling=value["labeling"],
+            captures_dir=captures_dir,
+            registry_payload=g.registry_payload,
+        )
 
     # -- proposals (audit binding only) ------------------------------------
     if proposals_override is not None:

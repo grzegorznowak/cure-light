@@ -3,7 +3,7 @@
 
     python3 build.py [--out-dir DIR] [--tool-json PATH]
 
-Writes ``<out-dir>/gate-check-0.1.0.pyz`` (+ ``.sha256``) and ``TOOL.json``.
+Writes ``<out-dir>/gate-check-0.2.0.pyz`` (+ ``.sha256``) and ``TOOL.json``.
 The artifact is a pure function of the sources, so rebuilding yields identical
 bytes and therefore an identical ``TOOL.json``.
 """
@@ -25,7 +25,7 @@ from build_zipapp import build_zipapp, collect_tree, entry_py  # noqa: E402
 from toolkit import canonical_json, tool_unit  # noqa: E402
 
 NAME = "gate-check"
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 ARTIFACT_NAME = f"{NAME}-{VERSION}.pyz"
 
 
@@ -37,6 +37,7 @@ def build(*, out_dir: Path | None = None, tool_json_path: Path | None = None,
         "__main__.py": entry_py("gate_check.cli"),
         **collect_tree(UNIT / "gate_check", prefix="gate_check"),
         **collect_tree(COMMON / "toolkit", prefix="toolkit"),
+        **collect_tree(COMMON / "claim_label_contract", prefix="claim_label_contract"),
     }
     artifact = out_dir / ARTIFACT_NAME
     sha = build_zipapp(files, artifact)

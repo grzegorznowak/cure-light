@@ -21,11 +21,14 @@ from . import checks
 
 DESCRIBE = tool_unit.build_manifest(
     name="gate-check",
-    version="0.1.0",
+    version="0.2.0",
     summary=(
         "Mechanical permission gate for a completed claim-registry run: "
-        "re-verifies the claim-run-manifest/1, registry bytes/hashes/witness, "
-        "validation report, capture identities and tool pin."
+        "re-verifies the claim-run-manifest/1 or /2, registry "
+        "bytes/hashes/witness, validation report, capture identities, the "
+        "sliced labeling replay (frame-slices/1 partition + payload bytes, "
+        "child slice-proposals/1 set, deterministic reconciliation) and the "
+        "tool pin."
     ),
     dependencies=[],
     commands={
@@ -34,11 +37,13 @@ DESCRIBE = tool_unit.build_manifest(
                 "gate-check check --manifest M.json [--registry R.json] "
                 "[--report V.json] [--captures DIR] [--proposals P.json] "
                 "[--windows W.json] [--tool-manifest TOOL.json] "
-                "[--artifact PATH] [--base-dir DIR] [--report-out OUT.json]"
+                "[--artifact PATH] [--base-dir DIR] [--report-out OUT.json] "
+                "[--require-sliced]"
             ),
             "summary": (
-                "Verify a claim-run-manifest/1 and every recorded artifact; "
-                "exit 0 only when all mechanical checks pass."
+                "Verify a claim-run-manifest/1 or claim-run-manifest/2 and every "
+                "recorded artifact; /2 additionally replays the sliced labeling "
+                "evidence. Exit 0 only when all mechanical checks pass."
             ),
             "params": [
                 {"name": "--manifest", "type": "path", "required": True,
@@ -63,6 +68,10 @@ DESCRIBE = tool_unit.build_manifest(
                  "description": "base for manifest-relative paths (default: manifest dir)"},
                 {"name": "--report-out", "type": "path", "required": False,
                  "default": None, "description": "also write the report here"},
+                {"name": "--require-sliced", "type": "boolean", "required": False,
+                 "default": False,
+                 "description": "reject a claim-run-manifest/1 (or absent labeling): "
+                                "force the audited sliced path"},
             ],
             "outputs": {
                 "stdout": "gate-check-report/1 canonical JSON",
@@ -77,6 +86,8 @@ DESCRIBE = tool_unit.build_manifest(
     },
     recipe_pins={
         "run_manifest_schema": checks.RUN_MANIFEST_SCHEMA,
+        "run_manifest_schema_v2": checks.RUN_MANIFEST_SCHEMA_V2,
+        "labeling_schema": checks.RUN_LABELING_SCHEMA,
         "gate_report_schema": checks.GATE_REPORT_SCHEMA,
     },
 )
@@ -100,6 +111,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--base-dir", default=None,
                    help="base dir for manifest-relative paths (default: manifest dir)")
     p.add_argument("--report-out", default=None, help="write the report here as well")
+    p.add_argument("--require-sliced", dest="require_sliced", action="store_true",
+                   help="reject claim-run-manifest/1 / absent labeling "
+                        "(downgrade prevention)")
     p.set_defaults(func=cmd_check)
     return parser
 
@@ -115,6 +129,7 @@ def cmd_check(args: argparse.Namespace) -> int:
         windows_override=Path(args.windows) if args.windows else None,
         tool_manifest_override=Path(args.tool_manifest) if args.tool_manifest else None,
         artifact_override=Path(args.artifact) if args.artifact else None,
+        require_sliced=args.require_sliced,
     )
     data = canonical_json.canonical_dumps(report)
     if args.report_out:

@@ -23,7 +23,7 @@ import fixture_builder
 from toolkit import canonical_json
 
 UNIT = Path(__file__).resolve().parents[1]
-ARTIFACT_NAME = "gate-check-0.1.0.pyz"
+ARTIFACT_NAME = "gate-check-0.2.0.pyz"
 
 
 def _run_gate(*args, cwd=None):

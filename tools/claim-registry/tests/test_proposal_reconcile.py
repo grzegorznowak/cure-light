@@ -21,7 +21,8 @@ from toolkit import canonical_json as cj
 
 UNIT_ROOT = Path(__file__).resolve().parents[1]
 COMMON = UNIT_ROOT.parent / "common"
-PYZ = UNIT_ROOT / "dist" / "claim-registry-0.2.0.pyz"
+from claim_registry.tool_manifest import MANIFEST as _MANIFEST
+PYZ = UNIT_ROOT / "dist" / f"{_MANIFEST['name']}-{_MANIFEST['version']}.pyz"
 
 SCHEMA_PROPOSALS = "slice-proposals/1"
 SCHEMA_REPORT = "proposal-reconciliation/1"

@@ -1,9 +1,9 @@
 """Real cross-artifact E2E: rebuilt producer ``.pyz`` -> gate-check.
 
 Runs the sibling producer artifact
-(``<tools>/claim-registry/dist/claim-registry-0.2.0.pyz``) end-to-end
-in a temp dir (capture -> assemble with library-built default proposals ->
-validate --report-out -> manifest) and feeds the emitted
+(``<tools>/claim-registry/dist/claim-registry-<TOOL.json version>.pyz``)
+end-to-end in a temp dir (capture -> assemble with library-built default
+proposals -> validate --report-out -> manifest) and feeds the emitted
 ``claim-run-manifest/1`` to ``gate-check check``.
 
 Proposals are built by importing the producer package as a library with
@@ -25,8 +25,12 @@ import pytest
 UNIT = Path(__file__).resolve().parents[1]
 # Repo layout: <tools>/gate-check and <tools>/claim-registry are siblings.
 PRODUCER_ROOT = UNIT.parent / "claim-registry"
-PRODUCER_PYZ = PRODUCER_ROOT / "dist" / "claim-registry-0.2.0.pyz"
 PRODUCER_TOOL_JSON = PRODUCER_ROOT / "TOOL.json"
+if PRODUCER_TOOL_JSON.is_file():
+    _pin = json.loads(PRODUCER_TOOL_JSON.read_bytes())
+    PRODUCER_PYZ = PRODUCER_ROOT / _pin["artifact"]["file"]
+else:  # pragma: no cover - absent pin only gates the skip below
+    PRODUCER_PYZ = PRODUCER_ROOT / "dist" / "claim-registry-0.3.0.pyz"
 
 BODY = b"# Title\n\nAlpha claim.\n\n- item one\n"
 LOCATOR = "repo#e2e:body"
@@ -96,6 +100,7 @@ def test_real_producer_artifact_to_gate(tmp_path):
     assert sealed["schema_version"] == "claim-run-manifest/1"
     # Running from the .pyz self-hashes: artifact is an object, file is basename.
     assert sealed["tool"]["artifact"]["file"] == PRODUCER_PYZ.name
+    assert "labeling" not in sealed
 
     gate = _run_gate("check", "--manifest", manifest)
     assert gate.returncode == 0, gate.stdout + gate.stderr

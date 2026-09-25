@@ -59,9 +59,19 @@ FRAME_SLICES_VERSION = "frame-slices/1"
 FRAME_SLICE_INPUT_VERSION = "frame-slice-input/1"
 SLICE_PROPOSALS_VERSION = "slice-proposals/1"
 PROPOSAL_RECONCILIATION_VERSION = "proposal-reconciliation/1"
+CLAIM_RUN_LABELING_VERSION = "claim-run-labeling/1"
 
 _HEX = {"type": "string", "pattern": "^[0-9a-f]{64}$"}
 _OBJECT_HASH = {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+_FILE_REF = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["path", "sha256"],
+    "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": _HEX,
+    },
+}
 _NONEMPTY_STRING = {"type": "string", "minLength": 1}
 _STRING_LIST = {"type": "array", "items": {"type": "string"}}
 _UNIT_ID_LIST = {"type": "array", "items": {"type": "string", "minLength": 1}}
@@ -199,6 +209,41 @@ _ISSUE = {
         "unit_ids": _UNIT_ID_LIST,
         "slice_ids": _UNIT_ID_LIST,
         "values": {"type": "array"},
+    },
+}
+
+CLAIM_RUN_LABELING_1 = {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "urn:cure-light:claim-run-labeling/1",
+    "title": "claim-run-labeling/1",
+    "description": (
+        "Sliced-run labeling block of claim-run-manifest/2: the frame-slices/1 "
+        "manifest, every child slice-proposals/1 file (one per slice), the merged "
+        "claim-proposals/1 file and the proposal-reconciliation/1 report. Paths "
+        "are relative to the run root (the manifest directory); digests are "
+        "lowercase sha256 hex."
+    ),
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["mode", "slices", "inputs", "merged", "reconciliation"],
+    "properties": {
+        "mode": {"const": "sliced"},
+        "slices": _FILE_REF,
+        "inputs": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["slice_id", "path", "sha256"],
+                "properties": {
+                    "slice_id": _OBJECT_HASH,
+                    "path": {"type": "string", "minLength": 1},
+                    "sha256": _HEX,
+                },
+            },
+        },
+        "merged": _FILE_REF,
+        "reconciliation": _FILE_REF,
     },
 }
 
@@ -445,6 +490,7 @@ SCHEMAS = {
     FRAME_SLICE_INPUT_VERSION: FRAME_SLICE_INPUT_1,
     SLICE_PROPOSALS_VERSION: SLICE_PROPOSALS_1,
     PROPOSAL_RECONCILIATION_VERSION: PROPOSAL_RECONCILIATION_1,
+    CLAIM_RUN_LABELING_VERSION: CLAIM_RUN_LABELING_1,
 }
 
 

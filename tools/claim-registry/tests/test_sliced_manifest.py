@@ -100,6 +100,7 @@ def auto_child(slices_dir: Path, entry: dict) -> dict:
 
 def build_sliced_run(tmp_path: Path, *, seal_children=None) -> dict:
     """Run capture->...->validate, then attempt the v2 seal (rc returned)."""
+    tmp_path.mkdir(parents=True, exist_ok=True)
     src_a = tmp_path / "a.md"
     src_a.write_bytes(SRC_A)
     src_b = tmp_path / "b.md"
@@ -258,9 +259,14 @@ def test_manifest_v1_unchanged_without_new_flags(tmp_path):
 
 
 def test_manifest_v2_deterministic_repeat(tmp_path):
-    first = sealed(tmp_path / "one")
-    second = sealed(tmp_path / "two")
-    assert first["manifest_path"].read_bytes() == second["manifest_path"].read_bytes()
+    run = build_sliced_run(tmp_path)
+    assert run["seal"].returncode == 0, run["seal"].stderr
+    second_out = tmp_path / "run-manifest-2.json"
+    args = list(run["seal_args"])
+    args[args.index("--out") + 1] = str(second_out)
+    res = cli(*args)
+    assert res.returncode == 0, res.stderr
+    assert run["manifest_path"].read_bytes() == second_out.read_bytes()
 
 
 # ---------------------------------------------------------------------------

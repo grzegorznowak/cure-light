@@ -64,7 +64,7 @@ def test_describe_schema_and_determinism():
 
     assert described["schema_version"] == "tool-unit/1"
     assert described["name"] == "claim-registry"
-    assert described["version"] == "0.2.0"
+    assert described["version"] == "0.3.0"
     assert described["requires_python"] == ">=3.11"
     assert described["artifact"] is None
     assert described["artifact_note"]
@@ -175,7 +175,7 @@ def test_manifest_end_to_end_golden(tmp_path, capsys, pr_body):
     manifest = tool_unit.json_read(manifest_path)
     assert manifest["schema_version"] == "claim-run-manifest/1"
     assert manifest["tool"]["name"] == "claim-registry"
-    assert manifest["tool"]["version"] == "0.2.0"
+    assert manifest["tool"]["version"] == "0.3.0"
     assert manifest["tool"]["describe_sha256"] == tool_unit.describe_sha256(MANIFEST)
     assert manifest["tool"]["artifact"] is None  # not running from a .pyz
     assert manifest["windows"] is None
@@ -366,7 +366,7 @@ def test_manifest_records_tool_manifest_pin(tmp_path, capsys, built_unit):
     manifest = tool_unit.json_read(manifest_path)
     assert manifest["tool"] == {
         "name": "claim-registry",
-        "version": "0.2.0",
+        "version": "0.3.0",
         "describe_sha256": tool_unit.describe_sha256(MANIFEST),
         "artifact": {
             "file": f"dist/{PYZ_NAME}",

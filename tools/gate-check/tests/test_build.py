@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 UNIT = Path(__file__).resolve().parents[1]
-ARTIFACT_NAME = "gate-check-0.1.0.pyz"
+ARTIFACT_NAME = "gate-check-0.2.0.pyz"
 
 
 def _build(tmp_path: Path) -> dict:
@@ -30,7 +30,7 @@ def test_describe_schema():
     described = json.loads(proc.stdout)
     assert described["schema_version"] == "tool-unit/1"
     assert described["name"] == "gate-check"
-    assert described["version"] == "0.1.0"
+    assert described["version"] == "0.2.0"
     assert described["artifact"] is None
     assert described["dependencies"] == []
     assert "check" in described["commands"]

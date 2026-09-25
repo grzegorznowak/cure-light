@@ -25,6 +25,7 @@ MIRRORS = {
     "frame-slice-input-1.schema.json": schemas.FRAME_SLICE_INPUT_1,
     "slice-proposals-1.schema.json": schemas.SLICE_PROPOSALS_1,
     "proposal-reconciliation-1.schema.json": schemas.PROPOSAL_RECONCILIATION_1,
+    "claim-run-labeling-1.schema.json": schemas.CLAIM_RUN_LABELING_1,
 }
 
 
@@ -54,6 +55,34 @@ def test_integer_rejects_bool_and_float():
     assert schemas.validate(schema, False)
     assert schemas.validate(schema, 1.0)
     assert schemas.validate(schema, -1) == []
+
+
+def test_claim_run_labeling_shape_is_closed():
+    ok = {
+        "mode": "sliced",
+        "slices": {"path": "slices/manifest.json", "sha256": "a" * 64},
+        "inputs": [{
+            "slice_id": "sha256:" + "b" * 64,
+            "path": "children/0000.json",
+            "sha256": "c" * 64,
+        }],
+        "merged": {"path": "merged.json", "sha256": "d" * 64},
+        "reconciliation": {"path": "reconciliation.json", "sha256": "e" * 64},
+    }
+    assert schemas.validate(schemas.CLAIM_RUN_LABELING_1, ok) == []
+    bad = dict(ok, mode="full")
+    assert schemas.validate(schemas.CLAIM_RUN_LABELING_1, bad)
+    bad = dict(ok, inputs=[{"slice_id": "not-a-hash", "path": "x",
+                            "sha256": "c" * 64}])
+    assert schemas.validate(schemas.CLAIM_RUN_LABELING_1, bad)
+    bad = dict(ok, extra=1)
+    assert any("unknown key 'extra'" in e
+               for e in schemas.validate(schemas.CLAIM_RUN_LABELING_1, bad))
+    bad = dict(ok)
+    del bad["merged"]
+    assert any("missing required key 'merged'" in e
+               for e in schemas.validate(schemas.CLAIM_RUN_LABELING_1, bad))
+    assert schemas.CLAIM_RUN_LABELING_VERSION in schemas.SCHEMAS
 
 
 def test_pattern_enum_min_items_and_min_length():

@@ -99,6 +99,19 @@ def _ready(run):
 
 def _copy(run, dest: Path) -> Path:
     shutil.copytree(run["dest"], dest, dirs_exist_ok=True)
+    # Rebase the legacy absolute path blocks onto the copy so tamper tests
+    # mutate what the gate actually reads (the /2 labeling refs are relative).
+    manifest_path = _manifest_path(dest)
+    manifest = json.loads(manifest_path.read_bytes())
+    manifest["captures"]["path"] = str(dest / "captures")
+    if manifest.get("registry") is not None:
+        manifest["registry"]["path"] = str(dest / "registry.json")
+    if manifest.get("report") is not None:
+        manifest["report"]["path"] = str(dest / "report.json")
+    windows = manifest.get("windows")
+    if isinstance(windows, dict):
+        windows["path"] = str(dest / Path(windows["path"]).name)
+    manifest_path.write_bytes(cj.canonical_dumps(manifest))
     return dest
 
 
@@ -175,7 +188,7 @@ def test_v2_shape_unknown_missing_and_proposals_mismatch(sliced_run, tmp_path):
     manifest["schema_version"] = "claim-run-manifest/1"
     _write_manifest(dest, manifest)
     proc = _run_gate("check", "--manifest", _manifest_path(dest))
-    assert proc.returncode == 1, proc.stdout + proc.stderr
+    assert proc.returncode == 0, proc.stdout + proc.stderr
     assert "manifest.sliced_required" not in _failing(_report(proc))
     assert "manifest.shape" not in _failing(_report(proc))  # a valid legacy /1
     forced = _run_gate("check", "--manifest", _manifest_path(dest),
