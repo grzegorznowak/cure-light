@@ -3,6 +3,10 @@
 from __future__ import annotations
 
 import copy
+import json
+import os
+import subprocess
+import sys
 
 import pytest
 
@@ -57,6 +61,65 @@ def test_overlap_reduced_for_forward_progress_and_no_terminal_overlap():
     assert manifest["windows"][0]["overlap_units"] == 0
     assert all(w["overlap_units"] == 0 for w in manifest["windows"][1:])
     assert validate_windows(manifest, u, SRC) == []
+
+
+def _variable_units(sizes: list[int], kind: str = "paragraph") -> list[Unit]:
+    out = []
+    pos = 0
+    for i, size in enumerate(sizes):
+        out.append(Unit(ordinal=i, kind=kind, start=pos, end=pos + size,
+                        sha256=f"{i:064x}"))
+        pos += size
+    return out
+
+
+def test_overlap_reduction_admits_new_core_unit_5_5_5_5_18():
+    """Requested tail overlap must never crowd out every new core unit.
+
+    Regression: with sizes 5,5,5,5,18 and max_bytes=20/overlap=3 the old
+    reduction only checked ordinal progress, so it emitted overlap-only
+    windows (1..3, 2..3, 3..3) before finally reaching unit 4.
+    """
+    u = _variable_units([5, 5, 5, 5, 18])
+    manifest = build_windows(SRC, u, max_units=64, max_bytes=20, overlap_units=3)
+    bounds = [
+        (w["ordinal_start"], w["ordinal_end"], w["overlap_units"])
+        for w in manifest["windows"]
+    ]
+    assert bounds == [(0, 3, 0), (4, 4, 0)]
+    for i, w in enumerate(manifest["windows"]):
+        assert len(w["unit_ids"]) > w["overlap_units"], (
+            f"window[{i}] is overlap-only: {w}"
+        )
+    assert validate_windows(manifest, u, SRC) == []
+
+
+def test_overlap_reduction_terminates_within_bound(tmp_path):
+    """Timed guard: the 5,5,5,5,18 case must terminate and stay progressing."""
+    unit_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    common = os.path.join(os.path.dirname(unit_root), "common")
+    script = (
+        "import json, sys\n"
+        "from claim_registry.frame import Unit\n"
+        "from claim_registry.windows import build_windows\n"
+        "sizes = [5, 5, 5, 5, 18]\n"
+        "pos = 0\n"
+        "units = []\n"
+        "for i, size in enumerate(sizes):\n"
+        "    units.append(Unit(ordinal=i, kind='paragraph', start=pos, end=pos+size, sha256=f'{i:064x}'))\n"
+        "    pos += size\n"
+        "manifest = build_windows('repo#1:body', units, 64, 20, 3)\n"
+        "json.dump(manifest['windows'], sys.stdout)\n"
+    )
+    env = dict(os.environ)
+    env["PYTHONPATH"] = common + os.pathsep + env.get("PYTHONPATH", "")
+    proc = subprocess.run(
+        [sys.executable, "-c", script], cwd=unit_root, capture_output=True,
+        text=True, env=env, timeout=30,
+    )
+    assert proc.returncode == 0, proc.stderr
+    windows = json.loads(proc.stdout)
+    assert all(len(w["unit_ids"]) > w["overlap_units"] for w in windows), windows
 
 
 def test_oversized_unit_is_named_error_not_split():
