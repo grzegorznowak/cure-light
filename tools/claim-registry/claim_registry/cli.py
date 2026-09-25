@@ -126,18 +126,70 @@ def _print_json(value) -> None:
     sys.stdout.write(json.dumps(value, indent=2, ensure_ascii=False) + "\n")
 
 
+def _aligned_metadata(values, flag: str, count: int, default):
+    """Align a once/per-source metadata flag against the source count."""
+    if not values:
+        return [default] * count
+    if len(values) == 1:
+        return list(values) * count
+    if len(values) == count:
+        return list(values)
+    raise tool_unit.UsageError(
+        f"capture: {flag} given {len(values)} time(s) for {count} source(s); "
+        f"pass {flag} once (applies to every source) or once per source"
+    )
+
+
 def cmd_capture(args: argparse.Namespace) -> int:
+    """Capture one or more sources into a single capture manifest (batch)."""
     from .capture import capture_file
 
-    cap = capture_file(
-        args.input,
-        args.locator,
-        source_class=args.source_class,
-        pointer_ref=args.pointer_ref,
-        interpretation_ref=args.interpretation_ref,
+    inputs = list(args.input)
+    locators = list(args.locator)
+    if len(locators) != len(inputs):
+        raise tool_unit.UsageError(
+            f"capture: --in given {len(inputs)} time(s) but --locator given "
+            f"{len(locators)}; pass one --in/--locator pair per source"
+        )
+    classes = _aligned_metadata(args.source_class, "--class", len(inputs), "api-document")
+    pointer_refs = _aligned_metadata(args.pointer_ref, "--pointer-ref", len(inputs), None)
+    interpretation_refs = _aligned_metadata(
+        args.interpretation_ref, "--interpretation-ref", len(inputs), None
     )
-    manifest_path = write_capture_dir([cap], args.out)
-    _print_json({"manifest": manifest_path, "source": cap.record()})
+
+    seen: dict[str, str] = {}
+    captures = []
+    for path, locator, source_class, pointer_ref, interpretation_ref in zip(
+        inputs, locators, classes, pointer_refs, interpretation_refs
+    ):
+        if locator in seen:
+            raise tool_unit.UsageError(
+                f"capture: duplicate locator {locator!r} "
+                f"(--in {seen[locator]!r} and {path!r})"
+            )
+        seen[locator] = path
+        captures.append(capture_file(
+            path,
+            locator,
+            source_class=source_class,
+            pointer_ref=pointer_ref,
+            interpretation_ref=interpretation_ref,
+        ))
+
+    manifest_path = os.path.join(args.out, "manifest.json")
+    if os.path.exists(manifest_path):
+        raise tool_unit.UsageError(
+            f"capture: {args.out!r} already contains manifest.json; refusing to "
+            "overwrite an existing capture (use a fresh --out directory)"
+        )
+    manifest_path = write_capture_dir(captures, args.out)
+    if len(captures) == 1:
+        _print_json({"manifest": manifest_path, "source": captures[0].record()})
+    else:
+        _print_json({
+            "manifest": manifest_path,
+            "sources": [cap.record() for cap in captures],
+        })
     return tool_unit.EXIT_OK
 
 
@@ -496,12 +548,18 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
 
     p = sub.add_parser("capture", help="capture source bytes verbatim + identity")
-    p.add_argument("--in", dest="input", required=True)
-    p.add_argument("--locator", required=True)
-    p.add_argument("--class", dest="source_class", default="api-document")
-    p.add_argument("--pointer-ref", default=None)
-    p.add_argument("--interpretation-ref", default=None)
-    p.add_argument("--out", required=True, help="capture directory")
+    p.add_argument("--in", dest="input", required=True, action="append",
+                   help="source file captured verbatim; repeatable (one per source)")
+    p.add_argument("--locator", required=True, action="append",
+                   help="authority locator paired with --in by position; repeatable")
+    p.add_argument("--class", dest="source_class", action="append", default=None,
+                   help="source class; pass once (all sources) or once per source")
+    p.add_argument("--pointer-ref", action="append", default=None,
+                   help="optional pointer ref; pass once (all sources) or once per source")
+    p.add_argument("--interpretation-ref", action="append", default=None,
+                   help="optional interpretation ref; once (all sources) or once per source")
+    p.add_argument("--out", required=True,
+                   help="capture directory (one manifest; never overwritten)")
     p.set_defaults(func=cmd_capture)
 
     p = sub.add_parser("frame", help="extract the atomic-unit frame")

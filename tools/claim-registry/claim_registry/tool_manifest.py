@@ -74,29 +74,31 @@ COMMANDS = {
     "capture": {
         "usage": (
             "claim-registry capture --in SOURCE --locator LOCATOR "
+            "[--in SOURCE --locator LOCATOR ...] "
             "[--class CLASS] [--pointer-ref REF] [--interpretation-ref REF] --out DIR"
         ),
         "summary": (
-            "Capture source bytes verbatim and write a capture-manifest/1 "
-            "directory (raw sha256, byte length, synthetic git blob OID, source_ref)."
+            "Capture one or more source files verbatim and write a single "
+            "capture-manifest/1 directory (raw sha256, byte length, synthetic "
+            "git blob OID, source_ref); records follow CLI order."
         ),
         "params": [
-            _param("--in", "path", True, None, "source file captured verbatim (no normalization)"),
-            _param("--locator", "string", True, None, "authority locator, e.g. 'repo#17:body'"),
-            _param("--class", "string", False, "api-document", "source class recorded in the capture manifest"),
-            _param("--pointer-ref", "string", False, None, "optional pointer/reference into the source"),
-            _param("--interpretation-ref", "string", False, None, "optional interpretation reference for the source"),
-            _param("--out", "path", True, None, "capture directory to create (manifest.json + raw/)"),
+            _param("--in", "path", True, None, "source file captured verbatim (no normalization); repeatable"),
+            _param("--locator", "string", True, None, "authority locator, e.g. 'repo#17:body'; repeatable, paired with --in by position"),
+            _param("--class", "string", False, "api-document", "source class; once (all sources) or once per source"),
+            _param("--pointer-ref", "string", False, None, "optional pointer/reference; once or once per source"),
+            _param("--interpretation-ref", "string", False, None, "optional interpretation reference; once or once per source"),
+            _param("--out", "path", True, None, "capture directory to create (manifest.json + raw/); never overwritten"),
         ],
         "outputs": {
-            "stdout": "JSON summary {manifest, source}",
+            "stdout": "JSON summary {manifest, source} (single) or {manifest, sources} (batch)",
             "<out>/manifest.json": "capture-manifest/1 canonical JSON",
-            "<out>/raw/*.bin": "verbatim source bytes",
+            "<out>/raw/*.bin": "verbatim source bytes in CLI order",
         },
         "exit_codes": {
             "0": "capture directory written",
             "1": "not produced by capture",
-            "2": "missing/unreadable --in file or unwritable --out directory",
+            "2": "bad --in/--locator/metadata pairing, duplicate locator, existing manifest, missing/unreadable --in, unwritable --out",
         },
     },
     "frame": {

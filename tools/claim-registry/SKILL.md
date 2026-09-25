@@ -51,9 +51,12 @@ this install line; `--describe` always works without them.
 ## 3. Command sequence
 
 ```bash
-# 1. capture each designated source verbatim (one capture dir per source is fine;
-#    a single dir may hold several sources when captured together)
-python3 claim-registry-0.2.0.pyz capture --in body.md --locator 'repo#17:body' --out captures/
+# 1. capture every designated source verbatim; repeat --in/--locator for a batch
+#    (one manifest, records in CLI order). A dir that already has a manifest is
+#    never overwritten; use a fresh --out.
+python3 claim-registry-0.2.0.pyz capture \
+  --in body.md --locator 'repo#17:body' \
+  --in plan.md --locator 'repo#17:plan' --out captures/
 
 # 2. frame (context for labeling children), optionally windows
 python3 claim-registry-0.2.0.pyz frame --in body.md --locator 'repo#17:body' --out frame.json

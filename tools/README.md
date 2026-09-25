@@ -43,7 +43,9 @@ same tool identity.
 
 1. **Fetch and verify** the units by pin (above). `claim-registry` needs its
    pinned tree-sitter deps; `gate-check` and `census` do not.
-2. **Capture** every designated source verbatim (`claim-registry capture`).
+2. **Capture** every designated source verbatim (`claim-registry capture`;
+   repeat `--in`/`--locator` for a batch — one manifest, records in CLI order,
+   never overwritten).
    Designation/pointer rules stay in the kernel docs; the tool stores bytes,
    locator, hash, and synthetic blob OID.
 3. **Frame/window** the sources (`claim-registry frame`, `windows`). The

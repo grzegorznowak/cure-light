@@ -64,6 +64,10 @@ python3 tools/corpus_smoke.py --corpus /tmp/prcorpus --determinism
 
 # CLI
 python3 -m claim_registry.cli capture --in body.md --locator 'repo#17:body' --out captures/
+# batch: repeat --in/--locator (one manifest, records in CLI order, never overwritten)
+python3 -m claim_registry.cli capture \
+    --in body.md --locator 'repo#17:body' \
+    --in docs/plan.md --locator 'repo#17:plan' --out captures/
 python3 -m claim_registry.cli frame   --in body.md --locator 'repo#17:body'
 python3 -m claim_registry.cli assemble --captures captures/ --proposals proposals.json \
     --out registry.json
@@ -80,6 +84,15 @@ python3 -m claim_registry.cli manifest --captures captures/ --proposals proposal
 `groups`, `precedence`, and `uncaptured_source_refs` concatenate (the latter
 with first-seen de-duplication).  A single `--proposals` behaves exactly as
 before; duplicate ownership across files still fails assembly.
+
+**`--in` and `--locator` are repeatable** on `capture`: each source is one
+`--in`/`--locator` pair (aligned by index) and the batch writes exactly one
+`capture-manifest/1` with records in CLI order (`raw/0000.bin`, `raw/0001.bin`,
+…).  `--class`, `--pointer-ref` and `--interpretation-ref` may be given once
+(applies to every source) or once per source.  Duplicate locators are rejected
+and a directory that already contains `manifest.json` is never overwritten —
+capture into a fresh `--out` directory.  A single `--in`/`--locator` pair writes
+exactly the bytes it always did.
 
 `assemble` writes canonical bytes with **no trailing newline**.  `validate`
 exits 0 only when every check passes; a failed report always carries
