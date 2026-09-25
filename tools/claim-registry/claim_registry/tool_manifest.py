@@ -244,8 +244,7 @@ COMMANDS = {
     "proposal-reconcile": {
         "usage": (
             "claim-registry proposal-reconcile --captures DIR --slices MANIFEST.json "
-            "--proposal P.json [--proposal P2.json ...] --out MERGED.json "
-            "--report-out REPORT.json"
+            "[--proposal P.json ...] --out MERGED.json --report-out REPORT.json"
         ),
         "summary": (
             "Replay the frame-slices/1 manifest against the captures, admit one "
@@ -257,7 +256,7 @@ COMMANDS = {
         "params": [
             _param("--captures", "path", True, None, "capture directory from capture"),
             _param("--slices", "path", True, None, "frame-slices/1 manifest.json"),
-            _param("--proposal", "path", True, None, "slice-proposals/1 file; repeatable (one per slice)"),
+            _param("--proposal", "path", False, None, "slice-proposals/1 file; repeatable (one per slice; none is valid only for zero-slice manifests)"),
             _param("--out", "path", True, None, "merged claim-proposals/1 output (removed on any failure)"),
             _param("--report-out", "path", True, None, "proposal-reconciliation/1 report (canonical bytes)"),
         ],

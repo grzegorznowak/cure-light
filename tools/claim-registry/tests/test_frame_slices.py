@@ -448,6 +448,29 @@ def test_frame_slices_two_committed_sources(pr_body, plan_doc, tmp_path):
     assert all(kind in schemas.UNIT_KINDS for kind in kinds.values())
 
 
+def test_frame_slices_relocated_checkout_is_byte_identical(tmp_path):
+    capdir = capture(tmp_path, [("panel.md", b"# T\n\n| a | b |\n|---|---|\n| 1 | 2 |\n\nAlpha.\n")])
+    env = _env()
+    env["PYTHONPATH"] = str(UNIT_ROOT) + os.pathsep + env["PYTHONPATH"]
+    out_a, out_b = tmp_path / "out-a", tmp_path / "out-b"
+
+    def run(cwd):
+        return subprocess.run(
+            [sys.executable, "-m", "claim_registry.cli", "frame-slices",
+             "--captures", str(capdir), "--out-dir", str(out_a if cwd == UNIT_ROOT else out_b)],
+            cwd=str(cwd), capture_output=True, text=True, env=env, timeout=120,
+        )
+
+    first = run(UNIT_ROOT)
+    assert first.returncode == 0, first.stderr
+    second = run(tmp_path)
+    assert second.returncode == 0, second.stderr
+    assert (out_a / "manifest.json").read_bytes() == (out_b / "manifest.json").read_bytes()
+    for entry in read_json(out_a / "manifest.json")["slices"]:
+        assert (out_a / entry["input"]["path"]).read_bytes() == (
+            out_b / entry["input"]["path"]).read_bytes()
+
+
 # ---------------------------------------------------------------------------
 # packaging / D4
 # ---------------------------------------------------------------------------

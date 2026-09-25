@@ -383,7 +383,7 @@ def cmd_proposal_reconcile(args: argparse.Namespace) -> int:
             raise tool_unit.UsageError(
                 f"proposal-reconcile: cannot remove existing --out {args.out!r}: {exc}"
             ) from exc
-    merged, report = reconcile_run(args.captures, args.slices, args.proposal)
+    merged, report = reconcile_run(args.captures, args.slices, args.proposal or [])
     if merged is not None:
         _write_bytes(args.out, merged)
     _write_bytes(args.report_out, canonical.canonical_dumps(report))
@@ -651,8 +651,9 @@ def build_parser() -> argparse.ArgumentParser:
                        help="merge per-slice proposals deterministically")
     p.add_argument("--captures", required=True, help="capture directory from capture")
     p.add_argument("--slices", required=True, help="frame-slices/1 manifest.json")
-    p.add_argument("--proposal", required=True, action="append",
-                   help="slice-proposals/1 file; repeatable (one per slice)")
+    p.add_argument("--proposal", action="append", default=None,
+                   help="slice-proposals/1 file; repeatable (one per slice; none "
+                        "is valid only for zero-slice manifests)")
     p.add_argument("--out", required=True,
                    help="merged claim-proposals/1 output (removed on any failure)")
     p.add_argument("--report-out", required=True,

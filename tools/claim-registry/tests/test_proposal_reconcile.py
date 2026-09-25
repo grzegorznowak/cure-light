@@ -526,6 +526,40 @@ def test_reconcile_boundary_uncertain_and_missing_votes(tmp_path):
                for c in read_json(report_path)["conflicts"])
 
 
+def test_reconcile_empty_and_separator_only_sources(tmp_path):
+    # empty source -> zero slices -> zero proposals required, empty merge
+    capdir = capture(tmp_path / "e", [("empty.md", b"")])
+    slices = tmp_path / "e-slices"
+    assert cli("frame-slices", "--captures", str(capdir), "--out-dir", str(slices)).returncode == 0
+    manifest = read_json(slices / "manifest.json")
+    assert manifest["slices"] == []
+    proc, out, report_path = reconcile(tmp_path / "e-run", capdir, slices, [])
+    assert proc.returncode == 0, proc.stderr
+    assert read_json(out)["assignments"] == []
+    report = read_json(report_path)
+    assert report["complete"] is True
+    assert report["counts"]["expected_slices"] == 0
+
+    # whitespace-only source -> one mechanical separator-only core with no
+    # labelable units; the child still audits nothing and merges cleanly
+    capdir2 = capture(tmp_path / "w", [("ws.md", b"\n\n")])
+    slices2 = tmp_path / "w-slices"
+    assert cli("frame-slices", "--captures", str(capdir2), "--out-dir", str(slices2)).returncode == 0
+    manifest2 = read_json(slices2 / "manifest.json")
+    docs = auto_proposals(manifest2, slices2)
+    assert docs and all(not d["assignments"] for d in docs.values())
+    paths = write_proposals(tmp_path / "w-prop", docs)
+    proc, out2, report2 = reconcile(tmp_path / "w-run", capdir2, slices2, paths)
+    assert proc.returncode == 0, proc.stderr
+    assert read_json(out2)["assignments"] == []
+    assert read_json(report2)["complete"] is True
+    registry = tmp_path / "w-registry.json"
+    assert cli("assemble", "--captures", str(capdir2), "--proposals", str(out2),
+               "--out", str(registry)).returncode == 0
+    probe = cli("validate", "--registry", str(registry), "--captures", str(capdir2))
+    assert probe.returncode == 0, probe.stdout
+
+
 # ---------------------------------------------------------------------------
 # determinism / tampering / packaging
 # ---------------------------------------------------------------------------

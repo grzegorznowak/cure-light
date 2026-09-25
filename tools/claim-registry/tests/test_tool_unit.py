@@ -386,9 +386,16 @@ def test_self_hash_artifact_file_is_basename(built_unit, monkeypatch):
 
 
 def test_manifest_pins_match_live_recipes():
+    from claim_label_contract import slicing
+
     from claim_registry import cli
     from claim_registry.frame import frame_recipe
     from claim_registry.registry import DEFAULT_WINDOW_RECIPE
+    from claim_registry.tool_manifest import (
+        FRAME_SLICE_MAX_BYTES, FRAME_SLICE_MAX_INPUT_BYTES,
+        FRAME_SLICE_MAX_SLICES, FRAME_SLICE_MAX_UNITS,
+        FRAME_SLICE_OVERLAP_UNITS,
+    )
 
     pins = MANIFEST["recipe_pins"]
     recipe = frame_recipe()
@@ -402,3 +409,20 @@ def test_manifest_pins_match_live_recipes():
         DEFAULT_WINDOW_RECIPE["overlap_units"],
     )
     assert str(DEFAULT_WINDOW_RECIPE["max_units"]) in pins["window_recipe"]
+
+    assert (cli.FRAME_SLICE_MAX_BYTES, cli.FRAME_SLICE_MAX_UNITS,
+            cli.FRAME_SLICE_MAX_INPUT_BYTES, cli.FRAME_SLICE_OVERLAP_UNITS,
+            cli.FRAME_SLICE_MAX_SLICES) == (
+        FRAME_SLICE_MAX_BYTES, FRAME_SLICE_MAX_UNITS,
+        FRAME_SLICE_MAX_INPUT_BYTES, FRAME_SLICE_OVERLAP_UNITS,
+        FRAME_SLICE_MAX_SLICES,
+    )
+    assert slicing.DEFAULT_MAX_BYTES == FRAME_SLICE_MAX_BYTES
+    assert slicing.DEFAULT_MAX_UNITS == FRAME_SLICE_MAX_UNITS
+    assert slicing.DEFAULT_MAX_INPUT_BYTES == FRAME_SLICE_MAX_INPUT_BYTES
+    assert slicing.DEFAULT_OVERLAP_UNITS == FRAME_SLICE_OVERLAP_UNITS
+    assert slicing.DEFAULT_MAX_SLICES == FRAME_SLICE_MAX_SLICES
+    for needle in (str(FRAME_SLICE_MAX_BYTES), str(FRAME_SLICE_MAX_UNITS),
+                   str(FRAME_SLICE_MAX_INPUT_BYTES), str(FRAME_SLICE_OVERLAP_UNITS),
+                   str(FRAME_SLICE_MAX_SLICES)):
+        assert needle in pins["slice_recipe"]
