@@ -393,8 +393,15 @@ def test_frame_slices_repeat_run_is_byte_identical(tmp_path):
     capdir = capture(tmp_path, [("b.md", b"# T\n\nSome text here.\n\nMore text.\n")])
     first, second = tmp_path / "one", tmp_path / "two"
     assert cli("frame-slices", "--captures", str(capdir), "--out-dir", str(first)).returncode == 0
-    assert cli("frame-slices", "--captures", str(capdir), "--out-dir", str(second)).returncode == 0
+    env_a = _env(); env_a["PYTHONHASHSEED"] = "1"
+    env_b = _env(); env_b["PYTHONHASHSEED"] = "424242"
+    assert cli("frame-slices", "--captures", str(capdir), "--out-dir", str(second),
+               env=env_a).returncode == 0
+    third = tmp_path / "three"
+    assert cli("frame-slices", "--captures", str(capdir), "--out-dir", str(third),
+               env=env_b).returncode == 0
     assert (first / "manifest.json").read_bytes() == (second / "manifest.json").read_bytes()
+    assert (first / "manifest.json").read_bytes() == (third / "manifest.json").read_bytes()
 
 
 def test_frame_slices_budget_rejection_and_raised_budget(tmp_path):

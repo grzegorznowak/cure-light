@@ -410,3 +410,36 @@ def test_reconcile_common_report_is_order_independent():
         expected_slices=expected, proposals=second, slices_sha256="1" * 64)
     assert cj.canonical_dumps(report_a) == cj.canonical_dumps(report_b)
     assert report_a["conflicts"]
+
+
+def test_plan_metadata_alone_can_overflow_payload_cap():
+    record = {
+        "unit_id": "src:fixture:" + "longlocator" * 40 + ":0-3:" + "0" * 64,
+        "source_ref": SRC, "ordinal": 0, "kind": "paragraph",
+        "start": 0, "end": 3, "sha256": "0" * 64, "ancestor_refs": [],
+    }
+    recipe = slicing.slice_recipe(max_bytes=64, max_units=4, max_input_bytes=600,
+                                  overlap_units=0, max_slices=2)
+    with pytest.raises(slicing.SliceBudgetError):
+        slicing.plan_slices(SRC, FRAME_HASH, recipe, [record], b"abc")
+
+
+def test_reconcile_common_foreign_source_uid_is_named():
+    records, blob = make_records([(10, "paragraph")])
+    recipe = slicing.slice_recipe(max_bytes=64, max_units=4, max_input_bytes=65536,
+                                  overlap_units=0, max_slices=2)
+    plans = slicing.plan_slices(SRC, FRAME_HASH, recipe, records, blob)
+    expected = _expected_from_plans(plans)
+    sources = {SRC: {r["unit_id"]: {"kind": r["kind"], "ordinal": r["ordinal"]}
+                     for r in records}}
+    other = "src:other:0-9:" + "0" * 64
+    sources["src:other"] = {other: {"kind": "paragraph", "ordinal": 0}}
+    docs = _docs_from_expected(expected)
+    docs[0]["assignments"][0]["unit_ids"] = [other]
+    merged, report = reconciliation.reconcile(
+        sources=sources, expected_slices=expected,
+        proposals=_proposal_inputs(docs), slices_sha256="0" * 64,
+    )
+    assert merged is None
+    codes = {c["code"] for c in report["conflicts"]}
+    assert "foreign_source" in codes

@@ -393,6 +393,44 @@ def test_reconcile_assignment_ownership_errors(tmp_path):
                for c in read_json(report_path)["conflicts"])
 
 
+def test_reconcile_overlap_as_owner_and_separator_labeled(tmp_path):
+    capdir, slices_dir, manifest = multi_slice_fixture(tmp_path)
+    docs = auto_proposals(manifest, slices_dir)
+    # a slice whose core owns at least one separator and one overlap nonseparator
+    claim_sid = None
+    for entry in manifest["slices"]:
+        payload = read_json(slices_dir / entry["input"]["path"])
+        kinds = {u["unit_id"]: u["kind"] for u in payload["units"]}
+        base = docs[entry["slice_id"]]
+        has_sep = any(kinds[u] == "separator" for u in entry["core_ids"])
+        has_overlap = any(kinds[u] != "separator" for u in entry["overlap_ids"])
+        if has_sep and has_overlap:
+            claim_sid = entry["slice_id"]
+            break
+    assert claim_sid, "fixture lacks a slice with separators and overlap"
+    entry = next(e for e in manifest["slices"] if e["slice_id"] == claim_sid)
+    payload = read_json(slices_dir / entry["input"]["path"])
+    kinds = {u["unit_id"]: u["kind"] for u in payload["units"]}
+    sep_uid = next(u for u in entry["core_ids"] if kinds[u] == "separator")
+    overlap_uid = next(u for u in entry["overlap_ids"] if kinds[u] != "separator")
+
+    for code, uid in (("separator_labeled", sep_uid),
+                      ("overlap_as_owner", overlap_uid)):
+        mutated = json.loads(json.dumps(docs))
+        mutated[claim_sid]["assignments"].append({
+            "source_ref": entry["source_ref"], "unit_ids": [uid],
+            "state": "claim", "rationale": "invalid owner",
+        })
+        paths = write_proposals(tmp_path / f"bad-{code}", mutated,
+                                order=list(mutated))
+        proc, _, report_path = reconcile(tmp_path, capdir, slices_dir, paths,
+                                         out=tmp_path / f"m-{code}.json",
+                                         report=tmp_path / f"r-{code}.json")
+        assert proc.returncode == 1, (code, proc.stdout)
+        codes = {c["code"] for c in read_json(report_path)["conflicts"]}
+        assert code in codes, (code, codes)
+
+
 def test_reconcile_overlap_vote_conflict_and_rationale_warning(tmp_path):
     capdir, slices_dir, manifest = multi_slice_fixture(tmp_path)
     docs = auto_proposals(manifest, slices_dir)
@@ -467,6 +505,28 @@ def test_reconcile_grouping_disagreement_and_uncertain(tmp_path):
                                      report=tmp_path / "r-gu.json")
     assert proc.returncode == 1
     assert any(c["code"] == "grouping_uncertain"
+               for c in read_json(report_path)["conflicts"])
+
+
+def test_reconcile_grouping_excess_vote_is_named(tmp_path):
+    capdir, slices_dir, manifest = multi_slice_fixture(tmp_path)
+    docs = auto_proposals(manifest, slices_dir)
+    sid = next(iter(docs))
+    mutated = json.loads(json.dumps(docs[sid]))
+    mutated["grouping_votes"].append({
+        "left_unit_id": "src:invented:0-1:" + "0" * 64,
+        "right_unit_id": "src:invented:1-2:" + "0" * 64,
+        "grouping": "separate", "rationale": "invented pair",
+    })
+    paths = write_proposals(tmp_path / "gex", {sid: mutated}, order=[sid])
+    others = write_proposals(tmp_path / "gex-others",
+                             {k: v for k, v in docs.items() if k != sid},
+                             order=[k for k in docs if k != sid])
+    proc, _, report_path = reconcile(tmp_path, capdir, slices_dir, paths + others,
+                                     out=tmp_path / "m-gex.json",
+                                     report=tmp_path / "r-gex.json")
+    assert proc.returncode == 1
+    assert any(c["code"] == "grouping_excess"
                for c in read_json(report_path)["conflicts"])
 
 
