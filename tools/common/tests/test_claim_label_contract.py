@@ -9,12 +9,13 @@ rejection, exactly-one oneOf, $ref resolution).
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
 import pytest
 
-from claim_label_contract import schemas, slicing
+from claim_label_contract import reconciliation, schemas, slicing
 from toolkit import canonical_json as cj
 
 SCHEMA_DIR = Path(__file__).resolve().parents[1] / "claim_label_contract" / "schemas"
@@ -289,3 +290,123 @@ def test_validate_recipe_document_rejects_unknown_and_drift():
     drifted = dict(recipe, instructions_sha256="0" * 64)
     with pytest.raises(slicing.SliceRecipeError):
         slicing.validate_recipe_document(drifted)
+
+
+# ---------------------------------------------------------------------------
+# reconciliation on synthetic expected slices (no producer imports)
+# ---------------------------------------------------------------------------
+
+def _expected_from_plans(plans):
+    return [
+        {
+            "slice_id": plan.slice_id,
+            "source_ref": plan.source_ref,
+            "core_ids": list(plan.core_ids),
+            "overlap_ids": list(plan.overlap_ids),
+            "context_only_ids": list(plan.context_only_ids),
+            "payload": plan.payload,
+            "payload_sha256": hashlib.sha256(plan.payload_bytes).hexdigest(),
+            "payload_byte_length": len(plan.payload_bytes),
+        }
+        for plan in plans
+    ]
+
+
+def _docs_from_expected(expected):
+    docs = []
+    for entry in expected:
+        kinds = {u["unit_id"]: u["kind"] for u in entry["payload"]["units"]}
+        assignments = [
+            {"source_ref": entry["source_ref"], "unit_ids": [uid],
+             "state": "claim", "rationale": "test"}
+            for uid in entry["core_ids"] if kinds[uid] != "separator"
+        ]
+        overlap_votes = [
+            {"unit_id": uid, "state": "claim", "label": None,
+             "role_ref": None, "rationale": "audit"}
+            for uid in entry["overlap_ids"] if kinds[uid] != "separator"
+        ]
+        visible = list(entry["overlap_ids"]) + list(entry["core_ids"])
+        grouping_votes = [
+            {"left_unit_id": left, "right_unit_id": right,
+             "grouping": "separate", "rationale": "pair"}
+            for left, right in zip(visible, visible[1:])
+            if kinds[left] != "separator" and kinds[right] != "separator"
+        ]
+        docs.append({
+            "schema_version": "slice-proposals/1",
+            "slice_id": entry["slice_id"],
+            "input_sha256": entry["payload_sha256"],
+            "assignments": assignments,
+            "overlap_votes": overlap_votes,
+            "grouping_votes": grouping_votes,
+            "boundary": {"left": "clear", "right": "clear"},
+        })
+    return docs
+
+
+def _proposal_inputs(docs):
+    return [
+        {"label": f"proposal[{i}]", "sha256": f"{i:064x}", "document": doc,
+         "error": None}
+        for i, doc in enumerate(docs)
+    ]
+
+
+def test_reconcile_common_roundtrip_and_unverified_seam():
+    import copy
+
+    records, blob = make_records([(5, "paragraph")] * 4 + [(18, "paragraph")])
+    recipe = slicing.slice_recipe(max_bytes=24, max_units=64, overlap_units=3,
+                                  max_input_bytes=65536, max_slices=4)
+    plans = slicing.plan_slices(SRC, FRAME_HASH, recipe, records, blob)
+    sources = {SRC: {r["unit_id"]: {"kind": r["kind"], "ordinal": r["ordinal"]}
+                     for r in records}}
+    expected = _expected_from_plans(plans)
+    docs = _docs_from_expected(expected)
+    merged, report = reconciliation.reconcile(
+        sources=sources, expected_slices=expected,
+        proposals=_proposal_inputs(docs), slices_sha256="0" * 64,
+    )
+    assert merged is not None
+    assert report["complete"] is True
+    assert report["merged_sha256"] == hashlib.sha256(merged).hexdigest()
+    merged_doc = cj.canonical_loads(merged)
+    assert {u for a in merged_doc["assignments"] for u in a["unit_ids"]} == {
+        r["unit_id"] for r in records
+    }
+
+    broken = copy.deepcopy(expected)
+    broken[1]["overlap_ids"] = []
+    broken_docs = _docs_from_expected(broken)
+    merged2, report2 = reconciliation.reconcile(
+        sources=sources, expected_slices=broken,
+        proposals=_proposal_inputs(broken_docs), slices_sha256="0" * 64,
+    )
+    assert merged2 is None
+    assert report2["complete"] is False
+    assert "unverified_seam" in {c["code"] for c in report2["conflicts"]}
+
+
+def test_reconcile_common_report_is_order_independent():
+    records, blob = make_records([(5, "paragraph")] * 4 + [(18, "paragraph")])
+    recipe = slicing.slice_recipe(max_bytes=24, max_units=64, overlap_units=3,
+                                  max_input_bytes=65536, max_slices=4)
+    plans = slicing.plan_slices(SRC, FRAME_HASH, recipe, records, blob)
+    expected = _expected_from_plans(plans)
+    docs = _docs_from_expected(expected)
+    # corrupt both proposals; the failure report must be byte-identical
+    for doc in docs:
+        doc["boundary"] = {"left": "spanning", "right": "clear"}
+    first = _proposal_inputs(docs)
+    second = list(reversed(_proposal_inputs(docs)))
+    _, report_a = reconciliation.reconcile(
+        sources={SRC: {r["unit_id"]: {"kind": r["kind"], "ordinal": r["ordinal"]}
+                       for r in records}},
+        expected_slices=expected, proposals=first, slices_sha256="1" * 64)
+    _, report_b = reconciliation.reconcile(
+        sources={SRC: {r["unit_id"]: {"kind": r["kind"], "ordinal": r["ordinal"]}
+                       for r in records}},
+        expected_slices=expected, proposals=second, slices_sha256="1" * 64)
+    assert cj.canonical_dumps(report_a) == cj.canonical_dumps(report_b)
+    assert report_a["conflicts"]

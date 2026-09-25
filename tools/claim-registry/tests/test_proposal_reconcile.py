@@ -120,7 +120,7 @@ def auto_proposals(manifest: dict, slices_dir: Path) -> dict[str, dict]:
 def write_proposals(tmp_path: Path, docs: dict[str, dict], order=None) -> list[Path]:
     order = order or list(docs)
     outdir = tmp_path / "proposals"
-    outdir.mkdir(exist_ok=True)
+    outdir.mkdir(parents=True, exist_ok=True)
     paths = []
     for i, slice_id in enumerate(order):
         path = outdir / f"{i:04d}.json"
@@ -539,18 +539,28 @@ def test_reconcile_determinism_reordered_inputs(tmp_path):
                                       report=tmp_path / "r-a.json")
     assert proc.returncode == 0, proc.stderr
 
-    reversed_docs = {k: v for k, v in reversed(list(docs.items()))}
-    for doc in reversed_docs.values():
-        doc["assignments"] = list(reversed(doc["assignments"]))
-        doc["grouping_votes"] = list(reversed(doc["grouping_votes"]))
-    backward = write_proposals(tmp_path / "bwd", reversed_docs,
-                               order=list(reversed_docs))
-    proc, out_b, report_b = reconcile(tmp_path, capdir, slices_dir, backward,
+    # same child bytes, different CLI arrival order -> byte-identical outputs
+    proc, out_b, report_b = reconcile(tmp_path, capdir, slices_dir,
+                                      list(reversed(forward)),
                                       out=tmp_path / "m-b.json",
                                       report=tmp_path / "r-b.json")
     assert proc.returncode == 0, proc.stderr
     assert read_bytes(out_a) == read_bytes(out_b)
     assert read_bytes(report_a) == read_bytes(report_b)
+
+    # semantically equivalent child files with reordered assignments still
+    # yield byte-identical merged proposals (registry order is canonical)
+    reversed_docs = {k: json.loads(json.dumps(v)) for k, v in docs.items()}
+    for doc in reversed_docs.values():
+        doc["assignments"] = list(reversed(doc["assignments"]))
+        doc["grouping_votes"] = list(reversed(doc["grouping_votes"]))
+    backward = write_proposals(tmp_path / "bwd", reversed_docs,
+                               order=list(reversed_docs))
+    proc, out_c, _ = reconcile(tmp_path, capdir, slices_dir, backward,
+                               out=tmp_path / "m-c.json",
+                               report=tmp_path / "r-c.json")
+    assert proc.returncode == 0, proc.stderr
+    assert read_bytes(out_a) == read_bytes(out_c)
 
 
 def test_reconcile_rejects_tampered_slices_manifest(tmp_path):

@@ -241,6 +241,37 @@ COMMANDS = {
             "2": "bad caps/arguments, existing --out-dir, missing capture files, missing pinned dependency",
         },
     },
+    "proposal-reconcile": {
+        "usage": (
+            "claim-registry proposal-reconcile --captures DIR --slices MANIFEST.json "
+            "--proposal P.json [--proposal P2.json ...] --out MERGED.json "
+            "--report-out REPORT.json"
+        ),
+        "summary": (
+            "Replay the frame-slices/1 manifest against the captures, admit one "
+            "slice-proposals/1 per slice, reconcile ownership/overlap/grouping/"
+            "boundaries deterministically and write one claim-proposals/1 plus "
+            "a proposal-reconciliation/1 report; any conflict exits 1 with a "
+            "failure report and no merged artifact."
+        ),
+        "params": [
+            _param("--captures", "path", True, None, "capture directory from capture"),
+            _param("--slices", "path", True, None, "frame-slices/1 manifest.json"),
+            _param("--proposal", "path", True, None, "slice-proposals/1 file; repeatable (one per slice)"),
+            _param("--out", "path", True, None, "merged claim-proposals/1 output (removed on any failure)"),
+            _param("--report-out", "path", True, None, "proposal-reconciliation/1 report (canonical bytes)"),
+        ],
+        "outputs": {
+            "stdout": "JSON summary {out, report, complete, merged_sha256, conflicts, warnings}",
+            "<out>": "claim-proposals/1 canonical merged document (success only)",
+            "<report-out>": "proposal-reconciliation/1 canonical report",
+        },
+        "exit_codes": {
+            "0": "every slice reconciled; merged + complete report written",
+            "1": "named conflict(s); failure report written (merged_sha256 null) and no merged artifact",
+            "2": "bad arguments or missing/unreadable captures, manifest or proposal files",
+        },
+    },
     "hash": {
         "usage": "claim-registry hash --in FILE",
         "summary": (

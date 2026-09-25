@@ -372,6 +372,32 @@ def cmd_frame_slices(args: argparse.Namespace) -> int:
     return tool_unit.EXIT_OK
 
 
+def cmd_proposal_reconcile(args: argparse.Namespace) -> int:
+    from .proposal_reconcile import reconcile_run
+
+    # A failed attempt must never leave a stale successful merge behind.
+    if os.path.exists(args.out):
+        try:
+            os.remove(args.out)
+        except OSError as exc:
+            raise tool_unit.UsageError(
+                f"proposal-reconcile: cannot remove existing --out {args.out!r}: {exc}"
+            ) from exc
+    merged, report = reconcile_run(args.captures, args.slices, args.proposal)
+    if merged is not None:
+        _write_bytes(args.out, merged)
+    _write_bytes(args.report_out, canonical.canonical_dumps(report))
+    _print_json({
+        "out": args.out if merged is not None else None,
+        "report": args.report_out,
+        "complete": report["complete"],
+        "merged_sha256": report["merged_sha256"],
+        "conflicts": len(report["conflicts"]),
+        "warnings": len(report["warnings"]),
+    })
+    return tool_unit.EXIT_OK if merged is not None else tool_unit.EXIT_FAIL
+
+
 def cmd_windows(args: argparse.Namespace) -> int:
     from .frame import Unit
     from .registry import DEFAULT_WINDOW_RECIPE
@@ -621,6 +647,18 @@ def build_parser() -> argparse.ArgumentParser:
                    help="run slice budget; exceeding it fails, never truncates")
     p.set_defaults(func=cmd_frame_slices)
 
+    p = sub.add_parser("proposal-reconcile",
+                       help="merge per-slice proposals deterministically")
+    p.add_argument("--captures", required=True, help="capture directory from capture")
+    p.add_argument("--slices", required=True, help="frame-slices/1 manifest.json")
+    p.add_argument("--proposal", required=True, action="append",
+                   help="slice-proposals/1 file; repeatable (one per slice)")
+    p.add_argument("--out", required=True,
+                   help="merged claim-proposals/1 output (removed on any failure)")
+    p.add_argument("--report-out", required=True,
+                   help="proposal-reconciliation/1 report (canonical bytes)")
+    p.set_defaults(func=cmd_proposal_reconcile)
+
     p = sub.add_parser("validate", help="independent recompute/validation")
     p.add_argument("--registry", required=True)
     p.add_argument("--captures", required=True, help="capture directory")
@@ -689,6 +727,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return failure
     # Pinned dependencies are importable past this point; the heavy frame
     # walker is imported here only (never at module import / --describe time).
+    from claim_label_contract.reconciliation import ReconciliationReportError
     from claim_label_contract.slicing import SlicePlanError, SliceRecipeError
     from .frame import ExtractionError
     from .registry import RegistryAssemblyError
@@ -698,6 +737,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return args.func(args)
     except (
         ExtractionError,
+        ReconciliationReportError,
         RegistryAssemblyError,
         SemanticError,
         SlicePlanError,
