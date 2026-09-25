@@ -67,8 +67,9 @@ Under {budget} lines.
 | return | from the pass contract: conformance: claim block + unit block + `CLOSE` (conformance-pass.md); implementation/debt: `[F] file:line`, `[D] concept`; yagni: `ENGINEERING` / `[Y]` / `NOT-YAGNI` (yagni-pass.md) |
 | budget | output-size cap (lines); enforced; truncation = inconclusive |
 | coverage | the vector's coverage block (below): V1 assignment + return shape; yagni scoring inputs; omitted for V2/V3 |
-| claim_directory_ref | run manifest `coverage.claims_ref` — the paged claim-registry page(s) `claims-<owner>-<pr>-s<n>`, the complete claim directory (intake-and-scope.md §0.2) |
-| claim_ids | the claim IDs assigned to this shard (V1) / the unit's matrix rows (yagni) |
+| claim_directory_ref | run manifest `coverage.claims_ref` — the paged **canonical-registry projection** `claims-<owner>-<pr>-s<n>` (identical claim IDs/counts/`registry_hash`; intake-and-scope.md §0.2) |
+| claim_gate_ref | run manifest `claims.gate_permission` + `toolchain.gate.report_ref` — the pinned `gate-check` report ref, both permission flags and the canonical `registry_hash` the claim directory was projected from; a directory without this permission is not usable for negative attribution |
+| claim_ids | the canonical producer claim IDs assigned to this shard (V1) / the unit's matrix rows (yagni) — never coordinator-renumbered |
 | unit_ids | the changed-unit/range IDs assigned to this shard (V1) |
 | candidate_scope | the alternate claim/attribution scope to check before returning `UNCLAIMED_CANDIDATE` |
 | authorized_scope | the V1 gate's recorded allowed next scope + explicit omissions (`review_basis` record, conformance-pass.md) — rendered into V2/V3 prompts; expands nothing |
@@ -89,12 +90,27 @@ Under {budget} lines.
 5. Explicitly label `NOT-A-BUG` when a checked suspicion clears — that keeps the coordinator from re-checking.
 6. Return compact records; do not write the notebook (coordinator owns writes).
 7. When {research_protocol} is present, run it and close with the RESEARCH TRACE footer; a missing trace is `inconclusive`, never a pass.
-8. Vector 1: close with `CLOSE <assignment digest> — processed n/total`. An absent unit, digest mismatch, or missing claim verdict stays unresolved; `NONE` never substitutes for accounting. The complete claim directory must be queryable before any negative attribution — read the scope you need; insufficient access means `UNRESOLVED`, not `UNCLAIMED`. Before returning `UNCLAIMED_CANDIDATE`, check every qualifying designated in-diff clause; a doc/spec unit is explained only through `documents/specifies` against an independent purpose/target anchor (conformance-pass.md).
+8. Vector 1: close with `CLOSE <assignment digest> — processed n/total`. An absent unit, digest mismatch, or missing claim verdict stays unresolved; `NONE` never substitutes for accounting. The complete claim directory must be queryable before any negative attribution — read the scope you need; insufficient access means `UNRESOLVED`, not `UNCLAIMED`. The directory is usable only under the state's `gate-check` permission ({claim_gate_ref}); without it every affected unit stays `UNRESOLVED`. Before returning `UNCLAIMED_CANDIDATE`, check every qualifying designated in-diff clause; a doc/spec unit is explained only through `documents/specifies` against an independent purpose/target anchor (conformance-pass.md).
 
 ## Given budget & cost
 
 - Set a per-child timeout and line budget at spawn. Over-budget or timed-out output is recorded as `inconclusive`, never `pass`.
 - The coordinator fans out children per vector with a concurrency cap and merges their records into the findings page.
+
+## Labeling children (Phase 0) — separate binding
+
+Phase-0 labeling children are **not** vector children and do not use the vector
+template. The coordinator spawns them under
+`tools/claim-registry/references/labeling-child-prompt.md`, bound to the run's
+pinned `claim-registry` 0.3.0: a whole-source child receives the framed source
+(within ≤16 KiB raw / ≤80 units / ≤64 KiB complete worker input) and returns
+`claim-proposals/1`; a bounded child receives one `frame-slice-input/1` payload
+(exact unit text + `core_ids` / `overlap_ids`) and returns `slice-proposals/1`
+(core assignments over core non-separators only, overlap votes, per-adjacency
+grouping votes, left/right boundary). Children never run the tools, compute
+IDs/hashes, reconcile, or write the registry — the coordinator runs the pinned
+toolchain, and the slice budget caps the child count (≤32 slices default,
+≤4 concurrent; an oversized indivisible unit stops the run).
 
 ## Coverage block variants (filler for {coverage})
 
@@ -115,12 +131,15 @@ coverage page {coverage_ref}; one accounting owner per unit, one verdict owner
 per claim. Input digest: {assignment_digest}.
 The captured contract is verbatim at {contract_ref}; the complete claim
 directory is paged at {claim_directory_ref} — read the pages you need; your
-local contract slice is never the whole universe. Designated in-diff clauses
-are ordinary claim sources with recorded provenance — never evidence that
-their own deliverable exists. Before returning UNCLAIMED_CANDIDATE for a unit,
-check the candidate scope {candidate_scope} (alternate claims / attribution
-surfaces, including qualifying designated in-diff clauses); insufficient
-access → UNRESOLVED.
+local contract slice is never the whole universe. Claim IDs are the producer's
+canonical IDs ({claim_gate_ref}: pinned `gate-check` report, both permissions
+true, projected `registry_hash`) — never renumber, paraphrase or invent one;
+a directory without that permission is unusable for negative attribution.
+Designated in-diff clauses are ordinary claim sources with recorded
+provenance — never evidence that their own deliverable exists. Before returning
+UNCLAIMED_CANDIDATE for a unit, check the candidate scope {candidate_scope}
+(alternate claims / attribution surfaces, including qualifying designated
+in-diff clauses); insufficient access → UNRESOLVED.
 Return per conformance-pass.md: claim block (VERIFIED / GAP / INCONCLUSIVE)
 plus unit block (ATTRIBUTED / UNCLAIMED_CANDIDATE / EXCLUSION_REQUEST /
 UNRESOLVED), closed by CLOSE <digest> — processed n/total, returned, remaining.
