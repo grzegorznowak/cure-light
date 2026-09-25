@@ -355,16 +355,25 @@ def test_frame_slices_zero_overlap_seam_is_named_failure(tmp_path):
 # identity / determinism / budget / multi-source
 # ---------------------------------------------------------------------------
 
-def test_frame_slices_empty_source_and_whitespace_only(tmp_path):
+def test_frame_slices_empty_source_and_separator_only_source(tmp_path):
     capdir = capture(tmp_path, [("empty.md", b""), ("ws.md", b"\n\n")])
     out = tmp_path / "slices"
     proc = cli("frame-slices", "--captures", str(capdir), "--out-dir", str(out))
     assert proc.returncode == 0, proc.stderr
     manifest = read_json(out / "manifest.json")
     assert len(manifest["sources"]) == 2
-    assert len(manifest["slices"]) == 0
-    for source in manifest["sources"]:
-        assert source["units"] == []
+    records = {r["locator"]: r for r in read_json(capdir / "manifest.json")["sources"]}
+    empty_ref = records["repo#17:empty.md"]["source_ref"]
+    ws_ref = records["repo#17:ws.md"]["source_ref"]
+    by_ref = {s["source_ref"]: s for s in manifest["sources"]}
+    assert by_ref[empty_ref]["units"] == []
+    # an empty source has zero slices; a whitespace-only source still partitions
+    # its separator units into one (mechanical, never-labeled) core
+    assert [s["source_ref"] for s in manifest["slices"]] == [ws_ref]
+    ws_slices = [s for s in manifest["slices"] if s["source_ref"] == ws_ref]
+    assert len(ws_slices) == 1
+    assert ws_slices[0]["core_ids"] == [by_ref[ws_ref]["units"][0]["unit_id"]]
+    assert by_ref[ws_ref]["units"][0]["kind"] == "separator"
 
 
 def test_frame_slices_source_order_permutation_is_byte_identical(tmp_path):

@@ -39,6 +39,13 @@ WINDOW_MAX_UNITS = 64
 WINDOW_MAX_BYTES = 65536
 WINDOW_OVERLAP_UNITS = 8
 
+#: Mirrors claim_label_contract.slicing defaults (literals for --describe).
+FRAME_SLICE_MAX_BYTES = 16384
+FRAME_SLICE_MAX_UNITS = 80
+FRAME_SLICE_MAX_INPUT_BYTES = 65536
+FRAME_SLICE_OVERLAP_UNITS = 4
+FRAME_SLICE_MAX_SLICES = 32
+
 
 class SemanticError(Exception):
     """Semantic/validation failure -> exit 1 (actionable message)."""
@@ -348,6 +355,23 @@ def cmd_validate(args: argparse.Namespace) -> int:
     return tool_unit.EXIT_OK if report.valid else tool_unit.EXIT_FAIL
 
 
+def cmd_frame_slices(args: argparse.Namespace) -> int:
+    from claim_label_contract import slicing
+
+    from .slices import frame_slices
+
+    recipe = slicing.slice_recipe(
+        max_bytes=args.max_bytes,
+        max_units=args.max_units,
+        max_input_bytes=args.max_input_bytes,
+        overlap_units=args.overlap_units,
+        max_slices=args.max_slices,
+    )
+    summary = frame_slices(args.captures, args.out_dir, recipe=recipe)
+    _print_json(summary)
+    return tool_unit.EXIT_OK
+
+
 def cmd_windows(args: argparse.Namespace) -> int:
     from .frame import Unit
     from .registry import DEFAULT_WINDOW_RECIPE
@@ -581,6 +605,22 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--window-overlap-units", type=int, default=WINDOW_OVERLAP_UNITS)
     p.set_defaults(func=cmd_assemble)
 
+    p = sub.add_parser("frame-slices", help="bounded byte-exact worker payloads")
+    p.add_argument("--captures", required=True, help="capture directory from capture")
+    p.add_argument("--out-dir", required=True,
+                   help="fresh manifest directory (never overwritten)")
+    p.add_argument("--max-bytes", type=int, default=FRAME_SLICE_MAX_BYTES,
+                   help="max raw text bytes per slice")
+    p.add_argument("--max-units", type=int, default=FRAME_SLICE_MAX_UNITS,
+                   help="max units per slice (separators included)")
+    p.add_argument("--max-input-bytes", type=int, default=FRAME_SLICE_MAX_INPUT_BYTES,
+                   help="max serialized worker input bytes per slice")
+    p.add_argument("--overlap-units", type=int, default=FRAME_SLICE_OVERLAP_UNITS,
+                   help="target preceding audit units")
+    p.add_argument("--max-slices", type=int, default=FRAME_SLICE_MAX_SLICES,
+                   help="run slice budget; exceeding it fails, never truncates")
+    p.set_defaults(func=cmd_frame_slices)
+
     p = sub.add_parser("validate", help="independent recompute/validation")
     p.add_argument("--registry", required=True)
     p.add_argument("--captures", required=True, help="capture directory")
@@ -649,6 +689,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return failure
     # Pinned dependencies are importable past this point; the heavy frame
     # walker is imported here only (never at module import / --describe time).
+    from claim_label_contract.slicing import SlicePlanError, SliceRecipeError
     from .frame import ExtractionError
     from .registry import RegistryAssemblyError
     from .windows import WindowRecipeError
@@ -659,13 +700,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         ExtractionError,
         RegistryAssemblyError,
         SemanticError,
+        SlicePlanError,
         canonical.CanonicalizationError,
         json.JSONDecodeError,
         UnicodeDecodeError,
     ) as exc:
         sys.stderr.write(f"error: {exc}\n")
         return tool_unit.EXIT_FAIL
-    except (tool_unit.UsageError, WindowRecipeError) as exc:
+    except (tool_unit.UsageError, WindowRecipeError, SliceRecipeError) as exc:
         sys.stderr.write(f"error: {exc}\n")
         return tool_unit.EXIT_USAGE
     except OSError as exc:

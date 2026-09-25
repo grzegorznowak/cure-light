@@ -38,6 +38,7 @@ def main() -> int:
         "__main__.py": entry_py("claim_registry.cli"),
         **collect_tree(UNIT_ROOT / "claim_registry", prefix="claim_registry"),
         **collect_tree(COMMON / "toolkit", prefix="toolkit"),
+        **collect_tree(COMMON / "claim_label_contract", prefix="claim_label_contract"),
     }
     out = dist / f"{MANIFEST['name']}-{MANIFEST['version']}.pyz"
     sha = build_zipapp(files, out)

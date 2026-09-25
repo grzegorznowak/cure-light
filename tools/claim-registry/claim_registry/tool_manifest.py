@@ -38,6 +38,13 @@ WINDOW_MAX_UNITS = 64
 WINDOW_MAX_BYTES = 65536
 WINDOW_OVERLAP_UNITS = 8
 
+#: Slice recipe defaults mirrored from claim_label_contract.slicing.
+FRAME_SLICE_MAX_BYTES = 16384
+FRAME_SLICE_MAX_UNITS = 80
+FRAME_SLICE_MAX_INPUT_BYTES = 65536
+FRAME_SLICE_OVERLAP_UNITS = 4
+FRAME_SLICE_MAX_SLICES = 32
+
 
 def _dependency(name: str, version: str) -> dict:
     dep = {
@@ -202,6 +209,38 @@ COMMANDS = {
             "2": "missing registry file or invalid window bounds (WindowRecipeError / OversizedUnitError)",
         },
     },
+    "frame-slices": {
+        "usage": (
+            "claim-registry frame-slices --captures DIR --out-dir DIR "
+            "[--max-bytes N] [--max-units N] [--max-input-bytes N] "
+            "[--overlap-units N] [--max-slices N]"
+        ),
+        "summary": (
+            "Frame every captured source exactly once and write bounded "
+            "byte-exact frame-slice-input/1 worker payloads plus the closed "
+            "frame-slices/1 manifest; cores partition each source once and at "
+            "most --overlap-units preceding units are audit-only overlap."
+        ),
+        "params": [
+            _param("--captures", "path", True, None, "capture directory from capture"),
+            _param("--out-dir", "path", True, None, "fresh manifest directory (never overwritten)"),
+            _param("--max-bytes", "int", False, FRAME_SLICE_MAX_BYTES, "max raw text bytes per slice"),
+            _param("--max-units", "int", False, FRAME_SLICE_MAX_UNITS, "max units per slice (separators included)"),
+            _param("--max-input-bytes", "int", False, FRAME_SLICE_MAX_INPUT_BYTES, "max serialized worker input bytes per slice"),
+            _param("--overlap-units", "int", False, FRAME_SLICE_OVERLAP_UNITS, "target preceding audit units"),
+            _param("--max-slices", "int", False, FRAME_SLICE_MAX_SLICES, "run slice budget; exceeding it fails, never truncates"),
+        ],
+        "outputs": {
+            "stdout": "JSON summary {out_dir, manifest, sources, slices, captures_sha256, slice_recipe_hash}",
+            "<out-dir>/manifest.json": "frame-slices/1 canonical JSON",
+            "<out-dir>/payload/*.json": "frame-slice-input/1 canonical payloads",
+        },
+        "exit_codes": {
+            "0": "manifest directory written",
+            "1": "named slicing failure: oversized unit, unverified zero-overlap seam, byte/payload budget, invalid UTF-8, capture verification, max_slices breach",
+            "2": "bad caps/arguments, existing --out-dir, missing capture files, missing pinned dependency",
+        },
+    },
     "hash": {
         "usage": "claim-registry hash --in FILE",
         "summary": (
@@ -260,6 +299,10 @@ RECIPE_PINS = {
     "window_recipe": (
         "claim-registry-window/1 max_units=64 max_bytes=65536 overlap_units=8"
     ),
+    "slice_recipe": (
+        "claim-registry-slice/1 greedy-largest-core/1 max_bytes=16384 "
+        "max_units=80 max_input_bytes=65536 overlap_units=4 max_slices=32"
+    ),
 }
 
 DETERMINISM = {
@@ -289,6 +332,11 @@ __all__ = [
     "COMMANDS",
     "DEPENDENCIES",
     "DETERMINISM",
+    "FRAME_SLICE_MAX_BYTES",
+    "FRAME_SLICE_MAX_INPUT_BYTES",
+    "FRAME_SLICE_MAX_SLICES",
+    "FRAME_SLICE_MAX_UNITS",
+    "FRAME_SLICE_OVERLAP_UNITS",
     "MANIFEST",
     "NAME",
     "RECIPE_PINS",
