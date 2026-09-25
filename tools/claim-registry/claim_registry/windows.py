@@ -124,15 +124,30 @@ def build_windows(
         ))
         if last == n - 1:
             break
-        # choose the next window start from the tail overlap, reducing the
-        # actual overlap until at least one new unit is admitted
-        requested = overlap_units
-        next_start = last - requested + 1
-        while next_start <= start:
-            requested -= 1
-            next_start = last - requested + 1
+        # choose the next window start from the tail overlap: prefer the
+        # requested overlap, but reduce it until at least one NEW unit
+        # (ordinal > last) is admitted under both caps.  Ordinal progress
+        # alone is not enough - the overlap itself can consume the byte
+        # budget and produce overlap-only windows.
+        requested = min(overlap_units, last + 1)
+        start = last + 1  # zero overlap always admits the next unit
+        for candidate_overlap in range(requested, 0, -1):
+            candidate = last - candidate_overlap + 1
+            count = 0
+            size = 0
+            end_i = candidate
+            while (
+                end_i <= last + 1
+                and count < max_units
+                and size + unit_list[end_i].byte_length <= max_bytes
+            ):
+                size += unit_list[end_i].byte_length
+                count += 1
+                end_i += 1
+            if end_i > last + 1:  # the candidate admits the new core unit
+                start = candidate
+                break
         prev_last = last
-        start = next_start
 
     manifest = {
         "schema_version": "window-manifest/1",
