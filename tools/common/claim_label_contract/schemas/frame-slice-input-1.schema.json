@@ -1,0 +1,157 @@
+{
+  "$defs": {
+    "unit_text": {
+      "additionalProperties": false,
+      "properties": {
+        "ancestor_refs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "end": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "kind": {
+          "enum": [
+            "atx_heading",
+            "fenced_code_block",
+            "html_block",
+            "indented_code_block",
+            "link_reference_definition",
+            "list_item",
+            "minus_metadata",
+            "paragraph",
+            "pipe_table_delimiter_row",
+            "pipe_table_header",
+            "pipe_table_row",
+            "plus_metadata",
+            "separator",
+            "setext_heading",
+            "thematic_break"
+          ]
+        },
+        "ordinal": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "source_ref": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "start": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "text": {
+          "type": "string"
+        },
+        "unit_id": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "unit_id",
+        "source_ref",
+        "ordinal",
+        "kind",
+        "start",
+        "end",
+        "sha256",
+        "ancestor_refs",
+        "text"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "urn:cure-light:frame-slice-input/1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Complete worker input for one slice: pinned instructions, global unit records with their exact UTF-8 text, and the core/overlap/context id partition.  Serialized as canonical claim-json/1 and bounded by the slice recipe's max_input_bytes.",
+  "properties": {
+    "context_only_ids": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "core_ids": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "frame_recipe_hash": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "instructions": {
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "version": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "version",
+        "text"
+      ],
+      "type": "object"
+    },
+    "overlap_ids": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "frame-slice-input/1"
+    },
+    "slice_id": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "slice_recipe_hash": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "source_ref": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "units": {
+      "items": {
+        "$ref": "#/$defs/unit_text"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "slice_id",
+    "source_ref",
+    "frame_recipe_hash",
+    "slice_recipe_hash",
+    "instructions",
+    "units",
+    "core_ids",
+    "overlap_ids",
+    "context_only_ids"
+  ],
+  "title": "frame-slice-input/1",
+  "type": "object"
+}

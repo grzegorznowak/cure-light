@@ -1,0 +1,191 @@
+{
+  "$id": "urn:cure-light:proposal-reconciliation/1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Deterministic reconciliation report for one frame-slices/1 run.  complete=true and a non-null merged_sha256 only when the merged claim-proposals/1 document was published; every failed attempt publishes this report and never a merged artifact.",
+  "properties": {
+    "complete": {
+      "type": "boolean"
+    },
+    "conflicts": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "slice_ids": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "source_ref": {
+            "oneOf": [
+              {
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "unit_ids": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "values": {
+            "type": "array"
+          }
+        },
+        "required": [
+          "code",
+          "source_ref",
+          "unit_ids",
+          "slice_ids",
+          "values"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "counts": {
+      "additionalProperties": false,
+      "properties": {
+        "audited_overlap_units": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "audited_seams": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "expected_slices": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "primary_assignments": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "received_proposals": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "expected_slices",
+        "received_proposals",
+        "primary_assignments",
+        "audited_overlap_units",
+        "audited_seams"
+      ],
+      "type": "object"
+    },
+    "inputs": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "slice_id": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slice_id",
+          "sha256"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "merged_sha256": {
+      "oneOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "schema_version": {
+      "const": "proposal-reconciliation/1"
+    },
+    "slices_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "warnings": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "slice_ids": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "source_ref": {
+            "oneOf": [
+              {
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "unit_ids": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "values": {
+            "type": "array"
+          }
+        },
+        "required": [
+          "code",
+          "source_ref",
+          "unit_ids",
+          "slice_ids",
+          "values"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "slices_sha256",
+    "inputs",
+    "merged_sha256",
+    "complete",
+    "conflicts",
+    "warnings",
+    "counts"
+  ],
+  "title": "proposal-reconciliation/1",
+  "type": "object"
+}
