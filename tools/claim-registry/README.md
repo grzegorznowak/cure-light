@@ -358,7 +358,7 @@ Environment: Python 3.11.2, tree-sitter 0.26.0, tree-sitter-markdown 0.5.1.
 
 ```
 $ python3 -m pytest tests/
-# 99 passed
+# 159 passed
 
 $ python3 tools/corpus_smoke.py --corpus /tmp/prcorpus --determinism
 files=7 bodies=918 empty=15 framed=918
@@ -367,7 +367,7 @@ largest_body=65653 bytes (openai_openai-python.json#27)
 errors=0
 ```
 
-Tool-unit contract tests (9) cover: `--describe` schema + deterministic bytes,
+Tool-unit contract tests (10) cover: `--describe` schema + deterministic bytes,
 working without tree-sitter + fail-loud exit 2, golden
 `capture→assemble→validate→manifest` round-trip with per-file sha256 checks and
 tamper rejection, repeatable `--proposals` merge, build determinism,
