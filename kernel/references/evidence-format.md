@@ -23,7 +23,7 @@ disposition: fix-in-PR | pre-existing-debt | deferred-decision | track-separatel
              # follow-up (recommended or downstream); deferred-decision / track-separately record
              # an accepted deferral or an own ticket
 conformance_kind: claim-gap | unclaimed-delivery   # optional; Vector-1 findings only (see below)
-coverage_ref: <coverage page ref + unit group/selector + hash>   # optional; ties a V1 finding to ledger records
+coverage_ref: <coverage page ref + canonical claim IDs / unit group/selector + canonical registry_hash + census_hash>   # optional; ties a V1 finding to ledger records projected from the producer's canonical artifacts
 failure_mode: <concrete failure: divergence for claim-gap; undeclared delivered behavior for unclaimed-delivery>
 status: open | verified-fixed | re-classified | test-only | doc-only | deferred-decision | closed-by-operator | re-opened
 owner: <implementer | operator | subsystem>
@@ -57,6 +57,17 @@ basis blockers are coordinator process records (frame/claims pages), never an
 omnibus "bad contract" finding, a new severity class, or a new comment section.
 A ready basis never erases a blocking finding, and an accepted finding
 disposition never establishes readiness.
+
+**Mechanical pins, not semantic proof.** Claim IDs, counts and `registry_hash`
+come only from the pinned producer (`claim-registry` 0.3.0) and are consumed
+only under the state's `gate-check` permission; the changed-unit denominator and
+its IDs come from the pinned `census` artifact (`census_hash`). A finding or
+coverage page that cites an ID absent from the canonical registry, or asserts
+completeness without the gate permission, is invalid — re-seal and re-project,
+never improvise or hand-add an ID. Mechanical passes prove byte identity,
+ownership and internal consistency; they never prove that all authorized
+sources were selected, that labels are semantically right, or that coverage is
+complete (conformance-pass.md).
 
 `subject_oid` is schema-optional for backward compatibility but **rule-required**
 for every new or updated row: it records which review-state tree the row's
@@ -102,13 +113,14 @@ Vector-2 and Vector-3 children attach a RESEARCH TRACE footer (implementation-pa
 - `quality` rows (V3 lens) follow the same lens trail — suggestion-only, rated by the problem's own scale, never bug/debt tables.
 - `blast` rows (V2 lens) follow the same lens trail — suggestion-only, never bug/debt tables; the concrete data-hazard instance routes to the bug table as a Vector 2 finding (blast-lens.md).
 - Evidence is read from the state's **subject tree** at its recorded `subject_oid` (intake-and-scope.md §0.1). Every row carries `subject_oid`; if a child read a different tree, its output is `inconclusive` — a checkout whose HEAD differs from the row's OID is a different tree.
+- A completeness statement cites the canonical pins: the producer `registry_hash` and the `gate-check` permission for the claim universe, the `census_hash` for the changed-unit denominator. Mechanical pins never stand in for semantic coverage — "complete" means accounted/attributed under the state's pins, not that every claim was judged correct.
 
 ## Notebook layout
 
 - `pipeline-frame-<owner>-<pr>-s<n>` — frozen run options, base OID, planned subject mechanism; the manifest's tree fields (`subject_path` / `subject_oid`, changed-file list), contract-source pins/designation, the source-consistency outcome (provisional `repair_required` / evidence-only authorization) and the post-V1 `review_basis` record are recorded at their gates (notebook-plan-contract.md). Written at seal, completed at Phase 0 and the V1 gate.
 - `symbol-map-<owner>-<pr>-s<n>` — the preflight symbol map (chhound-driver.md, Symbol sweep): selected symbols, census heat table, capped outside locations, provenance/caps. One per review state; a bounded state cache kept while the state's consumers run (V2 sweep, V3 seed, yagni), discarded when the state closes.
 - `coverage-<owner>-<pr>-s<n>` — Vector 1 coverage summary/index: denominator and counts by state and side, completion flags, exclusion classes/policy, exact refs to the ledger shards. The paged ledger records themselves live in `coverage-<owner>-<pr>-s<n>-p<k>` pages (bounded, coordinator-owned, **in-notebook** — never scratch files); workers read only their assigned pages/slices. Kept through the state's closure/finalization window, retired after durable snapshots land.
-- `claims-<owner>-<pr>-s<n>` — the state's compiled claim registry: deterministic claim IDs, source spans + quote hashes, parent/group links, context/nonclaim labels, per-source class/designating pointer/selection rule/interpretation (normative vs advisory, precedence); the queryable complete claim directory for Vector 1 negative attribution (paged `-p<k>` when long). Source-consistency contradiction records (exact quotes/offsets/source hashes/affected claim IDs, materiality witness) live with it.
+- `claims-<owner>-<pr>-s<n>` — the **projection of the canonical claim registry** produced by the pinned `claim-registry` 0.3.0 run (identical claim IDs, counts and `registry_hash`; reassembly/hash-equality checked; published only under the state's `gate-check` permission): canonical claim IDs, source spans + quote hashes, parent/group links, context/nonclaim labels, per-source class/designating pointer/selection rule/interpretation (normative vs advisory, precedence), labeling-mode provenance. The queryable complete claim directory for Vector 1 negative attribution (paged `-p<k>` when long). Source-consistency contradiction records (exact quotes/offsets/source hashes/affected claim IDs, materiality witness) live with it.
 - `pr-<n>-review` — findings table (schema rows) + closure table. Appended per vector.
 - `decisions` (durable, survives the PR) — deferred-decision and closed-by-operator records with author/time/rationale/scope, plus the leading subarea open questions.
 
