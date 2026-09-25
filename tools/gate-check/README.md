@@ -1,7 +1,7 @@
 # gate-check
 
 Mechanical permission gate for a completed claim-registry run. Stdlib-only
-single-artifact tool unit (`gate-check-0.1.0.pyz` + `TOOL.json`).
+single-artifact tool unit (`gate-check-0.2.0.pyz` + `TOOL.json`).
 
 `gate-check check` re-derives bytes, hashes, witness counts and permission
 flags from the run manifest and every recorded artifact. Exit 0 means the
@@ -12,14 +12,21 @@ worktree, the network, or an agent.
 ## Usage
 
 ```
-python3 gate-check-0.1.0.pyz --describe
-python3 gate-check-0.1.0.pyz --check-pin <sha256-from-TOOL.json>
-python3 gate-check-0.1.0.pyz check --manifest M.json \
+python3 gate-check-0.2.0.pyz --describe
+python3 gate-check-0.2.0.pyz --check-pin <sha256-from-TOOL.json>
+python3 gate-check-0.2.0.pyz check --manifest M.json \
     [--registry R.json] [--report V.json] [--captures DIR] \
     [--proposals P.json] [--windows W.json] \
     [--tool-manifest TOOL.json] [--artifact PATH] \
-    [--base-dir DIR] [--report-out OUT.json]
+    [--base-dir DIR] [--report-out OUT.json] [--require-sliced]
 ```
+
+`--require-sliced` rejects a `claim-run-manifest/1` (or a `/2` without the
+mandatory labeling block) with a failing `manifest.sliced_required` check:
+sliced provenance cannot be inferred from, or re-added to, a legacy manifest.
+On a `claim-run-manifest/2` the `--proposals` override is rejected (exit 2):
+the recorded `labeling.inputs` are the authoritative child inputs, so an
+override could hide recorded children.
 
 Manifest-relative paths resolve against `--base-dir` (default: the manifest
 file's directory); absolute paths are unchanged; explicitly given CLI paths
@@ -41,9 +48,9 @@ Root keys are exact (unknown or missing root keys are rejected by
   "schema_version": "claim-run-manifest/1",
   "tool": {
     "name": "claim-registry",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "describe_sha256": "<64hex>",
-    "artifact": null | {"file": "dist/claim-registry-0.2.0.pyz", "sha256": "<64hex>"}
+    "artifact": null | {"file": "dist/claim-registry-0.3.0.pyz", "sha256": "<64hex>"}
   },
   "captures": {"path": "captures", "manifest_sha256": "<64hex>"},
   "proposals": [{"path": "proposals.json", "sha256": "<64hex>"}],
@@ -64,6 +71,60 @@ Root keys are exact (unknown or missing root keys are rejected by
   strings, including the producer's `sha256:` prefix.
 * `tool.describe_sha256` = sha256 of the canonical TOOL.json with `artifact`
   normalized to `null` (the producer's describe recipe).
+
+## `claim-run-manifest/2` (sliced runs)
+
+`claim-registry manifest --slices S.json --slice-proposal C.json ...
+--reconciliation R.json --proposals MERGED.json` requires a new-flag-
+complete invocation and seals `claim-run-manifest/2`: the seven `/1` root keys
+plus a mandatory `labeling` block (closed, `claim-run-labeling/1`):
+
+```json
+"labeling": {
+  "mode": "sliced",
+  "slices": {"path": "slices/manifest.json", "sha256": "<64hex>"},
+  "inputs": [{"slice_id": "sha256:<64hex>", "path": "children/0000.json",
+               "sha256": "<64hex>"}],
+  "merged": {"path": "merged.json", "sha256": "<64hex>"},
+  "reconciliation": {"path": "reconciliation.json", "sha256": "<64hex>"}
+}
+```
+
+* The producer records all four artifact classes plus every child file (one
+  per slice, sorted by `slice_id`) and refuses non-canonical input, incomplete
+  child sets, mismatched `input_sha256`, non-complete reconciliation reports,
+  or a reconciliation report that does not bind the given slices/merged file.
+* Paths are relative to the run root (the manifest directory); absolute paths,
+  `..` traversal, symlink escapes, duplicate aliases and unlisted inputs are
+  rejected by the gate.
+* Top-level `proposals` must be exactly `[labeling.merged]`; a sliced run
+  cannot be expressed as `/1`.
+
+### Sliced replay checks
+
+The gate stays stdlib-only (it bundles the shared `claim_label_contract`
+package; it never re-parses Markdown — producer-side `validate` owns parser
+correctness). For `/2` it additionally emits:
+
+* `manifest.sliced_required` (with `--require-sliced`), `sliced.refs_safe`.
+* `file[sliced.slices|merged|reconciliation|inputs[i]].{exists,sha256}`.
+* `sliced.slices_parse`, `sliced.slices_schema`, `sliced.captures_sha256`
+  (source identity records recomputed from the capture manifest).
+* `sliced.sources_binding`, `sliced.units_replay` (unit-id formula + span
+  sha256 against captured bytes), `sliced.registry_units_match` (global unit
+  table ↔ registry units).
+* `sliced.partition_replay`, `sliced.payload_replay` (recorded recipe replayed
+  over the recorded units; payload bytes must equal the replay).
+* `sliced.inputs_binding` (child file hash, schema, slice/`input_sha256`
+  linkage), `sliced.reconcile_replay.merged` and `.report` (deterministic
+  reconciliation over the recorded children must reproduce both recorded
+  artifacts byte-for-byte).
+* `sliced.registry_match` — reconciled ownership/grouping/rationales compared
+  against the actual registry labels/claims (a matching hash of an unrelated
+  successful registry is not enough).
+
+Tampering with any inner artifact while recomputing the recorded outer hashes
+(even re-sealing the manifest) still fails the replay checks.
 
 ## Checks (each emitted as `{"id", "ok", "detail"}`)
 
@@ -111,7 +172,7 @@ Root keys are exact (unknown or missing root keys are rejected by
 ## Build & test
 
 ```
-python3 build.py            # dist/gate-check-0.1.0.pyz (+ .sha256), TOOL.json
+python3 build.py            # dist/gate-check-0.2.0.pyz (+ .sha256), TOOL.json
 python3 -m pytest tests/ -q # real baseline-produced fixture + tamper matrix
 ```
 

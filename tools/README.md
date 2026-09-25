@@ -8,8 +8,8 @@ for the full contract and rationale.
 
 | Unit | Artifact (pinned by sha256) | Deps | Role |
 |------|------------------------------|------|------|
-| `claim-registry` | `claim-registry-0.2.0.pyz` | `tree-sitter==0.26.0`, `tree-sitter-markdown==0.5.1` | capture → frame → assemble → validate → windows → manifest |
-| `gate-check` | `gate-check-0.1.0.pyz` | none (stdlib) | verify run-manifest + registry + validation report + captures; grants/denies `finalized_unclaimed` |
+| `claim-registry` | `claim-registry-0.3.0.pyz` | `tree-sitter==0.26.0`, `tree-sitter-markdown==0.5.1` | capture → frame/frame-slices → assemble/proposal-reconcile → validate → manifest `/1`/`/2` |
+| `gate-check` | `gate-check-0.2.0.pyz` | none (stdlib) | verify run-manifest `/1`/`/2` + registry + validation report + captures + sliced labeling replay; grants/denies `finalized_unclaimed` |
 | `census` | `census-0.1.0.pyz` | `git` CLI | §0.3a changed-range census: parents/events, unique changed lines, partition integrity |
 
 Each unit directory is self-contained: source, `tests/`, `build.py`,
@@ -48,27 +48,44 @@ same tool identity.
    never overwritten).
    Designation/pointer rules stay in the kernel docs; the tool stores bytes,
    locator, hash, and synthetic blob OID.
-3. **Frame/window** the sources (`claim-registry frame`, `windows`). The
-   coordinator spawns **labeling children**, one per source or window; each
-   child receives the frame/window JSON (unit ids, spans, kinds) and returns
-   **only** a `claim-proposals/1` file: claim runs, nonclaim labels with
-   rationale/role_ref, decompositions. Children never run the tools, never
-   compute IDs or hashes, never write the registry. Template:
-   `claim-registry/references/labeling-child-prompt.md`.
+3. **Frame/window** the sources (`claim-registry frame`, `windows`). Sources
+   that exceed the full-label caps (≤16 KiB raw / ≤80 units / ≤64 KiB worker
+   input) use the bounded sliced path instead: `frame-slices` frames each
+   source once and writes byte-exact worker payloads (`frame-slice-input/1`),
+   one per bounded slice with a ≤4-unit preceding overlap for seam audits.
+   The coordinator spawns **labeling children**, one per source, window, or
+   slice; each child receives the frame/window/payload JSON (unit ids, spans,
+   kinds, exact text) and returns **only** its proposal document: a
+   `claim-proposals/1` file for whole-source labeling, or a
+   `slice-proposals/1` file for a slice (core assignments + one overlap vote
+   per overlap non-separator + per-adjacency grouping votes + boundary).
+   Children never run the tools, never compute IDs or hashes, never write the
+   registry. Template: `claim-registry/references/labeling-child-prompt.md`.
 4. **Assemble** once with every proposal file
    (`assemble --proposals a.json --proposals b.json --out registry.json`).
-   Double ownership, unknown units, non-consecutive claims, and undeclared
-   decomposition remainders fail here with the exact `unit_id`.
+   For sliced runs, first merge the children deterministically:
+   `proposal-reconcile --captures captures/ --slices slices/manifest.json
+   --proposal child-*.json --out merged.json --report-out reconciliation.json`
+   (fails loud, never majority/first-wins). Double ownership, unknown units,
+   non-consecutive claims, and undeclared decomposition remainders fail here
+   with the exact `unit_id`.
 5. **Validate** (`validate --registry registry.json --captures captures/
    --report-out report.json`). Exit 0 is required. On exit 1, fix the
    *proposals* and rerun 4–5; never edit the registry JSON — it is a computed
    artifact and hand-edits break the canonical-bytes and hash checks.
 6. **Seal the run** (`manifest --captures ... --registry ... --report ...
    --out run-manifest.json`). The producer records every input sha256, the
-   registry hash, the report flags, and its own tool pin.
+   registry hash, the report flags, and its own tool pin. A sliced run seals
+   `claim-run-manifest/2` with a mandatory `labeling` block (frame-slices
+   manifest, every child, merged proposals, reconciliation report) whose
+   paths are run-relative; a sliced run is never representable as `/1`.
 7. **Gate** (`gate-check check --manifest run-manifest.json`). Exit 0 means the
-   mechanical permission `finalized_unclaimed` is granted. This is the only
-   authority to consume the registry downstream; it is not agent-optional.
+   mechanical permission `finalized_unclaimed` is granted. For `/2` the gate
+   replays the labeling block (span identity, recipe partition/payload bytes,
+   deterministic reconciliation, registry ownership/grouping/rationales);
+   pass `--require-sliced` to reject a downgraded `/1` manifest. This is the
+   only authority to consume the registry downstream; it is not
+   agent-optional.
 
 Census wiring: after the subject pull and before any split, the coordinator
 runs `census run --repo <subject> --base <oid> --subject <oid> --out

@@ -1,4 +1,4 @@
-# claim-registry — minimal pilot producer (tool unit v0.2.0)
+# claim-registry — minimal pilot producer (tool unit v0.3.0)
 
 Standalone, tested tool implementing the pilot producer for the cure-light
 claim registry: the strict atomic-unit Markdown **frame**, verbatim **capture**
@@ -33,7 +33,7 @@ claim-registry/
     tool_manifest.py  static tool-unit/1 manifest (importable without tree-sitter)
     cli.py            thin CLI (--describe/--check-pin, 0/1/2 exit codes)
   build.py            deterministic .pyz + TOOL.json builder
-  dist/               claim-registry-0.2.0.pyz (+ .sha256)
+  dist/               claim-registry-0.3.0.pyz (+ .sha256)
   TOOL.json           describe payload + artifact pin
   SKILL.md            agent skill snippet for this unit
   tests/              pytest suite (99 tests) + ported 32-doc stress corpus
@@ -56,8 +56,8 @@ python3 -m pytest tests/
 
 # deterministic artifact + pin (writes dist/*.pyz, TOOL.json, dist/*.sha256)
 python3 build.py
-python3 dist/claim-registry-0.2.0.pyz --describe
-python3 dist/claim-registry-0.2.0.pyz --check-pin "$(cut -d' ' -f1 dist/claim-registry-0.2.0.pyz.sha256)"
+python3 dist/claim-registry-0.3.0.pyz --describe
+python3 dist/claim-registry-0.3.0.pyz --check-pin "$(cut -d' ' -f1 dist/claim-registry-0.3.0.pyz.sha256)"
 
 # corpus smoke (918 real PR bodies; 15 empty)
 python3 tools/corpus_smoke.py --corpus /tmp/prcorpus --determinism
@@ -77,6 +77,23 @@ python3 -m claim_registry.cli windows  --registry registry.json --out windows.js
 python3 -m claim_registry.cli hash     --in registry.json
 python3 -m claim_registry.cli manifest --captures captures/ --proposals proposals.json \
     --registry registry.json --report report.json --out run-manifest.json
+
+# sliced flow for a source that exceeds the full-label caps: frame the source
+# once, write bounded worker payloads, reconcile the children, seal /2
+python3 -m claim_registry.cli frame-slices --captures captures/ --out-dir slices/ \
+    --max-bytes 16384 --max-units 80 --overlap-units 4 --max-slices 32
+python3 -m claim_registry.cli proposal-reconcile --captures captures/ \
+    --slices slices/manifest.json --proposal children/0000.json \
+    --proposal children/0001.json --out merged.json --report-out reconciliation.json
+python3 -m claim_registry.cli assemble --captures captures/ --proposals merged.json \
+    --out registry.json
+python3 -m claim_registry.cli validate --registry registry.json --captures captures/ \
+    --report-out report.json
+python3 -m claim_registry.cli manifest --captures captures/ \
+    --slices slices/manifest.json --slice-proposal children/0000.json \
+    --slice-proposal children/0001.json --reconciliation reconciliation.json \
+    --proposals merged.json --registry registry.json --report report.json \
+    --out run-manifest.json
 ```
 
 **`--proposals` is repeatable** on `assemble` (and recorded repeatably by
@@ -98,16 +115,16 @@ exactly the bytes it always did.
 exits 0 only when every check passes; a failed report always carries
 `"permission": {"finalized_unclaimed": false, "complete_registry_claims": false}`.
 
-## Tool unit (v0.2.0)
+## Tool unit (v0.3.0)
 
 * `--describe` prints the canonical `tool-unit/1` JSON; `--check-pin SHA256`
   hashes the running `.pyz` (0 ok, 1 mismatch, 2 not running from a `.pyz`).
   Both are handled before argparse and **work without tree-sitter installed**,
   so an agent can learn what to install.
-* `build.py` builds `dist/claim-registry-0.2.0.pyz` deterministically (same
+* `build.py` builds `dist/claim-registry-0.3.0.pyz` deterministically (same
   sources → same sha256), runs the built artifact's `--describe`, and writes
   `TOOL.json` (describe + `artifact {file, sha256, size}`) and
-  `dist/claim-registry-0.2.0.pyz.sha256` (`"<sha>  <artifact filename>\n"`).
+  `dist/claim-registry-0.3.0.pyz.sha256` (`"<sha>  <artifact filename>\n"`).
 * Dependencies are exact-pinned in `TOOL.json`: `tree-sitter==0.26.0`,
   `tree-sitter-markdown==0.5.1`.  Every command except `--describe`,
   `--check-pin`, and `--help` checks them and fails loud with exit **2**,
@@ -125,6 +142,19 @@ exits 0 only when every check passes; a failed report always carries
   `{path, sha256, valid, finalized_unclaimed, complete_registry_claims,
   registry_hash}`, and the optional windows sha256.  Missing/unreadable inputs
   exit 2; malformed JSON or a non-canonical registry exits 1.
+* `manifest --slices S --slice-proposal C... --reconciliation R --proposals M`
+  seals canonical `claim-run-manifest/2` instead: the same `/1` keys plus a
+  mandatory `labeling` block (`claim-run-labeling/1`) recording the frame-slices
+  manifest, every child proposal (exactly one per slice, sorted by `slice_id`),
+  the merged proposals and the reconciliation report, with run-relative paths
+  and sha256 digests.  The producer refuses non-canonical inputs, incomplete or
+  foreign child sets, mismatched `input_sha256`, a non-complete reconciliation
+  report, or one that does not bind the given slices/merged file; top-level
+  `proposals` is exactly `[labeling.merged]`.  A sliced run is never emitted as
+  `/1`.  The gate-check unit replays the whole labeling block (span identity,
+  recipe partition/payload bytes, deterministic reconciliation, registry
+  ownership/grouping/rationales) and `--require-sliced` rejects a downgraded
+  `/1` manifest.
 * `SKILL.md` is the agent-facing invocation, verification, and failure-handling
   snippet for this unit.
 
@@ -370,8 +400,9 @@ missing owner is rejected and the permission flag stays false.
   old/new state mapping, no monotonicity checks, no similarity links.
 * Validator report artifact binding (validator version/hash, per-check output
   persistence) and state-binding checks (checklist item 10) are post-pilot.
-* The `windows` CLI derives manifests from registry units; context-only
-  ancestor-heading copies and cross-window proposal reconciliation are not
-  exercised in the pilot.
+* The legacy `windows` CLI (post-assembly context windows) is superseded for
+  large sources by the `frame-slices` + `proposal-reconcile` + `manifest /2`
+  path; context-only ancestor-heading copies remain reserved
+  (`context_only_ids` is always empty).
 * Full F1–F10 executable fixture harness and fleet budgets remain post-pilot
   per the spec.
