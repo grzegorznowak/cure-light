@@ -28,7 +28,7 @@ Read [libs/pi-driver/SKILL.md](../libs/pi-driver/SKILL.md) only if this runtime 
 
 ### 0. Run the quick requirements check (pi runtimes)
 
-If the pi notebook driver applies, run it first per `libs/pi-driver/references/requirements-check.md`. The check splits: pre-pull rows run now; the subject-tree rows defer to the Phase 0 gate once the tree exists — the check is complete only then. If any hard requirement is missing, stop before fleet cost or state the fallback. Never start a fleet on an unverified subject.
+If the pi notebook driver applies, run it first per `libs/pi-driver/references/requirements-check.md`. The check splits: pre-pull rows run now; the subject-tree rows defer to the Phase 0 gate once the tree exists — the check is complete only then. The pre-pull rows include pinned toolchain/deps readiness (producer 0.3.0, gate-check 0.2.0, census 0.1.0; python ≥3.11 + uv/venv + the exact tree-sitter pins). If any hard requirement is missing, stop before fleet cost or state the fallback. A missing producer dependency is a fail-loud stop (exit 2), never a fallback registry. Never start a fleet on an unverified subject.
 
 ### 1. Ask the intake fields once
 
@@ -50,14 +50,14 @@ Pull the tree under review BEFORE any analysis or orientation in the target repo
 
 ### 3. Compile the process
 
-From the intake fields, compile: the vector set and their fleet groups, the phase order and operator gates, the **planned subject mechanism** (chhound sandbox | plain worktree) and its planned location, the notebook pages (run frame + findings), and the output policy (what may be drafted, what waits). The research mode (chhound-rail | direct-tree — pipeline-model.md, research accelerator) is compiled from the planned mechanism and frozen with the frame; if the Phase 0 pull falls back from a planned rail to a plain worktree, the mode is re-recorded as `direct-tree` before Vector 1. Surface the compiled frame to the operator for confirmation before Phase 0 — the pre-pull gate approves the plan; the tree's reality (`subject_path` / `subject_oid`) is recorded at the Phase 0 gate.
+From the intake fields, compile: the vector set and their fleet groups, the phase order and operator gates, the **planned subject mechanism** (chhound sandbox | plain worktree) and its planned location, the notebook pages (run frame + findings), and the output policy (what may be drafted, what waits). The research mode (chhound-rail | direct-tree — pipeline-model.md, research accelerator) is compiled from the planned mechanism and frozen with the frame; if the Phase 0 pull falls back from a planned rail to a plain worktree, the mode is re-recorded as `direct-tree` before Vector 1. Surface the compiled frame to the operator for confirmation before Phase 0 — the pre-pull gate approves the plan; the tree's reality (`subject_path` / `subject_oid`) is recorded at the Phase 0 gate. The compiled frame also pins the Phase-0 toolchain: the engine's own `claim-registry` 0.3.0 / `gate-check` 0.2.0 / `census` 0.1.0 copies (version + sha256) and the expected labeling mode (`full` when every source fits ≤16 KiB raw / ≤80 units / ≤64 KiB complete worker input, else `sliced`). Subject-tree executables — including the subject's own `tools/` and demos — are never invoked (D4 invariant); they are reviewed content only.
 
 ## Phase order & gates
 
 ```text
 Intake → Requirements check (pre-pull rows; subject-tree rows defer to Phase 0)
   → [operator gate: frame] — approves the PLAN: subject mechanism (chhound sandbox | plain worktree) + planned location, vectors, gates, output policy; no tree fields yet
-  → Phase 0 pull subject + contract/claim capture + source-consistency pass → 0.3a changed-range census → 0.3b split compile → [gate: manifest records reality — subject_path / subject_oid, census counts, exclusions/budgets, consistency outcome; provisional repair defaults to pause before V1]
+  → Phase 0 pull subject + pinned producer (capture → frame / frame-slices → labeling children → proposal-reconcile → assemble → validate → manifest `/2` → gate-check) + source-consistency pass → 0.3a census `run` + `check` → 0.3b split compile → [gate: manifest records reality — subject_path / subject_oid, toolchain pins + gate report/permissions + registry hash + labeling mode, census hash/counts, exclusions/budgets, consistency outcome; provisional repair defaults to pause before V1]
   → Vector 1 conformance (flash; two-ended — claim adjudication + changed-unit accounting) → [gate: review_basis + repair status]
   → Deterministic preflight (type/dead + the state's symbol map)
   → Vector 2 implementation (code-review) → [gate]
@@ -95,6 +95,7 @@ Publish a closure table. See closure-verification.md.
 - **Pre-existing vs PR-introduced is a first-class classification**, decided by base-diff, not vibes — and scope routes the comment: introduced-or-enforced items are addressed, never deferred downstream; out-of-scope items are only recommended or suggested.
 - **Never draft external artifacts automatically.** The single review comment is operator-gated; the `before_post` gate is mandatory whenever drafting is enabled.
 - **Deferred is not closed.** Record it in the decisions page with rationale.
+- **Phase 0 mechanical artifacts are producer-owned and gate-checked.** The claim universe (capture → frame/frame-slices → labeling children → proposal-reconcile → assemble → validate → manifest) comes from the run's pinned `claim-registry` copy; `gate-check` exit 0 with both permission flags is the only authority for a complete registry, and `census run` + `check` supplies the coverage denominator. Zero run-authored compilers, no subject-tree executable, no hand-edited canonical file; a pin mismatch, exit 2 (missing/wrong pinned dependency), failed check, or projection hash mismatch stops Phase 0 (intake-and-scope.md §0.2/§0.3a).
 - **Fleets are budgeted.** Cap children, timeouts, output; serialize notebook writes via the coordinator.
 - **Lens coverage is a frame assertion.** The run frame must map every active lens to an owning pass (lens matrix, see hygiene-lens.md); a lens without an owner blocks the run.
 - **Optional passes are opt-in.** The yagni pass (over-engineering of the claimed delivery — not size accounting, yagni-pass.md) runs only when the operator enables it; a skipped pass deactivates its lens (matrix shows `off`, exempt from the coverage assertion).
