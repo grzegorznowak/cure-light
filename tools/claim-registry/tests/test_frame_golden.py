@@ -1,6 +1,7 @@
 """Golden frame acceptance gates (spec/reuse research).
 
-PR #17 body (/tmp/pr17-body-v2.md, 10,385 B): 29 block units + 22 separators.
+PR #17 body (committed fixture ``tests/fixtures/pr17-body-v2.md``, 10,385 B):
+29 block units + 22 separators.
 Plan doc (contract-adequacy-validation-plan.md, 10,428 B): the lenient
 prototype reported 56 blocks + 17 separators; the strict walker reports 56
 blocks + 11 separators.  The difference is not fudged - it is the strict span

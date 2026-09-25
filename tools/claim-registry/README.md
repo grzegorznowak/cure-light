@@ -17,7 +17,7 @@ machine schema and independent validator" required by the spec's pilot scope
 or the full fixture harness.
 
 No git repository, branch, PR or review artifact was touched; all artifacts
-live here and in `/tmp` scratch.
+live here and the test fixtures are committed in-tree.
 
 ## Layout
 
@@ -334,8 +334,8 @@ tamper rejection, repeatable `--proposals` merge, build determinism,
 
 Golden frames (tested):
 
-* `/tmp/pr17-body-v2.md` (10,385 B, sha256 `10b5b301…`) → **29 block units +
-  22 separators**, covered 10,385 B, 3 runs byte-identical.
+* `tests/fixtures/pr17-body-v2.md` (10,385 B, sha256 `10b5b301…`) → **29 block
+  units + 22 separators**, covered 10,385 B, 3 runs byte-identical.
 * `.../contract-adequacy-validation-plan.md` (10,428 B, sha256 `62460fba…`) →
   **56 blocks + 11 separators**, covered 10,428 B; the delta vs the prototype's
   17 is explained above.
