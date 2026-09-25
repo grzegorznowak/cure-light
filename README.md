@@ -7,14 +7,16 @@
 > closure loop.
 
 cure-light encodes the three-vector method: **conformance** (does the code deliver
-what the PR claims?), **implementation** (does the shipped code work?), **debt**
+what the PR claims — and is every changed unit accounted for?),
+**implementation** (does the shipped code work?), **debt**
 (is the way it's built sustainable?). A cross-cutting **lens** dimension forces
 coverage of the code-hygiene family (dead code, strict-type hygiene, readability,
 naming) — detected by named lens atoms and accelerated by the repo's
 own deterministic tooling where cheap — the full sweep runs when Vectors 2-3 do,
 and a V1-only shortcut still exercises the mechanical `type`/`dead` preflight
-(pipeline-model.md). An optional **yagni** pass challenges the PR's size and
-speculative surface when the operator enables it (yagni-pass.md), and a
+(pipeline-model.md). An optional **yagni** pass challenges over-engineering of
+the claimed delivery — unnecessary mechanisms and speculative surface — when
+the operator enables it (yagni-pass.md), and a
 V3-owned **quality** lens judges maintainable shape, suite strength, and
 consistency by best absolute judgment (quality-lens.md); a V2-owned **blast**
 lens asks what existing data and call sites will meet the change — uninspected
@@ -43,6 +45,7 @@ cure-light/
 ├── assets/                   ← finding-schema.json, child-pass-prompt-template
 ├── docs/
 │   ├── example-review.md      ← worked run (PR #27)
+│   ├── contract-adequacy-validation-plan.md  ← fixture-based validation scenarios
 │   └── OPEN-ISSUES.md         ← known open model conflicts
 └── CHANGELOG.md
 ```
@@ -110,6 +113,11 @@ Vector 1 without re-reading the kernel. See `libs/pi-driver/SKILL.md`.
   mode; lens hits (hygiene, blast) route to the lens trail (LOW,
   operator-suppressible), never pollute the bug trail — but every active lens is
   always rendered in the matrix and checked, never silently skipped.
+- **Contract adequacy is explicit.** In-diff intent counts only when the PR
+  explicitly designates it; a material contradiction between captured sources
+  pauses the run before Vector 1, and ordinary continuation needs a recorded
+  `review_basis` (`ready` / `limited-only` / `blocked` / `unknown`) with no
+  outstanding repair — an accounting pass is not by itself a readiness verdict.
 - **One comment per run, operator-gated.** Finalization drafts one aggregated
   review comment when the operator enables `draft_comment`; the `before_post`
   gate is enforced whenever drafting is on. After a deliberate re-pull, closure

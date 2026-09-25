@@ -1,0 +1,267 @@
+{
+  "$defs": {
+    "payload_ref": {
+      "additionalProperties": false,
+      "properties": {
+        "byte_length": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "path": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256",
+        "byte_length"
+      ],
+      "type": "object"
+    },
+    "slice": {
+      "additionalProperties": false,
+      "properties": {
+        "context_only_ids": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "core_ids": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "input": {
+          "$ref": "#/$defs/payload_ref"
+        },
+        "overlap_ids": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "slice_id": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "source_ref": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "slice_id",
+        "source_ref",
+        "core_ids",
+        "overlap_ids",
+        "context_only_ids",
+        "input"
+      ],
+      "type": "object"
+    },
+    "source": {
+      "additionalProperties": false,
+      "properties": {
+        "byte_length": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "source_ref": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "units": {
+          "items": {
+            "$ref": "#/$defs/unit"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "source_ref",
+        "sha256",
+        "byte_length",
+        "units"
+      ],
+      "type": "object"
+    },
+    "unit": {
+      "additionalProperties": false,
+      "properties": {
+        "ancestor_refs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "end": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "kind": {
+          "enum": [
+            "atx_heading",
+            "fenced_code_block",
+            "html_block",
+            "indented_code_block",
+            "link_reference_definition",
+            "list_item",
+            "minus_metadata",
+            "paragraph",
+            "pipe_table_delimiter_row",
+            "pipe_table_header",
+            "pipe_table_row",
+            "plus_metadata",
+            "separator",
+            "setext_heading",
+            "thematic_break"
+          ]
+        },
+        "ordinal": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "source_ref": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "start": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "unit_id": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "unit_id",
+        "source_ref",
+        "ordinal",
+        "kind",
+        "start",
+        "end",
+        "sha256",
+        "ancestor_refs"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "urn:cure-light:frame-slices/1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Sliced labeling manifest for a verified capture set: complete global unit tables plus bounded byte-exact slice payload references.  captures_sha256 = sha256(canonical claim-json/1 of the source identity records sorted by source_ref UTF-8), where each identity record is the capture-manifest source record without its file key.",
+  "properties": {
+    "captures_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "frame_recipe": {
+      "type": "object"
+    },
+    "frame_recipe_hash": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "frame-slices/1"
+    },
+    "slice_recipe": {
+      "additionalProperties": false,
+      "properties": {
+        "algorithm": {
+          "const": "greedy-largest-core/1"
+        },
+        "instructions_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "instructions_version": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "max_bytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "max_input_bytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "max_slices": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "max_units": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "overlap_units": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "version": {
+          "const": "claim-registry-slice/1"
+        }
+      },
+      "required": [
+        "version",
+        "algorithm",
+        "max_bytes",
+        "max_units",
+        "max_input_bytes",
+        "overlap_units",
+        "max_slices",
+        "instructions_version",
+        "instructions_sha256"
+      ],
+      "type": "object"
+    },
+    "slice_recipe_hash": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "slices": {
+      "items": {
+        "$ref": "#/$defs/slice"
+      },
+      "type": "array"
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/$defs/source"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "captures_sha256",
+    "frame_recipe",
+    "frame_recipe_hash",
+    "slice_recipe",
+    "slice_recipe_hash",
+    "sources",
+    "slices"
+  ],
+  "title": "frame-slices/1",
+  "type": "object"
+}

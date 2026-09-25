@@ -16,8 +16,9 @@ re-read every cited line in the subject tree at {SUBJECT_OID}, and let no map ro
 decide a consumer or a verdict.
 Then read the assigned files: {file_list}.
 Then read the diff slices for your surface: {diff_paths} (base..subject).
+{coverage}
 
-YOUR ANGLE: {angle}. Inspect completely and report per
+YOUR ANGLE: {angle}. Inspect completely within your declared assignment and report per
 {return}.
 
 YOUR LENSES: {lenses}. Run each lens checklist from
@@ -35,13 +36,16 @@ names, the namespace binding, the fallback rule, and the mandatory RESEARCH TRAC
 footer. MCP output is discovery only — every cited line is re-read in the
 subject tree at {SUBJECT_OID} before it becomes evidence.
 
-Your contract is the verbatim locked decisions + PR description — never a
-summary of intent. Cite file:line in the subject tree. Do NOT run tests unless
-told; do NOT propose large refactors; keep style mentions on the lens trail
-(unrouted style noise is dropped).
+Your contract is the verbatim captured sources — PR description/title, linked
+issue + locked decisions, and any explicitly designated in-diff source — never
+a summary of intent or an unpointed lookalike. A source clause states an
+expectation; its own bytes never verify its delivery (`declares` is source
+provenance, not an EXPLAINED edge). Cite file:line in the subject tree. Do NOT
+run tests unless told; do NOT propose large refactors; keep style mentions on
+the lens trail (unrouted style noise is dropped).
 
-Return: a numbered list of findings plus a closing for any surface you check and
-clear, per {return}; include the RESEARCH TRACE footer when {research_protocol}
+Return per {return}: the vector's blocks/rows, plus a closing for any surface you
+check and clear; include the RESEARCH TRACE footer when {research_protocol}
 is present.
 Under {budget} lines.
 ```
@@ -54,14 +58,23 @@ Under {budget} lines.
 | SUBJECT_PATH | the subject tree root (sandbox or worktree dir) — run manifest `subject_path` |
 | SUBJECT_OID | run manifest subject_oid |
 | owner/repo | the review target `<owner>/<repo>` (intake `owner/repo`) — Variants A/C subject description |
-| contract_ref | run-manifest `contract_ref`: the notebook page `contract-<owner>-<pr>-s<n>` (pi runs) or the disk CONTRACT slice (fallback runs) |
+| contract_ref | run-manifest `contract_ref`: the notebook page `contract-<owner>-<pr>-s<n>` (captured sources incl. designated in-diff sources; pi runs) or the disk CONTRACT slice (fallback runs) |
 | symbol_map_ref | run manifest `symbol_sweep` — the state's symbol map ref (notebook page `symbol-map-<owner>-<pr>-s<n>` on pi runs; scratch path in fallback runs) |
 | file_list | the assigned files for this surface/split |
 | diff_paths | the focused diff hunks for the surface |
 | angle | the surface (conformance) / sealed invariant (implementation) / bigger concept (debt) / functionality unit (yagni) |
 | lenses | the lens list this split owns, from the run lens matrix (pipeline-model.md; checklists per owning reference: hygiene-lens.md, blast-lens.md, quality-lens.md, yagni-pass.md) |
-| return | from the pass contract: `VERIFIED/GAP/NONE`, `[F] file:line`, `[D] concept`; yagni: `SIZE` / `[Y]` / `NOT-YAGNI` (yagni-pass.md) |
+| return | from the pass contract: conformance: claim block + unit block + `CLOSE` (conformance-pass.md); implementation/debt: `[F] file:line`, `[D] concept`; yagni: `ENGINEERING` / `[Y]` / `NOT-YAGNI` (yagni-pass.md) |
 | budget | output-size cap (lines); enforced; truncation = inconclusive |
+| coverage | the vector's coverage block (below): V1 assignment + return shape; yagni scoring inputs; omitted for V2/V3 |
+| claim_directory_ref | run manifest `coverage.claims_ref` — the paged **canonical-registry projection** `claims-<owner>-<pr>-s<n>` (identical claim IDs/counts/`registry_hash`; intake-and-scope.md §0.2) |
+| claim_gate_ref | run manifest `claims.gate_permission` + `toolchain.gate.report_ref` — the pinned `gate-check` report ref, both permission flags and the canonical `registry_hash` the claim directory was projected from; a directory without this permission is not usable for negative attribution |
+| claim_ids | the canonical producer claim IDs assigned to this shard (V1) / the unit's matrix rows (yagni) — never coordinator-renumbered |
+| unit_ids | the changed-unit/range IDs assigned to this shard (V1) |
+| candidate_scope | the alternate claim/attribution scope to check before returning `UNCLAIMED_CANDIDATE` |
+| authorized_scope | the V1 gate's recorded allowed next scope + explicit omissions (`review_basis` record, conformance-pass.md) — rendered into V2/V3 prompts; expands nothing |
+| coverage_ref | the state's coverage summary page + the ledger shard pages for this assignment (notebook-plan-contract.md) |
+| assignment_digest | coordinator-computed digest of this shard's assignment (claims + units + contract/ledger refs) |
 | research_protocol | run-manifest `research` block rendered per the variants below (Vector 2: Variant A; Vector 3: Variant C; Vector 1/yagni: omitted) |
 | ch_prefix | the frame's registered `chh_*` prefix in rail mode; `none` in direct-tree |
 | ch_daemon_status_tool / ch_code_research_tool / ch_search_tool | `{ch_prefix}_daemon_status` / `_code_research` / `_search` — exact registered names |
@@ -71,17 +84,80 @@ Under {budget} lines.
 ## Child contract invariants (always)
 
 1. Analyze the **subject tree** at {SUBJECT_PATH} only; every row carries `subject_oid`; a tree whose HEAD differs from {SUBJECT_OID} is `inconclusive` (should not happen — the tree is stable for the state).
-2. Compare against the **verbatim** contract, never a paraphrase.
+2. Compare against the **verbatim** captured sources and their designation/interpretation, never a paraphrase or an unpointed lookalike.
 3. Evidence = file:line in the subject tree, plus base evidence for origin (Vector 2+).
 4. No **unrouted** style nits, no redesign, no unrequested tests. Style hits go to the lens trail.
 5. Explicitly label `NOT-A-BUG` when a checked suspicion clears — that keeps the coordinator from re-checking.
 6. Return compact records; do not write the notebook (coordinator owns writes).
 7. When {research_protocol} is present, run it and close with the RESEARCH TRACE footer; a missing trace is `inconclusive`, never a pass.
+8. Vector 1: close with `CLOSE <assignment digest> — processed n/total`. An absent unit, digest mismatch, or missing claim verdict stays unresolved; `NONE` never substitutes for accounting. The complete claim directory must be queryable before any negative attribution — read the scope you need; insufficient access means `UNRESOLVED`, not `UNCLAIMED`. The directory is usable only under the state's `gate-check` permission ({claim_gate_ref}); without it every affected unit stays `UNRESOLVED`. Before returning `UNCLAIMED_CANDIDATE`, check every qualifying designated in-diff clause; a doc/spec unit is explained only through `documents/specifies` against an independent purpose/target anchor (conformance-pass.md).
 
 ## Given budget & cost
 
 - Set a per-child timeout and line budget at spawn. Over-budget or timed-out output is recorded as `inconclusive`, never `pass`.
 - The coordinator fans out children per vector with a concurrency cap and merges their records into the findings page.
+
+## Labeling children (Phase 0) — separate binding
+
+Phase-0 labeling children are **not** vector children and do not use the vector
+template. The coordinator spawns them under
+`tools/claim-registry/references/labeling-child-prompt.md`, bound to the run's
+pinned `claim-registry` 0.3.0: a whole-source child receives the framed source
+(within ≤16 KiB raw / ≤80 units / ≤64 KiB complete worker input) and returns
+`claim-proposals/1`; a bounded child receives one `frame-slice-input/1` payload
+(exact unit text + `core_ids` / `overlap_ids`) and returns `slice-proposals/1`
+(core assignments over core non-separators only, overlap votes, per-adjacency
+grouping votes, left/right boundary). Children never run the tools, compute
+IDs/hashes, reconcile, or write the registry — the coordinator runs the pinned
+toolchain, and the slice budget caps the child count (≤32 slices default,
+≤4 concurrent; an oversized indivisible unit stops the run).
+
+## Coverage block variants (filler for {coverage})
+
+Vector 1 always fills the slot; the yagni pass fills it with its coverage
+inputs; V2/V3 add no coverage-assignment block — their matrix-projection /
+prior-vector facts travel with the prior findings and contract slots, and their
+`{return}` is unchanged. The coordinator still renders the V1 gate's
+**authorized scope + explicit omissions** into every V2/V3 prompt
+(`{authorized_scope}`, from the `review_basis` record — conformance-pass.md):
+a child may not widen beyond the recorded scope.
+
+### Vector 1 — assignment + accounting
+
+```text
+COVERAGE ASSIGNMENT (required — Vector 1)
+You own claims {claim_ids} and changed-unit ranges {unit_ids} from the state's
+coverage page {coverage_ref}; one accounting owner per unit, one verdict owner
+per claim. Input digest: {assignment_digest}.
+The captured contract is verbatim at {contract_ref}; the complete claim
+directory is paged at {claim_directory_ref} — read the pages you need; your
+local contract slice is never the whole universe. Claim IDs are the producer's
+canonical IDs ({claim_gate_ref}: pinned `gate-check` report, both permissions
+true, projected `registry_hash`) — never renumber, paraphrase or invent one;
+a directory without that permission is unusable for negative attribution.
+Designated in-diff clauses are ordinary claim sources with recorded
+provenance — never evidence that their own deliverable exists. Before returning
+UNCLAIMED_CANDIDATE for a unit, check the candidate scope {candidate_scope}
+(alternate claims / attribution surfaces, including qualifying designated
+in-diff clauses); insufficient access → UNRESOLVED.
+Return per conformance-pass.md: claim block (VERIFIED / GAP / INCONCLUSIVE)
+plus unit block (ATTRIBUTED / UNCLAIMED_CANDIDATE / EXCLUSION_REQUEST /
+UNRESOLVED), closed by CLOSE <digest> — processed n/total, returned, remaining.
+A unit state is an accounting record, not a finding; NONE is never used in
+place of a record.
+```
+
+### Yagni — scoring inputs
+
+```text
+COVERAGE INPUTS (yagni)
+Read your unit's EXPLAINED range groups from {coverage_ref} — which behavior
+each range was accepted to deliver — and the claim-matrix rows for {claim_ids}.
+Leads only: re-read the code in the subject tree; do not re-adjudicate
+attribution or coverage ownership, and do not treat a claim GAP as excluding
+its explained ranges. The full contract is at {contract_ref}. Return per
+yagni-pass.md: ENGINEERING JUSTIFIED/CHALLENGED, Y rows, NOT-YAGNI, NONE.
+```
 
 ## Research protocol variants (filler for {research_protocol})
 
@@ -210,6 +286,8 @@ header (selected / dropped / operator-added symbols, census scope + command,
 completion, rail triage marked discovery-only) + the heat table `symbol | change |
 total | in-diff | outside | outside locations (capped) | note` — chunk dumps and
 pagination stay inside the child; the coordinator writes the map to `{symbol_map_ref}`.
+It may reuse the state's changed-range inventory (hash/recipe identity) but still
+runs its own census; symbol coverage never clears V1 attribution or vice versa.
 
 ### Shadow control (only when the operator opts in)
 

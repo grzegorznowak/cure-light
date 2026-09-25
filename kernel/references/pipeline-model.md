@@ -4,7 +4,7 @@ cure-light reviews a pull request through **three independent vectors**. Each an
 
 | Vector | Question | Fleet group | Focus |
 |---|---|---|---|
-| 1. Conformance | Does the code deliver what the PR *claims* it delivers? | `flash` | PR description + issue + locked decisions → code |
+| 1. Conformance | Does the code deliver what the PR *claims* it delivers — and is every changed unit accounted for against the contract? | `flash` | Two ends: claim adjudication (captured sources — PR description + issue + locked decisions + explicitly designated in-diff sources → code) and changed-unit accounting (census ranges/events → claims) |
 | 2. Implementation | Does the shipped code actually *work* safely? | `code-review` | Sealed concepts / invariants, drilling from established facts |
 | 3. Debt | Is the *way* it's built sustainable? | `code-review` | Bigger concepts, future-change cost, not line-by-line |
 
@@ -16,10 +16,10 @@ cure-light reviews a pull request through **three independent vectors**. Each an
 ## Sequenced, gated
 
 ```text
-Intake → Phase 0 → Vector 1 → Deterministic preflight → Vector 2 → Vector 3 → Output (single review comment) → Closure loop (after a deliberate re-pull)
+Intake → Phase 0 (pull + pinned producer: batch capture → frame/frame-slices → labeling children → proposal-reconcile → assemble → validate → manifest `/2` → gate-check → source-consistency pass → 0.3a census `run`+`check` → 0.3b capacity-bounded split compile, presented at the Phase-0 gate; a provisional `repair_required` defaults to pause before Vector 1) → Vector 1 (two-ended: claim adjudication + changed-unit accounting) → [gate: `review_basis` + repair status] → Deterministic preflight → Vector 2 → Vector 3 → Output (single review comment) → Closure loop (after a deliberate re-pull or contract repair)
 ```
 
-- Vector 2 runs only when Vector 1 has a clean/accepted disposition (or the operator explicitly allows skipping).
+- Vector 2 runs only when the V1 gate recorded `review_basis: ready` with no outstanding `repair_required` — or the operator explicitly authorizes a named limited scope (exact accepted basis + omissions) or an explicit skip. `limited-only`/`blocked`/`unknown` never continue as ordinary V2; V3 and skip routes observe the same boundary.
 - Vector 3 runs only when the implementation evidence is stable.
 - The operator gates between phases. No autonomous new-commit loops.
 
@@ -32,6 +32,10 @@ Intake → Phase 0 → Vector 1 → Deterministic preflight → Vector 2 → Vec
 5. **Inconclusive = no pass.** A child timeout/truncation means the finding is unverified, not accepted.
 6. **Fleets are budgeted.** Per-phase child counts, timeouts, output caps, and a cheap re-review path (delta-only) are mandatory.
 7. **Review is diagnostic.** cure-light proposes; the operator gates the single external review comment (see evidence-format.md, External routing).
+8. **Coverage completeness is asserted per run.** Vector 1 owes two obligations: a verdict for every captured claim, and exactly one accounting state for every eligible changed unit (conformance-pass.md). The run reports four distinct completion flags — enumeration, accounting, attribution, claim conformance — and keeps mechanical completeness separate from semantic judgment: `UNRESOLVED` residue is disclosed and requires explicit operator acceptance at the gate, never a silent pass.
+9. **Vector 1 coverage is a frame assertion, separate from the lens table.** The run must map an owner for every claim and every eligible changed unit (intake-and-scope.md §0.3); the lens table proves only that each active lens has an owning pass. A claim or unit without an owner is a frame error, like an unowned lens.
+10. **Contract adequacy gates continuation.** A bounded source-consistency pass after claim capture pauses the run before Vector 1 on a witnessed material contradiction unless the operator records a named evidence-only V1 authorization (intake-and-scope.md §0.2/§0.4); any other `repair_required` defect (missing designation/orientation) defaults to the same repair pause. After Vector 1 the coordinator records `review_basis` (`ready` / `limited-only` / `blocked` / `unknown`) plus any outstanding `repair_required` status before the V1 gate (conformance-pass.md). Sources enter the contract only by explicit designation; convention interprets, never authorizes. A contract repair — including a body-only edit with an unchanged subject OID — is a new review state, never an in-place reconciliation. This is a gate classification, not a fourth vector, lens, finding kind or comment section.
+11. **Mechanical permission and semantic judgment are separate records.** The Phase-0 producer computes IDs/spans/hashes and canonical bytes; `gate-check` grants `finalized_unclaimed` / `complete_registry_claims` mechanically; `census` supplies the coverage denominator. None of that judges claim semantics, source coherence or review adequacy. Designation/consistency outcomes, `review_basis` and every claim verdict are agentic judgments recorded separately and bound to the mechanical pins. **Gate timing:** the producer's sealed artifacts and the `gate-check` permission must exist before the Phase-0 gate (with the 0.3a `census run`+`check`); a missing permission blocks the gate, and a mechanical pass never substitutes for the semantic consistency pass or an adequate contract (intake-and-scope.md §0.2–§0.4).
 
 ## The research accelerator (cross-cutting; Vector 2 + Vector 3)
 
@@ -82,11 +86,12 @@ Rules:
    symbol map may surface as the comment's `Symbol impact` section
    (chhound-driver.md / evidence-format.md).
 
-## Optional pass: yagni (size / YAGNI)
+## Optional pass: yagni (over-engineering / YAGNI)
 
 Beyond the three vectors sits one **optional, vector-shaped pass**: yagni — is
-the PR's physical size in lines changed justified by its contract, and what is
-YAGNI? It runs only when the operator enables it (intake checkbox or on-demand
+the engineering used to deliver the claimed behavior justified, or over-built?
+It owns no size accounting — that is Vector 1's changed-unit accounting
+(yagni-pass.md). It runs only when the operator enables it (intake checkbox or on-demand
 after the Vector 3 gate), post-handoff in a fresh context, on the same run manifest and subject tree. It owns the `yagni` lens while active (yagni-pass.md); when skipped,
 that lens is inactive (`off`) and needs no owner. Hits route to the lens trail,
 never the bug/debt table.

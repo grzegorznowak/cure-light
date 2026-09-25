@@ -14,7 +14,9 @@ By **sealed concept / invariant** — each child owns one data flow or invariant
 - orchestration / TUI escaping, focus, state retention
 - test integrity (would a regression stay green?)
 
-The split is derived from the Vector 1 matrix — you drill into the surfaces that carry contract weight, not every line.
+The split is derived from the V1 **matrix projection** — the adjudicated claims/invariants with their implementation/test anchors, the relevant coverage refs and carried uncertainty (conformance-pass.md, Artifacts) — paged and bounded: read only the projection rows and coverage slices your concept needs, never the coverage-ledger bulk, and never one child per changed unit/hunk.
+
+The projection has a second consequence. `UNCLAIMED` groups stay Vector 1's accounting: disclosed uncertainty, not an automatic V2 lane and not an invariant source. The gate result compiles the split: only named, grounded invariants become children — the compiler refuses a split with no adjudicated invariant, and when the V1 gate recorded `limited-only`/`blocked`/`unknown` or an outstanding `repair_required`, only the operator's exact named authorization may proceed. A thin or empty contract — or a projection with no adjudicated invariant worth a split — stops V2 planning at the gate: the operator requests author scope, skips or explicitly limits Vector 2, or approves a specifically evidenced invariant to review. An unmet but clear requirement remains a valid invariant (a GAP is an excellent anchor); a docs-only deliverable is never forced into a code invariant, and V3/skip routes cannot expand the authorized scope.
 
 ## Subsystem research protocol (Vector 2)
 

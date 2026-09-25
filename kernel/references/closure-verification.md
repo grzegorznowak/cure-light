@@ -10,7 +10,7 @@ Closure runs after a deliberate re-pull (the operator decides at the gate; the c
 git -C <subject-path> rev-parse HEAD   → the new state's subject_oid
 ```
 
-The delta is `git diff <last-reviewed subject_oid>..<new subject_oid>` — old findings re-validated against the new tree, never against an assumed remote tip. If the subject did not change, say so (no work has been pulled) or wait. Old-state content is read at its own OID (`git show <old_subject_oid>:<path>`) — the working tree holds the new subject only.
+The code delta is `git diff <last-reviewed subject_oid>..<new subject_oid>` — old findings re-validated against the new tree, never against an assumed remote tip. If the subject did not change **and** the captured contract did not change, say so (no work has been pulled — no code and no contract change) or wait. A changed PR body/issue/locked decision with an unchanged subject OID is **contract-only repair**: no code work is pulled, but it is still a new review state — recapture the contract snapshot and recompile the claim registry with the pinned producer (batch capture → frame/frame-slices → labeling → proposal-reconcile → assemble → validate → manifest → `gate-check`), recompile affected claim verdicts/attributions/projections, and reuse only the identity-checked mechanical census; the delta under review is the contract delta, never an edited claims page or an inherited registry. An in-diff source repair normally changes the subject OID even when executable code bytes are unchanged, and gets the same new-state treatment on the new `base..subject` pair. Old-state content is read at its own OID (`git show <old_subject_oid>:<path>`) — the working tree holds the new subject only.
 
 ## 2. Map findings → touched paths
 
@@ -33,6 +33,8 @@ For every open finding (and every `deferred-decision` the implementer claims to 
 | `deferred-decision` | acknowledged but knowingly unfixed | recorded decision + rationale, NOT presented as fixed |
 | `closed-by-operator` | operator suppressed it (e.g. "don't re-raise X") | never re-raised unless new evidence outside the decision's scope |
 | `re-opened` | prior proof no longer holds, or regression introduced | concrete new evidence |
+
+Contract repair re-enters the loop the same way — as a new state with a new contract snapshot, not an in-place reconciliation. Prior evidence stays historically cited (its own `subject_oid`/source hash), never silently closed; **code-unchanged findings stay open unless specifically reclassified on valid new authority** — a body/spec repair never counts as fixing code. When the doc/spec unit is itself the designated deliverable, its closure is judged on its own anchor evidence (recaptured contract + the actual doc delta), not as a "doc-only" acknowledgement of an implementation finding.
 
 ## 5. Publish a closure table
 
@@ -57,7 +59,31 @@ section; old-state counts are never carried into a new-state comment.
 - **Unchanged code cannot be green.** A "fixed" claim with no diff = re-open.
 - **Do not present decision-deferrals as fixes.** "Locked as intentional" is a decision, not a fix — record it and surface the decision author to the operator.
 - **Do not resurrect closed-by-operator items** unless the operator reopens them or new evidence clearly falls outside the suppression scope.
-- **Doc/test-only closures are acknowledged as such**, so the operator knows the behavior itself is untouched.
+- **Doc/test-only closures are acknowledged as such**, so the operator knows the behavior itself is untouched — and a contract-only repair never flips a code finding green.
+- **A fresh manifest per state; no inherited negatives.** A contract-only repair (or any new state) recompiles and re-seals: new capture/registry/manifest hashes and a new `gate-check` permission under the pinned tool versions + sha256, with tool/dependency pins re-verified for the state. An old state's permission, zero-error report, census or "no gaps" verdict never carries into the new state — only identity-checked mechanical inputs may be reused, and never as coverage of the new contract.
+
+## Coverage in closure
+
+A closure run is a new review state: the prior state's coverage pages describe
+their own `subject_oid`, and the delta loop above re-validates findings without
+re-running the Vector 1 census. Two rules keep that honest:
+
+- **New ranges are surfaced, or their absence is disclosed.** Compare the
+delta's added ranges against the old state's coverage page or its durable
+snapshot (`coverage-<owner>-<pr>-s<n>`, notebook-plan-contract.md — the durable
+snapshot in findings/decisions once retired): newly added
+unexplained ranges outside the finding-touched paths are either checked in the
+closure run or the closure render states plainly that V1 coverage was not
+re-run. Old dispositions are never presented as coverage of the new head —
+never claim new full coverage from them.
+- **Re-adjudication is per finding, on new pins.** Reclassify only against the new state's contract snapshot/source hash and validated census; a changed contract can affect every formerly unclaimed group, so affected claim verdicts and attributions are recompiled rather than inherited.
+- **`unclaimed-delivery` closes only through the contract.** When an author
+declaration/justification resolves such a finding, the PR body changed the
+captured contract: recapture it in the new state with the author declaration
+recorded as a source of that capture before closing the
+row, and record that basis with it. Never rewrite the contract silently, and
+never close the finding on silence. Removing the delivered behavior closes the
+row on the ordinary code+tests basis.
 
 ## Lens trail in closure
 

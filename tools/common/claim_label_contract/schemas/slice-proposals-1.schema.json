@@ -1,0 +1,241 @@
+{
+  "$id": "urn:cure-light:slice-proposals/1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "One child agent's answer for exactly one frame-slice-input/1: primary claim/nonclaim assignments owning only core nonseparator units, one overlap vote per overlap nonseparator, one grouping vote per mechanically enumerated visible nonseparator adjacency pair, and the slice's left/right boundary declarations.",
+  "properties": {
+    "assignments": {
+      "items": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "rationale": {
+                "type": "string"
+              },
+              "source_ref": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "state": {
+                "const": "claim"
+              },
+              "unit_ids": {
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            },
+            "required": [
+              "source_ref",
+              "unit_ids",
+              "state",
+              "rationale"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "label": {
+                "enum": [
+                  "advisory",
+                  "baseline",
+                  "context",
+                  "example"
+                ]
+              },
+              "rationale": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "role_ref": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "source_ref": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "state": {
+                "const": "nonclaim"
+              },
+              "unit_ids": {
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            },
+            "required": [
+              "source_ref",
+              "unit_ids",
+              "state",
+              "label",
+              "rationale",
+              "role_ref"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "type": "array"
+    },
+    "boundary": {
+      "additionalProperties": false,
+      "properties": {
+        "left": {
+          "enum": [
+            "clear",
+            "spanning",
+            "uncertain"
+          ]
+        },
+        "right": {
+          "enum": [
+            "clear",
+            "spanning",
+            "uncertain"
+          ]
+        }
+      },
+      "required": [
+        "left",
+        "right"
+      ],
+      "type": "object"
+    },
+    "grouping_votes": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "grouping": {
+            "enum": [
+              "same",
+              "separate",
+              "uncertain"
+            ]
+          },
+          "left_unit_id": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "rationale": {
+            "type": "string"
+          },
+          "right_unit_id": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "left_unit_id",
+          "right_unit_id",
+          "grouping",
+          "rationale"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "input_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "overlap_votes": {
+      "items": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "label": {
+                "type": "null"
+              },
+              "rationale": {
+                "type": "string"
+              },
+              "role_ref": {
+                "type": "null"
+              },
+              "state": {
+                "const": "claim"
+              },
+              "unit_id": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "unit_id",
+              "state",
+              "label",
+              "role_ref",
+              "rationale"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "label": {
+                "enum": [
+                  "advisory",
+                  "baseline",
+                  "context",
+                  "example"
+                ]
+              },
+              "rationale": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "role_ref": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "state": {
+                "const": "nonclaim"
+              },
+              "unit_id": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "unit_id",
+              "state",
+              "label",
+              "role_ref",
+              "rationale"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "slice-proposals/1"
+    },
+    "slice_id": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "slice_id",
+    "input_sha256",
+    "assignments",
+    "overlap_votes",
+    "grouping_votes",
+    "boundary"
+  ],
+  "title": "slice-proposals/1",
+  "type": "object"
+}

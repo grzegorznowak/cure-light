@@ -74,6 +74,13 @@ sweep that cannot run is `inconclusive-mechanical` in the trail
 
 ## Boundaries (dedupe map)
 
+- **V1 changed-unit accounting / coverage ledger** — which claim a changed range
+  *serves* is Vector 1's question; it is not outside-consumer inspection, and
+  attribution is not a correctness verdict. No V1 coverage state (`EXPLAINED` /
+  `UNCLAIMED` / `EXCLUDED` / `UNRESOLVED`) clears the `sweep` row or any `outside`
+  occurrence, and a coverage link never substitutes for tree-reading a consumer.
+  The concrete hazard instance still routes to Vector 2 as a bug-table finding at
+  its own severity.
 - **`dead` lens** — unused surface that never runs; `blast.data` is *existing
   data* reaching code that does run.
 - **`type` / `dead` preflight** — the compiler/lint net; the `sweep` row is a
