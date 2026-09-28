@@ -9,9 +9,11 @@
 ## Harness status
 
 The repo ships **no F1–F10 campaign harness**: no CI config and no build/test manifest for the validation scenarios.
-The pilot tool units under `tools/` (`claim-registry`, `gate-check`, `census`) ship with their own unit/E2E tests and a
-built-artifact demo, but this plan remains the deliverable for the scenarios; F1–F10 fixtures become executable only
-when the campaign harness is built — the implementation checkpoint in the converged direction §8.
+The prototype Python `tools/` units (`claim-registry`, `gate-check`, `census`) are **retired**; the Phase-0 mechanical substrate is now
+the standalone `cure_light_census` plugin (`@grzegorznowak/pi-cure-light-census@1.0.0` — `census_run` / `census_check` /
+`claims_prepare` / `claims_finalize` / `gate_check`), which ships with its own tests. This plan remains the deliverable for the scenarios;
+F1–F10 fixtures become executable only when the contract-adequacy campaign harness is built — the implementation checkpoint in the converged
+direction §8.
 
 ## Scenarios (F1–F5)
 
@@ -63,7 +65,7 @@ when the campaign harness is built — the implementation checkpoint in the conv
 | F9 | stale body rescued by a locked issue, and the inverse (half-assed body + authoritative package) | basis follows grounded sources; the description defect still records `repair_required` |
 | F10 | generated bulk + large `UNRESOLVED` residue | `EXCLUDED` only with evidence-linked policy; residue `UNRESOLVED`, basis `unknown` — not speculative `UNCLAIMED` |
 
-## Later execution (when the pilot tooling exists)
+## Later execution (when the contract-adequacy harness exists)
 
 Each fixture is exercised as a **synthetic target repo** (base commit → subject commit + a PR body/issue/locked-decision stub) plus **scripted
 Phase-0 inputs** (frame/manifest with contract-source pins and the Phase-0 gate decision), driving the pipeline only up to the gate under test

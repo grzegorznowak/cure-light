@@ -2,6 +2,14 @@
 
 ## Unreleased (working tree)
 
+### 2026-09-28 — Option A: the standalone `cure_light_census` plugin replaces the Python `tools/` prototype
+
+- **Phase-0 substrate** — census, claim capture and the gate now run through the installed single Pi tool `cure_light_census` (`@grzegorznowak/pi-cure-light-census@1.0.0`, Node ≥22.19; private GitHub Packages install with a classic PAT carrying `read:packages`): `census_run` / `census_check` (changed-range census), `claims_prepare` (bounded slices) → labeling children → `claims_finalize` (canonical `claim-registry/1`) → `gate_check`. Every call verifies the installed package against `dist/TOOL.json` (`describe_sha256`/`artifact.sha256`) and fails closed with `PIN_MISMATCH`; there is no artifact fetch, no `--check-pin`, no python/uv/venv/`tree-sitter`.
+- The Python `tools/` prototype (`claim-registry`, `gate-check`, `census`) is **retired** — no longer fetched, pinned or referenced; the engine-owned-tool rule (never the subject tree's `tools/`, never run-authored compilers/IDs) is preserved.
+- **Claim sources are Markdown-only**: the frame parser is `tree-sitter-markdown-block`; a designated non-Markdown source is captured as context with a stated limitation, never a claim source.
+- **Join/coverage boundary** — the plugin gates the **claim registry only**; the coordinator still owns the census↔claim join and the §7 coverage ledger.
+- **Docs** — `requirements-check.md` rows 10–11, `notebook-plan-contract.md` frame/claims/artifact-store rules, `KICKOFF.md` §8 + Phase-0 flow, `child-pass-prompt-template.md` labeling/`gate_check` slots, and `docs/contract-adequacy-validation-plan.md` re-pointed to the plugin; all policy/gate semantics unchanged.
+
 ### v0.5.13 — contract adequacy: designated sources, pre-V1 consistency pause, review-basis gate
 
 **kernel/**
