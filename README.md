@@ -116,8 +116,9 @@ Vector 1 without re-reading the kernel. See `libs/pi-driver/SKILL.md`.
 - **Contract adequacy is explicit.** In-diff intent counts only when the PR
   explicitly designates it; a material contradiction between captured sources
   pauses the run before Vector 1, and ordinary continuation needs a recorded
-  `review_basis` (`ready` / `limited-only` / `blocked` / `unknown`) with no
-  outstanding repair — an accounting pass is not by itself a readiness verdict.
+  `review_basis: ready` with no outstanding repair — any other disposition
+  needs an explicit, named operator authorization; an accounting pass is not
+  by itself a readiness verdict.
 - **One comment per run, operator-gated.** Finalization drafts one aggregated
   review comment when the operator enables `draft_comment`; the `before_post`
   gate is enforced whenever drafting is on. After a deliberate re-pull, closure

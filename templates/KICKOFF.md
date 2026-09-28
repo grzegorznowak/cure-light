@@ -79,7 +79,7 @@ report the output.
   `PIN_MISMATCH`; the run exposes the five actions `census_run`/`census_check`,
   `claims_prepare`/`claims_finalize`, `gate_check`, and never executes the subject
   tree's `tools/` (reviewed content only).
-- **Producer/labeling time**: whole-source labeling costs one child call per designated
+- **Labeling time**: whole-source labeling costs one child call per designated
   source that fits the caps (≤16 KiB raw / ≤80 units / ≤64 KiB complete worker input);
   larger sources use bounded slices — one child call per ≤16 KiB / ≤80-unit slice
   (≤32 slices default, ≤4 concurrent, plus corrected/boundary calls). Tool compute is

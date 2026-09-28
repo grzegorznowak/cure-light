@@ -62,7 +62,7 @@ A docs-only PR that updates the actual specification is a **real deliverable**: 
 |---|---|
 | `EXPLAINED` | at least one validated attribution edge to a captured claim (many edges allowed) — roles `implements` / `tests` / `necessary-support` / `removes/changes` / `documents/specifies`; source provenance (`declares`) is not an edge |
 | `UNCLAIMED` | inspected delivered change with no defensible clause in the *captured contract*, after the documented claim-directory check: the child returns `UNCLAIMED_CANDIDATE`, the coordinator finalizes after an alternate-surface check |
-| `EXCLUDED` | explicit approved waiver of attribution (generated/vendor/whitespace bulk, …), recorded with class, exact units, evidence, producer/source linkage, rationale and policy — a path suffix alone is never sufficient |
+| `EXCLUDED` | explicit approved waiver of attribution (generated/vendor/whitespace bulk, …), recorded with class, exact units, evidence, generator/source linkage, rationale and policy — a path suffix alone is never sufficient |
 | `UNRESOLVED` | initial / unread / truncated / disputed / failed — never quietly relabeled |
 
 Unclaimed is **not** "no lexical match", "no owner assigned", or child silence: if contract-search breadth is inadequate, the unit stays `UNRESOLVED`. Exclusions are waivers of attribution, never assertions of correctness — lock/dependency/security changes and hand-authored behavioral fixtures stay reviewable. Unknown formats and parser errors stay `UNRESOLVED`.
