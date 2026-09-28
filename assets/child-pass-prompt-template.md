@@ -69,7 +69,7 @@ Under {budget} lines.
 | coverage | the vector's coverage block (below): V1 assignment + return shape; yagni scoring inputs; omitted for V2/V3 |
 | claim_directory_ref | run manifest `coverage.claims_ref` — the paged **canonical-registry projection** `claims-<owner>-<pr>-s<n>` (identical claim IDs/counts/`registry_hash`; intake-and-scope.md §0.2) |
 | claim_gate_ref | run manifest `claims.gate_permission` + `toolchain.gate.report_ref` — the pinned `gate_check` report ref, both coverage booleans and the canonical `registry_hash` the claim directory was projected from; a directory without this permission is not usable for negative attribution |
-| claim_ids | the canonical producer claim IDs assigned to this shard (V1) / the unit's matrix rows (yagni) — never coordinator-renumbered |
+| claim_ids | the canonical claim IDs assigned to this shard (V1) / the unit's matrix rows (yagni) — never coordinator-renumbered |
 | unit_ids | the changed-unit/range IDs assigned to this shard (V1) |
 | candidate_scope | the alternate claim/attribution scope to check before returning `UNCLAIMED_CANDIDATE` |
 | authorized_scope | the V1 gate's recorded allowed next scope + explicit omissions (`review_basis` record, conformance-pass.md) — rendered into V2/V3 prompts; expands nothing |
@@ -131,8 +131,7 @@ coverage page {coverage_ref}; one accounting owner per unit, one verdict owner
 per claim. Input digest: {assignment_digest}.
 The captured contract is verbatim at {contract_ref}; the complete claim
 directory is paged at {claim_directory_ref} — read the pages you need; your
-local contract slice is never the whole universe. Claim IDs are the producer's
-canonical IDs ({claim_gate_ref}: pinned `gate_check` report, both coverage
+local contract slice is never the whole universe. Claim IDs are the canonical tool IDs ({claim_gate_ref}: pinned `gate_check` report, both coverage
 booleans true, projected `registry_hash`) — never renumber, paraphrase or invent one;
 a directory without that permission is unusable for negative attribution.
 Designated in-diff clauses are ordinary claim sources with recorded
