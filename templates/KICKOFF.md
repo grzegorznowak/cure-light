@@ -70,7 +70,7 @@ report the output.
 ## 8. Pinned toolchain (Phase-0 prerequisites and expectations)
 
 - **Environment**: Node ≥22.19 with Pi and the installed single tool `cure_light_census`
-  (`@grzegorznowak/pi-cure-light-census@1.0.1`), provisioned from private GitHub Packages
+  (`@grzegorznowak/pi-cure-light-census@1.0.2`), provisioned from private GitHub Packages
   with a classic PAT carrying `read:packages`; remote intake uses your existing
   `gh`/`git` credentials. A missing install or credential fails loud — never an
   ad-hoc registry.
