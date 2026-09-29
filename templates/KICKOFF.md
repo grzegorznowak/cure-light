@@ -70,7 +70,7 @@ report the output.
 ## 8. Pinned toolchain (Phase-0 prerequisites and expectations)
 
 - **Environment**: Node ≥22.19 with Pi and the installed single tool `cure_light_census`
-  (`@grzegorznowak/pi-cure-light-census@1.0.0`), provisioned from private GitHub Packages
+  (`@grzegorznowak/pi-cure-light-census@1.0.1`), provisioned from private GitHub Packages
   with a classic PAT carrying `read:packages`; remote intake uses your existing
   `gh`/`git` credentials. A missing install or credential fails loud — never an
   ad-hoc registry.
@@ -86,8 +86,10 @@ report the output.
   seconds; labeling is the dominant fleet cost.
 - **Fail-closed**: any pin mismatch (`PIN_MISMATCH`), missing install/credential, failed
   reconcile/assemble/validate/manifest, `gate_check` not verified with both coverage
-  booleans, or claims-page projection mismatch **stops Phase 0** — no hand-built registry,
-  no relaxed gate, no auto-continue.
+  booleans, claims-page projection mismatch, or published worker instructions too
+  incomplete to produce validator-valid proposals **stops Phase 0** — no hand-built
+  registry, no relaxed gate, no coordinator-normalized worker proposals, no auto-continue
+  (a missing rule is a substrate defect reported to the plugin maintainers).
 
 ---
 
@@ -111,6 +113,6 @@ report the output.
 3. It asks the intake fields **once** — usually nothing is missing if KICKOFF is filled.
 4. It compiles the run frame and shows it for confirmation.
 5. It saves the frame + findings pages, and (if the runtime provides handoff) seals and hands off.
-6. Phase 0 runs in the new context: pull the subject (the first tree read — no orientation in local target checkouts before it), compile the contract and run the pinned plugin (`claims_prepare` → labeling children → `claims_finalize` → `gate_check`; the claims page is a projection of the canonical registry on pi runs, CONTRACT.md otherwise — a notebook-less fallback cannot assert complete coverage), record subject path/OID + changed files + toolchain pins into the frame, complete the deferred requirements rows, run the bounded source-consistency pass (a material unresolved contradiction between captured sources — or any other `repair_required` defect → provisional repair + default pause before V1; a named evidence-only V1 run only if you authorize it), run the census (`census_run` + `census_check`, 0.3a), compile the capacity-bounded splits (0.3b), and show the actual counts, the exclusion policy, coverage-page location, budgets, plugin gate report/permissions and consistency outcome at the Phase-0 gate.
+6. Phase 0 runs in the new context: pull the subject (the first tree read — no orientation in local target checkouts before it), compile the contract (writing the verbatim `contract-<owner>-<pr>-s<n>` page on pi runs — disk fallback otherwise) and run the pinned plugin (`claims_prepare` → labeling children → `claims_finalize` → `gate_check`; the claims page is a projection of the canonical registry on pi runs — a notebook-less fallback has no authoritative claim/coverage store and cannot assert complete coverage), record subject path/OID + changed files + toolchain pins into the frame, complete the deferred requirements rows, run the bounded source-consistency pass (a material unresolved contradiction between captured sources — or any other `repair_required` defect → provisional repair + default pause before V1; a named evidence-only V1 run only if you authorize it), run the census (`census_run` + `census_check`, 0.3a), compile the capacity-bounded splits (0.3b), and show the actual counts, the exclusion policy, coverage-page location, budgets, plugin gate report/permissions and consistency outcome at the Phase-0 gate.
 7. Vector 1 (conformance — claim adjudication + changed-unit accounting) fleets out; report; gate — the coordinator records the review basis (`ready` / `limited-only` / `blocked` / `unknown`) and any outstanding repair requirement before Vector 2 may be planned. Then the deterministic preflight (symbol map), Vector 2, Vector 3, then output.
 8. On "the implementer worked on the review", the closure loop re-validates per finding and publishes the table.

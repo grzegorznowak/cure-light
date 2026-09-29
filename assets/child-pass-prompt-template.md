@@ -110,7 +110,13 @@ run's pinned `cure_light_census` plugin: a whole-source child receives the frame
 grouping votes, left/right boundary). Children never run the tools, compute
 IDs/hashes, reconcile, or write the registry — the coordinator runs the pinned
 toolchain, and the slice budget caps the child count (≤32 slices default,
-≤4 concurrent; an oversized indivisible unit stops the run).
+≤4 concurrent; an oversized indivisible unit stops the run). The bundled instructions
+are the operational worker contract; the coordinator may inspect the plugin
+implementation for diagnosis only, never as an undisclosed substitute instruction set.
+If the published instructions cannot yield validator-valid proposals, stop Phase 0 and
+report the substrate defect. A returned proposal is recorded evidence: the coordinator
+never overwrites or normalizes it into the submitted file — an invalid proposal is
+re-authored by the worker (both attempts retained) or the run stops.
 
 ## Coverage block variants (filler for {coverage})
 

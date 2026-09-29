@@ -2,6 +2,15 @@
 
 ## Unreleased (working tree)
 
+### 2026-09-29 — Phase-0 rule clarifications (e2e triage follow-up) and substrate pin 1.0.1
+
+- **Substrate pin advanced to `@grzegorznowak/pi-cure-light-census@1.0.1`** (plugin PR #6: the `claims_finalize` worker return contract + outer `slice_id` enforcement). The instruction-byte change moves `instructions_sha256` → `slice_recipe_hash` → slice IDs, so a run prepared under an earlier version is never verified or reused under this one — re-prepare instead, and never mix versions within a state.
+- **Worker-proposal integrity (E1)** — a worker-authored proposal is the run's recorded evidence, never a draft: the coordinator never overwrites, repairs or normalizes it into the authoritative submitted file; an invalid proposal is re-authored by the worker (both attempts retained) or the run stops. Any coordinator-side transport/format repair requires a separately approved, narrowly defined provenance protocol (intake-and-scope.md §0.2; kernel/SKILL.md).
+- **Bundled-instruction escalation (E2)** — the plugin's bundled slice instructions are the operational worker contract; the bundle implementation is inspected for diagnosis only, and insufficient published instructions stop Phase 0 as a substrate defect reported to the plugin maintainers.
+- **Labeling provenance / comparability (E3)** — a verified registry is complete under one review state's captured sources, instructions, labels and tool pins; cross-run claim/verdict differences are diagnostic only, and fixed-model/gold-label pinning is deferred to a post-merge repeatability pilot.
+- **Phase-0 gate (E4)** — the written verbatim `contract-<owner>-<pr>-s<n>` page (or the prescribed disk fallback) is verified to exist, read and match `contract_ref` at the gate.
+- **Docs** — `kernel/SKILL.md`, `kernel/references/intake-and-scope.md`, `libs/pi-driver/references/{requirements-check,notebook-plan-contract}.md`, `templates/KICKOFF.md`, `assets/child-pass-prompt-template.md`, `docs/contract-adequacy-validation-plan.md`.
+
 ### 2026-09-28 — Option A: the standalone `cure_light_census` plugin replaces the Python `tools/` prototype
 
 - **Phase-0 substrate** — census, claim capture and the gate now run through the installed single Pi tool `cure_light_census` (`@grzegorznowak/pi-cure-light-census@1.0.0`, Node ≥22.19; private GitHub Packages install with a classic PAT carrying `read:packages`): `census_run` / `census_check` (changed-range census), `claims_prepare` (bounded slices) → labeling children → `claims_finalize` (canonical `claim-registry/1`) → `gate_check`. Every call verifies the installed package against `dist/TOOL.json` (`describe_sha256`/`artifact.sha256`) and fails closed with `PIN_MISMATCH`; there is no artifact fetch, no `--check-pin`, no python/uv/venv/`tree-sitter`.
