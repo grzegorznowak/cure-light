@@ -67,10 +67,10 @@ report the output.
 
 ---
 
-## 8. Pinned toolchain (Phase-0 prerequisites and expectations)
+## 8. Installed toolchain (Phase-0 prerequisites and expectations)
 
 - **Environment**: Node ≥22.19 with Pi and the installed single tool `cure_light_census`
-  (`@grzegorznowak/pi-cure-light-census@1.0.2`), provisioned from private GitHub Packages
+  (`@grzegorznowak/pi-cure-light-census`), provisioned from private GitHub Packages
   with a classic PAT carrying `read:packages`; remote intake uses your existing
   `gh`/`git` credentials. A missing install or credential fails loud — never an
   ad-hoc registry.
@@ -109,10 +109,10 @@ report the output.
 ## What happens next (expectation set)
 
 1. The agent fetches + reads the kernel and driver, reports line counts.
-2. It runs the quick requirements check (gh auth, repo, PR OID, planned subject mechanism, pinned toolchain + plugin install, notebook, groups — the subject-tree rows defer to Phase 0).
+2. It runs the quick requirements check (gh auth, repo, PR OID, planned subject mechanism, toolchain install + plugin provision, notebook, groups — the subject-tree rows defer to Phase 0).
 3. It asks the intake fields **once** — usually nothing is missing if KICKOFF is filled.
 4. It compiles the run frame and shows it for confirmation.
 5. It saves the frame + findings pages, and (if the runtime provides handoff) seals and hands off.
-6. Phase 0 runs in the new context: pull the subject (the first tree read — no orientation in local target checkouts before it), compile the contract (writing the verbatim `contract-<owner>-<pr>-s<n>` page on pi runs — disk fallback otherwise) and run the pinned plugin (`claims_prepare` → labeling children → `claims_finalize` → `gate_check`; the claims page is a projection of the canonical registry on pi runs — a notebook-less fallback has no authoritative claim/coverage store and cannot assert complete coverage), record subject path/OID + changed files + toolchain pins into the frame, complete the deferred requirements rows, run the bounded source-consistency pass (a material unresolved contradiction between captured sources — or any other `repair_required` defect → provisional repair + default pause before V1; a named evidence-only V1 run only if you authorize it), run the census (`census_run` + `census_check`, 0.3a), compile the capacity-bounded splits (0.3b), and show the actual counts, the exclusion policy, coverage-page location, budgets, plugin gate report/permissions and consistency outcome at the Phase-0 gate.
+6. Phase 0 runs in the new context: pull the subject (the first tree read — no orientation in local target checkouts before it), compile the contract (writing the verbatim `contract-<owner>-<pr>-s<n>` page on pi runs — disk fallback otherwise) and run the installed plugin (`claims_prepare` → labeling children → `claims_finalize` → `gate_check`; the claims page is a projection of the canonical registry on pi runs — a notebook-less fallback has no authoritative claim/coverage store and cannot assert complete coverage), record subject path/OID + changed files + toolchain identity into the frame, complete the deferred requirements rows, run the bounded source-consistency pass (a material unresolved contradiction between captured sources — or any other `repair_required` defect → provisional repair + default pause before V1; a named evidence-only V1 run only if you authorize it), run the census (`census_run` + `census_check`, 0.3a), compile the capacity-bounded splits (0.3b), and show the actual counts, the exclusion policy, coverage-page location, budgets, plugin gate report/permissions and consistency outcome at the Phase-0 gate.
 7. Vector 1 (conformance — claim adjudication + changed-unit accounting) fleets out; report; gate — the coordinator records the review basis (`ready` / `limited-only` / `blocked` / `unknown`) and any outstanding repair requirement before Vector 2 may be planned. Then the deterministic preflight (symbol map), Vector 2, Vector 3, then output.
 8. On "the implementer worked on the review", the closure loop re-validates per finding and publishes the table.
