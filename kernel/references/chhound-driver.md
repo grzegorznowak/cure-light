@@ -104,8 +104,16 @@ stay inside that child, which returns the map only; the coordinator writes it to
 state's page `symbol-map-<owner>-<pr>-s<n>` on pi runs, or a scratch file recorded in
 the manifest in fallback runs (notebook-plan-contract.md).
 
+The sweep runs post-V1 and stays distinct from Vector 1's changed-unit accounting:
+it may optionally reuse the state's changed-range inventory (hash/recipe identity) as
+navigation, but it still runs its own census, and its `in-diff` classification is
+navigation — not a coverage state. Symbol coverage never clears an outside consumer,
+and a V1 attribution edge is not a Vector 2 correctness review.
+
 1. **Extract the symbol set** — bash on the subject tree: `git diff -U0 <base_oid>..<subject_oid>`
-   gives the per-file changed line ranges and the identifiers on added/removed lines.
+   gives the per-file changed line ranges and the identifiers on added/removed lines —
+   the state's changed-range inventory (hash/recipe identity) may be reused for this,
+   but the sweep still runs its own census (step 4).
    Drop language keywords and names shorter than 3 characters, dedupe, cap at ≈30–40
    (record drops), and lead with any explicit symbols the operator supplied (manifest
    `symbol_sweep_symbols`, or the sweep-child prompt). Keep the changed ranges for steps 3–4.
@@ -160,8 +168,10 @@ the manifest in fallback runs (notebook-plan-contract.md).
    finding → the in-scope route (blast-lens.md), which leaves the row a hit.
    **Enumeration complete is not inspection clear**: a chunk-triaged occurrence is
    navigation metadata, never clearance — the `sweep` row clears only when every
-   `outside` occurrence is tree-read and accounted; the in-diff occurrences are covered
-   by the diff review.
+   `outside` occurrence is tree-read and accounted; the `in-diff` occurrences are
+   covered by the diff review only while V1's accounting for their carrying ranges
+   is complete — where it is partial or unresolved, `in-diff` is navigation and the
+   map must not present those occurrences as reviewed.
 6. **No confirmed rail → `mode: rg`** — the census is the same `rg -n -w` pass; without
    chunk triage, occurrences are triaged by reading their lines in the tree. The map is
    marked `mode: rg`, which never invokes a `chh_*` namespace.

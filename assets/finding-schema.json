@@ -13,7 +13,9 @@
     "origin": { "enum": ["PR-introduced", "pre-existing", "n/a"] },
     "subject_oid": { "type": "string", "description": "tree OID this row's evidence was read from (review-state subject; coordinator fills it on every new/updated row — schema-optional for backward compatibility)" },
     "progress": { "enum": ["fix-in-PR", "pre-existing-debt", "deferred-decision", "track-separately", "n/a"] },
-    "failure_mode": { "type": "string" },
+    "failure_mode": { "type": "string", "description": "Concrete failure: divergence for claim-gap; undeclared delivered behavior for unclaimed-delivery" },
+    "conformance_kind": { "enum": ["claim-gap", "unclaimed-delivery"], "description": "Optional, Vector 1 findings only: claim-gap = missing backing/contradiction/overstatement; unclaimed-delivery = delivered behavior absent from the captured declared scope (owner declares/justifies in the PR body or removes; in-scope, blocking)" },
+    "coverage_ref": { "type": "string", "description": "Optional: coverage ledger page ref + unit group/selector + hash tying this row to its accounting records" },
     "status": {
       "enum": [
         "open", "verified-fixed", "re-classified", "test-only",
@@ -27,6 +29,9 @@
       "properties": {
         "file": { "type": "string" },
         "base_evidence": { "type": "string" },
+        "side": { "enum": ["subject", "base", "metadata"], "description": "Optional; required when the anchor is not a surviving subject-tree line (deletion / old-side range / metadata event)" },
+        "oid": { "type": "string", "description": "Optional: tree OID the anchor was read from (old/base side or metadata-event provenance)" },
+        "range_or_event": { "type": "string", "description": "Optional: old-side range or metadata event ref at its OID (rename / mode / binary / submodule)" },
         "note": { "type": "string" }
       }
     },

@@ -2,6 +2,59 @@
 
 ## Unreleased (working tree)
 
+### 2026-09-29 — Phase-0 rule clarifications (e2e triage follow-up) and substrate pin 1.0.2
+
+- **Substrate pin advanced to `@grzegorznowak/pi-cure-light-census@1.0.2`** (plugin PRs #6/#7: the `claims_finalize` worker return contract + outer `slice_id`, the published proposal validity contract, and the worker-facing canonicalizer). The instruction-byte change moves `instructions_sha256` → `slice_recipe_hash` → slice IDs, so a run prepared under an earlier version is never verified or reused under this one — re-prepare instead, and never mix versions within a state.
+- **Worker-proposal integrity (E1)** — a worker-authored proposal is the run's recorded evidence, never a draft: the coordinator never overwrites, repairs or normalizes it into the authoritative submitted file; an invalid proposal is re-authored by the worker (both attempts retained) or the run stops. Any coordinator-side transport/format repair requires a separately approved, narrowly defined provenance protocol (intake-and-scope.md §0.2; kernel/SKILL.md).
+- **Bundled-instruction escalation (E2)** — the plugin's bundled slice instructions are the operational worker contract; the bundle implementation is inspected for diagnosis only, and insufficient published instructions stop Phase 0 as a substrate defect reported to the plugin maintainers.
+- **Labeling provenance / comparability (E3)** — a verified registry is complete under one review state's captured sources, instructions, labels and tool pins; cross-run claim/verdict differences are diagnostic only, and fixed-model/gold-label pinning is deferred to a post-merge repeatability pilot.
+- **Phase-0 gate (E4)** — the written verbatim `contract-<owner>-<pr>-s<n>` page (or the prescribed disk fallback) is verified to exist, read and match `contract_ref` at the gate.
+- **Docs** — `kernel/SKILL.md`, `kernel/references/intake-and-scope.md`, `libs/pi-driver/references/{requirements-check,notebook-plan-contract}.md`, `templates/KICKOFF.md`, `assets/child-pass-prompt-template.md`, `docs/contract-adequacy-validation-plan.md`.
+
+### 2026-09-28 — Option A: the standalone `cure_light_census` plugin replaces the Python `tools/` prototype
+
+- **Phase-0 substrate** — census, claim capture and the gate now run through the installed single Pi tool `cure_light_census` (`@grzegorznowak/pi-cure-light-census@1.0.0`, Node ≥22.19; private GitHub Packages install with a classic PAT carrying `read:packages`): `census_run` / `census_check` (changed-range census), `claims_prepare` (bounded slices) → labeling children → `claims_finalize` (canonical `claim-registry/1`) → `gate_check`. Every call verifies the installed package against `dist/TOOL.json` (`describe_sha256`/`artifact.sha256`) and fails closed with `PIN_MISMATCH`; there is no artifact fetch, no `--check-pin`, no python/uv/venv/`tree-sitter`.
+- The Python `tools/` prototype (`claim-registry`, `gate-check`, `census`) is **retired** — no longer fetched, pinned or referenced; the engine-owned-tool rule (never the subject tree's `tools/`, never run-authored compilers/IDs) is preserved.
+- **Claim sources are Markdown-only**: the frame parser is `tree-sitter-markdown-block`; a designated non-Markdown source is captured as context with a stated limitation, never a claim source.
+- **Join/coverage boundary** — the plugin gates the **claim registry only**; the coordinator still owns the census↔claim join and the coverage ledger (notebook-plan-contract.md, Coverage pages).
+- **Docs** — `requirements-check.md` rows 10–11, `notebook-plan-contract.md` frame/claims/artifact-store rules, `KICKOFF.md` §8 + Phase-0 flow, `child-pass-prompt-template.md` labeling/`gate_check` slots, and `docs/contract-adequacy-validation-plan.md` re-pointed to the plugin; all policy/gate semantics unchanged.
+
+### v0.5.13 — contract adequacy: designated sources, pre-V1 consistency pause, review-basis gate
+
+**kernel/**
+- `intake-and-scope.md` — §0.2 gains **designated in-diff sources** (an explicit pointer in the PR body / linked issue / locked decision is the trust stamp; repo convention only interprets a designated package), **immutable source pinning** (subject/base blob OIDs, spans/hashes, body/issue version refs; drift → new state) and the **early source-consistency pass** (bounded within-/cross-source comparison after claim extraction; a material unresolved contradiction → provisional `repair_required` + default pause before Vector 1, with a named operator-recorded **evidence-only V1 run** as the narrow exception; non-material wording recorded without pause). §0.4 records the pause/authorization, judges thinness across designated sources and applies the repair-pause default to any `repair_required` defect; the manifest gains `contract_sources` / `source_consistency` / `review_basis` records; a contract-only repair is a new review state.
+- `conformance-pass.md` — Vector 1 adds `documents/specifies` as a delivery role and the **no-self-proof** rule (`declares` is source provenance, not an EXPLAINED edge; doc/spec units need an independent purpose/target anchor; no same-unit or mutual cycles; docs-only spec rewrites are real deliverables); witness discipline for definitive `GAP`/`UNCLAIMED`/basis blockers; the completion disposition becomes the **review-basis gate** — `ready` / `limited-only` / `blocked` / `unknown` plus a separate `repair_required` status, with `limited-only`/`blocked`/`unknown` barred from ordinary V2/V3 unless explicitly named by the operator.
+- `pipeline-model.md` / `kernel/SKILL.md` — the phase order carries the source-consistency pause and the V1 basis gate; operating rules for designated sources, a recorded basis, and contract repair as a new state.
+- `implementation-pass.md` / `debt-pass.md` — the V2 compiler validates only named grounded splits under the gate result; unmet clear requirements stay valid invariants; docs-only deliverables are not forced into code invariants; generic debt axes never reconstruct inadequate intent.
+- `closure-verification.md` — “no work pulled” is reconciled as “no **code** work pulled”: a body/issue repair with an unchanged subject OID is a new state with a recaptured contract and identity-checked census reuse; in-diff source repair repulls a new subject; code-unchanged findings stay open unless specifically reclassified.
+- `evidence-format.md` — contract adequacy is a gate disposition, not a finding kind; the comment Summary renders the review basis / repair requirement; claim-registry pages carry per-source designation/interpretation and consistency records.
+
+**pi-driver**
+- `notebook-plan-contract.md` — frame/contract/claims pages record source pins/designation, the consistency outcome and the `review_basis`; contract repair writes a new `-s<n>` set. `requirements-check.md` — the notebook-less fallback cannot assert `ready`; contract-adequacy dispositions stay separate from the bootstrap requirement table.
+
+**top-level** — `README.md` / `templates/KICKOFF.md` expectation sync; `assets/child-pass-prompt-template.md` carries the captured-sources contract, the `documents/specifies` anchor rule and the designation-aware `UNCLAIMED_CANDIDATE` check; `docs/contract-adequacy-validation-plan.md` adds the fixture scenarios.
+
+Background: operator direction — a PR contract is only as good as its designated sources; a half-assed description defaults to a repair pause, and V1's accounting completion is not by itself a continuation/readiness verdict.
+
+### v0.5.12 — Vector 1 detects both ends; yagni refocuses on over-engineering
+
+**kernel/**
+- `conformance-pass.md` — Vector 1 now owes **claim adjudication** (every captured claim gets a verdict) *and* **changed-unit accounting** (every census range/event gets exactly one of `EXPLAINED` / `UNCLAIMED` / `EXCLUDED` / `UNRESOLVED`). The child return is two orthogonal blocks — `CLAIM` verdicts plus unit records closed by `CLOSE <digest>` — with coordinator validation/reconciliation rules, the claim matrix kept distinct from the coverage ledger, a paged **matrix projection** for V2, an honest partial-review gate, and grouped **blocking** `unclaimed-delivery` findings the owner addresses in the PR body (declare/justify the delivered behavior or remove it).
+- `yagni-pass.md` — refocused from size accounting to **over-engineering of the claimed delivery**: the untraceable-hunk atom and the "traceable = NOT-A-HIT" dismissal are gone; the return replaces `SIZE` with `ENGINEERING: JUSTIFIED | CHALLENGED`; EXPLAINED range groups and the claim matrix are leads; the historical operator launch quote is preserved.
+- `pipeline-model.md` / `intake-and-scope.md` — Phase 0 gains **0.3a mechanical changed-range census** (pinned `-U0` patch recipe, parent edit blocks + metadata events, totals by side) before the **0.3b** capacity-bounded split compile; four completeness flags; the V1 coverage assertion is separate from the lens table; immutable claim-registry capture; the Phase-0 gate shows counts and approves exclusions/budgets; a thin/empty contract stops planning.
+- `evidence-format.md` / `assets/finding-schema.json` — additive optional `conformance_kind: claim-gap | unclaimed-delivery`, `coverage_ref`, and evidence `side` / `range_or_event` / `oid` anchors for deletions and metadata events; unclaimed severity LOW default / MED material / never HIGH from absence alone; coverage accounting renders in the comment Summary, grouped unclaimed delivery in Findings (no fourth section).
+- `chhound-driver.md` — the symbol sweep may reuse the census inventory but stays distinct from V1 attribution; `in-diff` is navigation, not coverage. `blast-lens.md` / `quality-lens.md` — boundaries: attribution ≠ outside-consumer clearance; yagni ≠ quality. `implementation-pass.md` / `debt-pass.md` — V2/V3 consume the bounded matrix projection and prior facts, never census breadth.
+- `kernel/SKILL.md` / `templates/KICKOFF.md` — phase sequences carry the census and the two-ended Vector 1; operating rules for blocking unclaimed delivery, honest partial coverage, and closure disclosure.
+
+**pi-driver**
+- `notebook-plan-contract.md` — coverage pages (`coverage-<owner>-<pr>-s<n>` summary/index + `-p<k>` ledger shards) are the authoritative **in-notebook** store for changed-unit accounting; the compiled claim registry gets `claims-<owner>-<pr>-s<n>`; coverage pages stay through the closure/finalization window and retire after durable snapshots.
+- `closure-verification.md` — newly added unexplained ranges are surfaced or V1 coverage is declared not re-run; `unclaimed-delivery` closes only through a recaptured contract / recorded author declaration.
+- `requirements-check.md` — notebook-less fallback: no authoritative coverage ledger or claim registry; Vector 1 completeness flags cannot all clear, so the run must not assert complete coverage.
+
+**top-level** — `README.md` / `BOOTSTRAP.md` descriptions synced; `assets/child-pass-prompt-template.md` gains the Vector 1 coverage assignment/return block and yagni coverage inputs (A/B/C research variants and coordinator-only writing unchanged).
+
+Background: operator direction — V1 must detect both claim-without-code and code-without-claim; untraceable-hunk accounting moves out of yagni, which now challenges over-engineering of the claimed delivery. Coverage records live in the notebook (no ambient scratch state); confirmed unclaimed delivery is a blocking in-scope finding.
+
 ### v0.5.11 — re-pull updates the subject tree in place: same tree, same bridge, live index
 
 **kernel/**
