@@ -2,6 +2,13 @@
 
 ## Unreleased (working tree)
 
+### 2026-09-30 — Substrate version unpin
+
+- **The engine declares no specific `cure_light_census` release.** The declared substrate pin (`@grzegorznowak/pi-cure-light-census@1.0.2`) is removed across kernel, driver, templates, assets and docs: the package is referenced by name only, and requirement rows 10–11 plus the run frame no longer carry an expected version. Rationale: removing the doc-level pin avoids engine churn on every plugin release while keeping the guarantees that matter.
+- **Per-run install identity is unchanged and still fail-closed.** Every call verifies the installed package against its own `dist/TOOL.json` (`version`, `describe_sha256`, `artifact.sha256`, asset inventory) and fails closed (`PIN_MISMATCH`/`DEPENDENCY_UNAVAILABLE`). The run manifest records the installed identity (`toolchain.cure_light_census.version` = the installed `dist/TOOL.json` version, plus digests), so a run prepared under one recorded identity is never verified, reused or mixed under another — re-prepare instead. Data/source pins (subject OID, source blobs, `census_hash`, `registry_hash`, census recipe) are unaffected.
+- **Trade-off (explicit):** the engine no longer enforces a compatible/minimum plugin version; compatibility is detected per run from the recorded identity, and cross-run comparability stays "diagnostic only". On failure, re-install the current release (not "re-install by pin").
+- **Docs:** `kernel/SKILL.md`, `kernel/references/{intake-and-scope,conformance-pass,evidence-format,pipeline-model,closure-verification}.md`, `libs/pi-driver/references/{requirements-check,notebook-plan-contract}.md`, `templates/KICKOFF.md`, `assets/child-pass-prompt-template.md`, `docs/contract-adequacy-validation-plan.md`.
+
 ### 2026-09-29 — Phase-0 rule clarifications (e2e triage follow-up) and substrate pin 1.0.2
 
 - **Substrate pin advanced to `@grzegorznowak/pi-cure-light-census@1.0.2`** (plugin PRs #6/#7: the `claims_finalize` worker return contract + outer `slice_id`, the published proposal validity contract, and the worker-facing canonicalizer). The instruction-byte change moves `instructions_sha256` → `slice_recipe_hash` → slice IDs, so a run prepared under an earlier version is never verified or reused under this one — re-prepare instead, and never mix versions within a state.

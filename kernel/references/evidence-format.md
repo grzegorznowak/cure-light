@@ -23,7 +23,7 @@ disposition: fix-in-PR | pre-existing-debt | deferred-decision | track-separatel
              # follow-up (recommended or downstream); deferred-decision / track-separately record
              # an accepted deferral or an own ticket
 conformance_kind: claim-gap | unclaimed-delivery   # optional; Vector-1 findings only (see below)
-coverage_ref: <coverage page ref + canonical claim IDs / unit group/selector + canonical registry_hash + census_hash>   # optional; ties a V1 finding to ledger records projected from the pinned tool's canonical artifacts
+coverage_ref: <coverage page ref + canonical claim IDs / unit group/selector + canonical registry_hash + census_hash>   # optional; ties a V1 finding to ledger records projected from the installed tool's canonical artifacts
 failure_mode: <concrete failure: divergence for claim-gap; undeclared delivered behavior for unclaimed-delivery>
 status: open | verified-fixed | re-classified | test-only | doc-only | deferred-decision | closed-by-operator | re-opened
 owner: <implementer | operator | subsystem>
@@ -59,7 +59,7 @@ A ready basis never erases a blocking finding, and an accepted finding
 disposition never establishes readiness.
 
 **Mechanical pins, not semantic proof.** Claim IDs, counts and `registry_hash`
-come only from the pinned `cure_light_census` tool and are consumed
+come only from the installed `cure_light_census` tool and are consumed
 only under the state's `gate_check` permission; the changed-unit denominator and
 its IDs come from the pinned census artifact `census.json` (`changed-range-census/1`, `census_hash`). A finding or
 coverage page that cites an ID absent from the canonical registry, or asserts
@@ -120,7 +120,7 @@ Vector-2 and Vector-3 children attach a RESEARCH TRACE footer (implementation-pa
 - `pipeline-frame-<owner>-<pr>-s<n>` — frozen run options, base OID, planned subject mechanism; the manifest's tree fields (`subject_path` / `subject_oid`, changed-file list), contract-source pins/designation, the source-consistency outcome (provisional `repair_required` / evidence-only authorization) and the post-V1 `review_basis` record are recorded at their gates (notebook-plan-contract.md). Written at seal, completed at Phase 0 and the V1 gate.
 - `symbol-map-<owner>-<pr>-s<n>` — the preflight symbol map (chhound-driver.md, Symbol sweep): selected symbols, census heat table, capped outside locations, provenance/caps. One per review state; a bounded state cache kept while the state's consumers run (V2 sweep, V3 seed, yagni), discarded when the state closes.
 - `coverage-<owner>-<pr>-s<n>` — Vector 1 coverage summary/index: denominator and counts by state and side, completion flags, exclusion classes/policy, exact refs to the ledger shards. The paged ledger records themselves live in `coverage-<owner>-<pr>-s<n>-p<k>` pages (bounded, coordinator-owned, **in-notebook** — never scratch files); workers read only their assigned pages/slices. Kept through the state's closure/finalization window, retired after durable snapshots land.
-- `claims-<owner>-<pr>-s<n>` — the **projection of the canonical claim registry** produced by the pinned `cure_light_census` claim run (identical claim IDs, counts and `registry_hash`; reassembly/hash-equality checked; published only under the state's `gate_check` permission): canonical claim IDs, source spans + quote hashes, context/nonclaim labels (unit-aligned; parent/group links are coordinator-added in this plugin v1), per-source class/designating pointer/selection rule/interpretation (normative vs advisory, precedence), labeling-mode provenance. The queryable complete claim directory for Vector 1 negative attribution (paged `-p<k>` when long). Source-consistency contradiction records (exact quotes/offsets/source hashes/affected claim IDs, materiality witness) live with it.
+- `claims-<owner>-<pr>-s<n>` — the **projection of the canonical claim registry** produced by the installed `cure_light_census` claim run (identical claim IDs, counts and `registry_hash`; reassembly/hash-equality checked; published only under the state's `gate_check` permission): canonical claim IDs, source spans + quote hashes, context/nonclaim labels (unit-aligned; parent/group links are coordinator-added in this plugin v1), per-source class/designating pointer/selection rule/interpretation (normative vs advisory, precedence), labeling-mode provenance. The queryable complete claim directory for Vector 1 negative attribution (paged `-p<k>` when long). Source-consistency contradiction records (exact quotes/offsets/source hashes/affected claim IDs, materiality witness) live with it.
 - `pr-<n>-review` — findings table (schema rows) + closure table. Appended per vector.
 - `decisions` (durable, survives the PR) — deferred-decision and closed-by-operator records with author/time/rationale/scope, plus the leading subarea open questions.
 

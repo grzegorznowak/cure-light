@@ -102,13 +102,13 @@ Under {budget} lines.
 Phase-0 labeling children are **not** vector children and do not use the vector
 template. The coordinator spawns them under the plugin's **bundled slice instructions
 returned by `claims_prepare`** (`claim-registry-slice-instructions/1`), bound to the
-run's pinned `cure_light_census` plugin: a whole-source child receives the framed source
+run's installed `cure_light_census` plugin: a whole-source child receives the framed source
 (within ≤16 KiB raw / ≤80 units / ≤64 KiB complete worker input) and returns
 `claim-proposals/1`; a bounded child receives one `frame-slice-input/1` payload
 (exact unit text + `core_ids` / `overlap_ids`) and returns `slice-proposals/1`
 (core assignments over core non-separators only, overlap votes, per-adjacency
 grouping votes, left/right boundary). Children never run the tools, compute
-IDs/hashes, reconcile, or write the registry — the coordinator runs the pinned
+IDs/hashes, reconcile, or write the registry — the coordinator runs the installed
 toolchain, and the slice budget caps the child count (≤32 slices default,
 ≤4 concurrent; an oversized indivisible unit stops the run). The bundled instructions
 are the operational worker contract; the coordinator may inspect the plugin

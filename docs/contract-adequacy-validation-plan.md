@@ -10,7 +10,7 @@
 
 The repo ships **no F1–F10 campaign harness**: no CI config and no build/test manifest for the validation scenarios.
 The prototype Python `tools/` units (`claim-registry`, `gate-check`, `census`) are **retired**; the Phase-0 mechanical substrate is now
-the standalone `cure_light_census` plugin (`@grzegorznowak/pi-cure-light-census@1.0.2` — `census_run` / `census_check` /
+the standalone `cure_light_census` plugin (`@grzegorznowak/pi-cure-light-census` — `census_run` / `census_check` /
 `claims_prepare` / `claims_finalize` / `gate_check`), which ships with its own tests. This plan remains the deliverable for the scenarios;
 F1–F10 fixtures become executable only when the contract-adequacy campaign harness is built — the implementation checkpoint in the converged
 direction §8.
