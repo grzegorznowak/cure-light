@@ -16,7 +16,7 @@ cure-light reviews a pull request through **three independent vectors**. Each an
 ## Sequenced, gated
 
 ```text
-Intake → Phase 0 (pull + installed `cure_light_census`: `claims_prepare` → labeling children → `claims_finalize` → `gate_check` → source-consistency pass → 0.3a `census_run`+`census_check` → 0.3b capacity-bounded split compile, presented at the Phase-0 gate; a provisional `repair_required` defaults to pause before Vector 1) → Vector 1 (two-ended: claim adjudication + changed-unit accounting) → [gate: `review_basis` + repair status] → Deterministic preflight → Vector 2 → Vector 3 → Output (single review comment) → Closure loop (after a deliberate re-pull or contract repair)
+Intake → Phase 0 (pull + installed `cure_light_census`: `claims_prepare` → labeling children (`flash`) → `claims_finalize` → `gate_check` → source-consistency pass → 0.3a `census_run`+`census_check` → 0.3b capacity-bounded split compile, presented at the Phase-0 gate; a provisional `repair_required` defaults to pause before Vector 1) → Vector 1 (two-ended: claim adjudication + changed-unit accounting) → [gate: `review_basis` + repair status] → Deterministic preflight → Vector 2 → Vector 3 → Output (single review comment) → Closure loop (after a deliberate re-pull or contract repair)
 ```
 
 - Vector 2 runs only when the V1 gate recorded `review_basis: ready` with no outstanding `repair_required` — or the operator explicitly authorizes a named limited scope (exact accepted basis + omissions) or an explicit skip. `limited-only`/`blocked`/`unknown` never continue as ordinary V2; V3 and skip routes observe the same boundary.

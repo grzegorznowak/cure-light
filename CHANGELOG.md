@@ -2,6 +2,12 @@
 
 ## Unreleased (working tree)
 
+### 2026-10-01 — Vector 2 review checks + an explicit Phase-0 labeling group
+
+- **Vector 2 gains two mandatory review checks**, adapted from an external PR-review prompt's "reasoning behind / effects on the user" premise: **justification** (state the change's rationale, its observable tradeoff, and any evidence that contradicts it) and **user impact** (affected actor, task, before/after, failure/recovery path, compatibility/migration cost). They render into a new `{review_checks}` child-prompt slot and are closed `checked-and-clear` when empty — a check not run is a frame error, like an unowned lens. An evidenced contradiction/harm is an ordinary Vector-2 finding; a *missing* rationale is an operator question (never invented intent) and a preference without harm stays on the lens trail. Scoped to Vector 2 so it does not re-open Vector 1's intent match or Vector 3's architecture review.
+- **Phase-0 labeling children are pinned to the `flash` fleet group.** They were previously "fleet-spawned" with no declared group, so in practice they could inherit the coordinator's own model. The group is now declared where labeling children are described, recorded in the run manifest `groups` map and checked by requirement row 7; inherit-parent spawn remains the recorded fallback only when the group is unavailable.
+- **Docs:** `assets/child-pass-prompt-template.md`, `kernel/references/{implementation-pass,pipeline-model,intake-and-scope}.md`, `kernel/SKILL.md`, `libs/pi-driver/SKILL.md`, `libs/pi-driver/references/requirements-check.md`, `templates/KICKOFF.md`, `docs/example-review.md`.
+
 ### 2026-09-30 — Substrate version unpin
 
 - **The engine declares no specific `cure_light_census` release.** The declared substrate pin (`@grzegorznowak/pi-cure-light-census@1.0.2`) is removed across kernel, driver, templates, assets and docs: the package is referenced by name only, and requirement rows 10–11 plus the run frame no longer carry an expected version. Rationale: removing the doc-level pin avoids engine churn on every plugin release while keeping the guarantees that matter.

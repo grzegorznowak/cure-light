@@ -29,6 +29,8 @@ kernel/references/yagni-pass.md; a lens you check and clear
 is explicitly NOT-A-HIT. Advisory lens hits go to the lens trail, never the bug
 table — a concrete `blast` hazard instance is a Vector 2 finding instead.
 
+REVIEW CHECKS: {review_checks}
+
 RESEARCH STEP: then execute the research step per {research_protocol} when the
 slot is present (Vector 2: code-research protocol; Vector 3: search-extensive
 protocol; Vector 1/yagni: omitted). The slot carries the exact registered tool
@@ -67,6 +69,7 @@ Under {budget} lines.
 | return | from the pass contract: conformance: claim block + unit block + `CLOSE` (conformance-pass.md); implementation/debt: `[F] file:line`, `[D] concept`; yagni: `ENGINEERING` / `[Y]` / `NOT-YAGNI` (yagni-pass.md) |
 | budget | output-size cap (lines); enforced; truncation = inconclusive |
 | coverage | the vector's coverage block (below): V1 assignment + return shape; yagni scoring inputs; omitted for V2/V3 |
+| review_checks | from the pass contract: Vector 2 renders the justification + user-impact checks (Review-checks variant below); every other pass renders `n/a` |
 | claim_directory_ref | run manifest `coverage.claims_ref` — the paged **canonical-registry projection** `claims-<owner>-<pr>-s<n>` (identical claim IDs/counts/`registry_hash`; intake-and-scope.md §0.2) |
 | claim_gate_ref | run manifest `claims.gate_permission` + `toolchain.gate.report_ref` — the pinned `gate_check` report ref, both coverage booleans and the canonical `registry_hash` the claim directory was projected from; a directory without this permission is not usable for negative attribution |
 | claim_ids | the canonical claim IDs assigned to this shard (V1) / the unit's matrix rows (yagni) — never coordinator-renumbered |
@@ -100,8 +103,11 @@ Under {budget} lines.
 ## Labeling children (Phase 0) — separate binding
 
 Phase-0 labeling children are **not** vector children and do not use the vector
-template. The coordinator spawns them under the plugin's **bundled slice instructions
-returned by `claims_prepare`** (`claim-registry-slice-instructions/1`), bound to the
+template; they run in the **`flash` fleet group** (inherit-parent spawn when that
+group is unavailable, recorded in the frame — never a silent inherit of the
+coordinator's own model). The coordinator spawns them under the plugin's **bundled
+slice instructions returned by `claims_prepare`**
+(`claim-registry-slice-instructions/1`), bound to the
 run's installed `cure_light_census` plugin: a whole-source child receives the framed source
 (within ≤16 KiB raw / ≤80 units / ≤64 KiB complete worker input) and returns
 `claim-proposals/1`; a bounded child receives one `frame-slice-input/1` payload
@@ -162,6 +168,29 @@ Leads only: re-read the code in the subject tree; do not re-adjudicate
 attribution or coverage ownership, and do not treat a claim GAP as excluding
 its explained ranges. The full contract is at {contract_ref}. Return per
 yagni-pass.md: ENGINEERING JUSTIFIED/CHALLENGED, Y rows, NOT-YAGNI, NONE.
+```
+
+## Review-checks variant (filler for {review_checks})
+
+Vector 2 fills the slot with both checks below; every other pass renders `n/a`.
+They are **mandatory in a Vector 2 prompt** — a check not run is a frame error,
+like an unowned lens — and each is closed `checked-and-clear` when it yields
+nothing. This is the external-reviewer "reasoning behind / effects on the user"
+premise (rationale challenge + user consequence), scoped to Vector 2 so it does not
+re-open Vector 1's intent match or Vector 3's architecture review.
+
+```text
+REVIEW CHECKS (Vector 2; both mandatory)
+- JUSTIFICATION: state the change's rationale as given (contract clause or code
+  comment), the observable tradeoff it makes, and any evidence that contradicts
+  that stated reason. A contradiction you can evidence — the code does not behave
+  as the stated reason requires — is a finding; a missing or unstated rationale is
+  an operator QUESTION, never invented intent and never a finding by itself.
+- USER IMPACT: name the affected actor, the task, the before/after behavior, the
+  failure/recovery path, and any compatibility or migration cost. A concrete harm
+  is a Vector-2 finding at its severity; a preference without harm stays on the
+  lens trail.
+Close each check `checked-and-clear` when it yields nothing.
 ```
 
 ## Research protocol variants (filler for {research_protocol})

@@ -26,6 +26,7 @@
 
 ## 4. Fleet groups (if this runtime provides the model-groups plugin)
 
+- Phase-0 claim labeling: `flash` (or inherited)
 - Conformance: `flash` (or inherited)
 - Implementation: `code-review`
 - Debt: `code-review`

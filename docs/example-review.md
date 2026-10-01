@@ -10,7 +10,7 @@ A condensed walk-through of a real cure-light-style review, to imitate rather th
 owner/repo: agenticoding/pi-agenticoding
 pr: 27   head f6a4615 → … → 0091fdc (moved 4× mid-review)
 vectors: [conformance, implementation, debt]
-groups: {conformance: flash, implementation: code-review, debt: code-review}
+groups: {labeling: flash, conformance: flash, implementation: code-review, debt: code-review}
 contract: PR description + issue #26 (bullets + tech context + LOCKED decisions Q1/Q2)
 ```
 
