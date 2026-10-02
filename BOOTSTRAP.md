@@ -27,22 +27,23 @@ These seed the session so it can compile the review process. Fetch them in order
 11. `$RAW_BASE/kernel/references/quality-lens.md` — the `quality` lens (V3-owned: maintainable shape, suite strength, consistency)
 12. `$RAW_BASE/kernel/references/chhound-driver.md` — the chunkhound research rail (pi-chhound plugin): model-tool setup (`ch-chhound`), sandbox pull, MCP connect, tool names, the symbol-sweep preflight recipe, discovery-only rule
 13. `$RAW_BASE/kernel/references/evidence-format.md`
+14. `$RAW_BASE/kernel/references/chunker.md` — the shipped Phase-0 unit chunker (CLI/IO, recipe, limits)
 
 ### Pi driver (notebook + handoff + model-groups binding — only if this runtime provides the pi notebook)
 
-14. `$RAW_BASE/libs/pi-driver/SKILL.md`
-15. `$RAW_BASE/libs/pi-driver/references/requirements-check.md`
-16. `$RAW_BASE/libs/pi-driver/references/notebook-plan-contract.md`
+15. `$RAW_BASE/libs/pi-driver/SKILL.md`
+16. `$RAW_BASE/libs/pi-driver/references/requirements-check.md`
+17. `$RAW_BASE/libs/pi-driver/references/notebook-plan-contract.md`
 
 ### Templates / assets (keep for reference during the episode)
 
-17. `$RAW_BASE/templates/KICKOFF.md`
-18. `$RAW_BASE/assets/finding-schema.json`
-19. `$RAW_BASE/assets/child-pass-prompt-template.md`
+18. `$RAW_BASE/templates/KICKOFF.md`
+19. `$RAW_BASE/assets/finding-schema.json`
+20. `$RAW_BASE/assets/child-pass-prompt-template.md`
 
 ### Worked example (optional, read after compiling the process)
 
-20. `$RAW_BASE/docs/example-review.md`
+21. `$RAW_BASE/docs/example-review.md`
 
 ## Fetching rules
 
@@ -50,6 +51,7 @@ These seed the session so it can compile the review process. Fetch them in order
 - Do **not** summarize, paraphrase, or truncate. The kernel text is normative.
 - Hold the fetched text in a scratch location you can re-read during the session.
 - Report `file: <line-count>` for every file before proceeding.
+- The Phase-0 chunker executable at `$RAW_BASE/kernel/tools/chunker.mjs` must be fetched as exact raw bytes (never markdown-normalized) and its sha256 recorded at fetch time before the Phase-0 run (remote-boot source-OID binding for the executable remains an explicit checkpoint).
 
 ## After fetching
 

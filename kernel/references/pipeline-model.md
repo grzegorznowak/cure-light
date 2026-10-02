@@ -4,7 +4,7 @@ cure-light reviews a pull request through **three independent vectors**. Each an
 
 | Vector | Question | Fleet group | Focus |
 |---|---|---|---|
-| 1. Conformance | Does the code deliver what the PR *claims* it delivers — and is every changed unit accounted for against the contract? | `flash` | Two ends: claim adjudication (captured sources — PR description + issue + locked decisions + explicitly designated in-diff sources → code) and changed-unit accounting (census ranges/events → claims) |
+| 1. Conformance | Does the code deliver what the PR *claims* it delivers — and is every changed unit accounted for against the contract? | `flash` | Two ends: claim adjudication (captured sources — PR description + issue + locked decisions + explicitly designated in-diff sources → code) and changed-unit accounting (manifest units → claims) |
 | 2. Implementation | Does the shipped code actually *work* safely? | `code-review` | Sealed concepts / invariants, drilling from established facts |
 | 3. Debt | Is the *way* it's built sustainable? | `code-review` | Bigger concepts, future-change cost, not line-by-line |
 
@@ -16,8 +16,17 @@ cure-light reviews a pull request through **three independent vectors**. Each an
 ## Sequenced, gated
 
 ```text
-Intake → Phase 0 (pull + installed `cure_light_census`: `claims_prepare` → labeling children → `claims_finalize` → `gate_check` → source-consistency pass → 0.3a `census_run`+`census_check` → 0.3b capacity-bounded split compile, presented at the Phase-0 gate; a provisional `repair_required` defaults to pause before Vector 1) → Vector 1 (two-ended: claim adjudication + changed-unit accounting) → [gate: `review_basis` + repair status] → Deterministic preflight → Vector 2 → Vector 3 → Output (single review comment) → Closure loop (after a deliberate re-pull or contract repair)
+Intake → Phase 0:
+  P0.1 pull + source capture → P0.2 claims (#fast; includes source-consistency)
+  → P0.3 shipped chunker → P0.4 join (#fast; JSONL)
+  → P0.5 coordinator gate → capacity-bounded split → [operator gate: manifest]
+  → Vector 1 (validate/freeze claims; claim adjudication + unit accounting; finalize UNCLAIMED)
+  → [gate: review_basis + repair status] → Deterministic preflight
+  → Vector 2 → Vector 3 → Output (single review comment)
+  → Closure loop (deliberate re-pull or contract repair)
 ```
+
+A provisional `repair_required` from P0.2 defaults to pause before V1; only the existing named, bounded operator exception may cross that boundary.
 
 - Vector 2 runs only when the V1 gate recorded `review_basis: ready` with no outstanding `repair_required` — or the operator explicitly authorizes a named limited scope (exact accepted basis + omissions) or an explicit skip. `limited-only`/`blocked`/`unknown` never continue as ordinary V2; V3 and skip routes observe the same boundary.
 - Vector 3 runs only when the implementation evidence is stable.
@@ -28,14 +37,14 @@ Intake → Phase 0 (pull + installed `cure_light_census`: `claims_prepare` → l
 1. **One stable subject per review state.** All vectors in a state analyze the same pulled tree (`subject_path` / `subject_oid`, see intake-and-scope.md); nothing mutates it mid-state. A re-pull is a new state — gated by the operator and executed at that state boundary: the tree is updated **in place** to the new head (or pulled fresh when it is gone/broken). Findings carry the subject OID their evidence was read from; prior evidence is read at that OID (evidence-format.md).
 2. **Origin classification is mandatory** (pre-existing vs PR-introduced), decided by base-diff.
 3. **Two-axis severity**: impact (HIGH/MED/LOW) × disposition (fix-in-PR / pre-existing-debt / deferred-decision / track-separately).
-4. **Notebook is the shared memory.** The coordinator writes run frame + findings pages; children return compact evidence records, they do not compete for writes.
+4. **Notebook is the shared memory.** The coordinator writes run frame + findings pages; children return compact evidence records, they do not compete for writes. P0.4 children may write their own single-writer JSONL box files; notebook writes remain coordinator-owned.
 5. **Inconclusive = no pass.** A child timeout/truncation means the finding is unverified, not accepted.
 6. **Fleets are budgeted.** Per-phase child counts, timeouts, output caps, and a cheap re-review path (delta-only) are mandatory.
 7. **Review is diagnostic.** cure-light proposes; the operator gates the single external review comment (see evidence-format.md, External routing).
 8. **Coverage completeness is asserted per run.** Vector 1 owes two obligations: a verdict for every captured claim, and exactly one accounting state for every eligible changed unit (conformance-pass.md). The run reports four distinct completion flags — enumeration, accounting, attribution, claim conformance — and keeps mechanical completeness separate from semantic judgment: `UNRESOLVED` residue is disclosed and requires explicit operator acceptance at the gate, never a silent pass.
 9. **Vector 1 coverage is a frame assertion, separate from the lens table.** The run must map an owner for every claim and every eligible changed unit (intake-and-scope.md §0.3); the lens table proves only that each active lens has an owning pass. A claim or unit without an owner is a frame error, like an unowned lens.
-10. **Contract adequacy gates continuation.** A bounded source-consistency pass after claim capture pauses the run before Vector 1 on a witnessed material contradiction unless the operator records a named evidence-only V1 authorization (intake-and-scope.md §0.2/§0.4); any other `repair_required` defect (missing designation/orientation) defaults to the same repair pause. After Vector 1 the coordinator records `review_basis` (`ready` / `limited-only` / `blocked` / `unknown`) plus any outstanding `repair_required` status before the V1 gate (conformance-pass.md). Sources enter the contract only by explicit designation; convention interprets, never authorizes. A contract repair — including a body-only edit with an unchanged subject OID — is a new review state, never an in-place reconciliation. This is a gate classification, not a fourth vector, lens, finding kind or comment section.
-11. **Mechanical permission and semantic judgment are separate records.** The installed `cure_light_census` tool computes IDs/spans/hashes and canonical bytes; `gate_check` grants `finalized_unclaimed` / `complete_registry_claims` mechanically; `census_run`/`census_check` supplies the coverage denominator. None of that judges claim semantics, source coherence or review adequacy. Designation/consistency outcomes, `review_basis` and every claim verdict are agentic judgments recorded separately and bound to the mechanical pins. **Gate timing:** the tool's sealed artifacts and the `gate_check` permission must exist before the Phase-0 gate (with the 0.3a `census_run`+`census_check`); a missing permission blocks the gate, and a mechanical pass never substitutes for the semantic consistency pass or an adequate contract (intake-and-scope.md §0.2–§0.4).
+10. **Contract adequacy gates continuation.** The bounded source-consistency work within the P0.2 claims pass pauses the run before Vector 1 on a witnessed material contradiction unless the operator records a named evidence-only V1 authorization (intake-and-scope.md §0.2/§0.4); any other `repair_required` defect (missing designation/orientation) defaults to the same repair pause. After Vector 1 the coordinator records `review_basis` (`ready` / `limited-only` / `blocked` / `unknown`) plus any outstanding `repair_required` status before the V1 gate (conformance-pass.md). Sources enter the contract only by explicit designation; convention interprets, never authorizes. A contract repair — including a body-only edit with an unchanged subject OID — is a new review state, never an in-place reconciliation. This is a gate classification, not a fourth vector, lens, finding kind or comment section.
+11. **Mechanical checks and semantic judgments are separate records.** The shipped chunker establishes a state-bound unit inventory; P0.4 proposes witnessed links and P0.5 checks typed rows, identities, duplicates, witnesses, budgets and the complete assigned sweep. Links are leads, never verdicts. No plugin grants canonical claim identities or permission to finalize negatives. V1 validates/freezes the draft claims against sources, adjudicates claims, accounts for all units and alone finalizes UNCLAIMED. Source coherence, designation and `review_basis` remain evidenced agentic judgments. **Gate timing:** source and draft/unit/join refs/hashes plus P0.5 evidence exist before the Phase-0 gate; neither a successful mechanical gate nor a zero-link row proves contract adequacy or negative attribution ([intake-and-scope.md](intake-and-scope.md) §0.2–§0.4).
 
 ## The research accelerator (cross-cutting; Vector 2 + Vector 3)
 

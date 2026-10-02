@@ -67,9 +67,9 @@ Under {budget} lines.
 | return | from the pass contract: conformance: claim block + unit block + `CLOSE` (conformance-pass.md); implementation/debt: `[F] file:line`, `[D] concept`; yagni: `ENGINEERING` / `[Y]` / `NOT-YAGNI` (yagni-pass.md) |
 | budget | output-size cap (lines); enforced; truncation = inconclusive |
 | coverage | the vector's coverage block (below): V1 assignment + return shape; yagni scoring inputs; omitted for V2/V3 |
-| claim_directory_ref | run manifest `coverage.claims_ref` — the paged **canonical-registry projection** `claims-<owner>-<pr>-s<n>` (identical claim IDs/counts/`registry_hash`; intake-and-scope.md §0.2) |
-| claim_gate_ref | run manifest `claims.gate_permission` + `toolchain.gate.report_ref` — the pinned `gate_check` report ref, both coverage booleans and the canonical `registry_hash` the claim directory was projected from; a directory without this permission is not usable for negative attribution |
-| claim_ids | the canonical claim IDs assigned to this shard (V1) / the unit's matrix rows (yagni) — never coordinator-renumbered |
+| claim_directory_ref | run manifest `coverage.claims_ref` — the V1-validated/frozen, complete queryable claim directory, with source refs and a recorded hash; never a Phase-0 draft alone |
+| claim_basis_ref | the V1 validation/freeze evidence and source refs/hashes, plus claims-draft / units-manifest / join-draft refs/hashes and P0.5 sweep evidence; no plugin gate permission |
+| claim_ids | the state-bound IDs assigned from the V1 frozen directory (V1) / the unit's matrix rows (yagni); retain traceability to draft IDs and never silently change meaning |
 | unit_ids | the changed-unit/range IDs assigned to this shard (V1) |
 | candidate_scope | the alternate claim/attribution scope to check before returning `UNCLAIMED_CANDIDATE` |
 | authorized_scope | the V1 gate's recorded allowed next scope + explicit omissions (`review_basis` record, conformance-pass.md) — rendered into V2/V3 prompts; expands nothing |
@@ -90,33 +90,87 @@ Under {budget} lines.
 5. Explicitly label `NOT-A-BUG` when a checked suspicion clears — that keeps the coordinator from re-checking.
 6. Return compact records; do not write the notebook (coordinator owns writes).
 7. When {research_protocol} is present, run it and close with the RESEARCH TRACE footer; a missing trace is `inconclusive`, never a pass.
-8. Vector 1: close with `CLOSE <assignment digest> — processed n/total`. An absent unit, digest mismatch, or missing claim verdict stays unresolved; `NONE` never substitutes for accounting. The complete claim directory must be queryable before any negative attribution — read the scope you need; insufficient access means `UNRESOLVED`, not `UNCLAIMED`. The directory is usable only under the state's `gate_check` permission ({claim_gate_ref}); without it every affected unit stays `UNRESOLVED`. Before returning `UNCLAIMED_CANDIDATE`, check every qualifying designated in-diff clause; a doc/spec unit is explained only through `documents/specifies` against an independent purpose/target anchor (conformance-pass.md).
+8. Vector 1: close with `CLOSE <assignment digest> — processed n/total`. An absent unit, digest mismatch, or missing claim verdict stays unresolved; `NONE` never substitutes for accounting. The complete claim directory must be queryable before any negative attribution — read the scope you need; insufficient access means `UNRESOLVED`, not `UNCLAIMED`. Use the V1-validated/frozen directory and its source evidence ({claim_basis_ref}); P0.5 success or draft links alone never authorize negative attribution. Insufficient validation or access leaves affected units `UNRESOLVED`. Before returning `UNCLAIMED_CANDIDATE`, check every qualifying designated in-diff clause; a doc/spec unit is explained only through `documents/specifies` against an independent purpose/target anchor (conformance-pass.md).
 
 ## Given budget & cost
 
 - Set a per-child timeout and line budget at spawn. Over-budget or timed-out output is recorded as `inconclusive`, never `pass`.
 - The coordinator fans out children per vector with a concurrency cap and merges their records into the findings page.
 
-## Labeling children (Phase 0) — separate binding
+## Phase-0 children — separate bindings
 
-Phase-0 labeling children are **not** vector children and do not use the vector
-template. The coordinator spawns them under the plugin's **bundled slice instructions
-returned by `claims_prepare`** (`claim-registry-slice-instructions/1`), bound to the
-run's installed `cure_light_census` plugin: a whole-source child receives the framed source
-(within ≤16 KiB raw / ≤80 units / ≤64 KiB complete worker input) and returns
-`claim-proposals/1`; a bounded child receives one `frame-slice-input/1` payload
-(exact unit text + `core_ids` / `overlap_ids`) and returns `slice-proposals/1`
-(core assignments over core non-separators only, overlap votes, per-adjacency
-grouping votes, left/right boundary). Children never run the tools, compute
-IDs/hashes, reconcile, or write the registry — the coordinator runs the installed
-toolchain, and the slice budget caps the child count (≤32 slices default,
-≤4 concurrent; an oversized indivisible unit stops the run). The bundled instructions
-are the operational worker contract; the coordinator may inspect the plugin
-implementation for diagnosis only, never as an undisclosed substitute instruction set.
-If the published instructions cannot yield validator-valid proposals, stop Phase 0 and
-report the substrate defect. A returned proposal is recorded evidence: the coordinator
-never overwrites or normalizes it into the submitted file — an invalid proposal is
-re-authored by the worker (both attempts retained) or the run stops.
+Phase-0 children are not vector children and do not use the vector template.
+Both the P0.2 claims pass and P0.4 join proposer use `#fast`; if unavailable,
+pause rather than silently substitute a group. Their outputs are drafts/leads,
+not plugin canonical artifacts or V1 verdicts. Only the chunker ships as a tool;
+P0.5 is coordinator behavior.
+
+### P0.2 Claims draft
+
+```text
+Read the authorized captured sources at {source_capture_refs}, with designation,
+role/precedence and version/hash evidence. Do not inspect delivery to invent intent.
+Write claims-draft/3 at {claims_draft_path}:
+sources[{ref,class,file}],
+claims[{id,statement,source_ref,quote,also_in}],
+nonclaims[{kind,source_ref,quote,reason}], conflicts[],
+notes[{kind,text,source_refs,quote}],
+missing_source_candidates[{description,referenced_by,referenced_quote,why_it_matters}].
+Use run-scoped draft IDs. Include stated fixes and acceptance requirements;
+separate background/advisory/evidence from promises and never duplicate a clause
+as both claim and nonclaim. Absorb bounded within-/cross-source consistency:
+record witnessed contradictions/materiality and missing sources, never choose an
+unstated precedence or silently authorize a resource. Preserve source quotes.
+Return the artifact path and compact counts/hard cases, not a semantic verdict.
+```
+
+The populated conflict-record schema remains an operator checkpoint; until
+settled, preserve the existing source-consistency witness record requirements
+(quotes/offsets/hashes/affected IDs/materiality) without fabricating a new schema.
+V1 validates/freezes claims against sources before adjudication.
+
+### P0.4 Link draft
+
+The coordinator packs by input length only: instructions + the **full**
+`claims[].id` / `statement` list + whole units in manifest order. Never trim the
+claims, split a unit between children, set a unit-count cap or reserve answer
+space in packing. Fixed input or one whole unit that cannot fit requires a pause.
+Use the approved input ceiling; output tokens are monitored separately.
+
+```text
+You propose links, never claim satisfaction. Your only write path is:
+{exact_box_jsonl_path}
+Claims: {claims_draft_ref} — read every claims[].id and statement;
+ignore nonclaims/notes/conflicts for matching.
+Units in order: {assigned_unit_ids_and_exact_paths}.
+
+Write compact JSONL, exactly one row per assigned unit in listed order:
+{"unit_id":"…","links":[{"claim_id":"…","closeness":"high","role_hint":"implements","witness":"…"}],"unresolved":null}
+
+A link says “look here”, not “this works”. high = plainly where the claim's
+subject lives; medium = partially related; low = weak. Include every witnessed
+link; no per-unit cap. Never duplicate a (unit_id,claim_id) pair. claim_id must
+exist in the complete supplied claims list. role_hint is implements | tests |
+necessary-support | removes/changes.
+Witness: nonempty verbatim fragment from THIS unit's file, include its diff
+marker, single line, <=160 characters in this pilot; never quote another unit.
+If the unit cuts a block, reason only from bytes present. Use unresolved:null
+when decidable; otherwise a specific reason. Zero links still needs a row with
+links:[]; missing output is not an empty match. No fences or prose in the file.
+Appending is optional. Copy the output path character-for-character and verify
+that exact file exists before reporting success. Return path, units processed,
+links/by-closeness, zero-link units and unresolved units; do not paste JSONL.
+```
+
+P0.5 validates file existence, strict types/fields, every assigned unit exactly
+once, valid IDs/enums and unique pairs, witness bounds and exact-byte containment,
+and the recorded budgets. Retain failed attempts and retry/re-split under the
+approved policy; do not invent links or turn missing rows into candidates.
+The merged join-draft carries candidate-unclaimed only; V1 finalizes negatives.
+
+The 160-character witness cap is reference-pilot N (not an approved production
+default); tightening `medium`, the input ceiling and the retry/re-split policy
+remain open operator checkpoints.
 
 ## Coverage block variants (filler for {coverage})
 
@@ -137,9 +191,10 @@ coverage page {coverage_ref}; one accounting owner per unit, one verdict owner
 per claim. Input digest: {assignment_digest}.
 The captured contract is verbatim at {contract_ref}; the complete claim
 directory is paged at {claim_directory_ref} — read the pages you need; your
-local contract slice is never the whole universe. Claim IDs are the canonical tool IDs ({claim_gate_ref}: pinned `gate_check` report, both coverage
-booleans true, projected `registry_hash`) — never renumber, paraphrase or invent one;
-a directory without that permission is unusable for negative attribution.
+local contract slice is never the whole universe. Claim IDs refer to the state's
+V1-validated/frozen directory and source evidence ({claim_basis_ref}); never
+silently reinterpret or invent one. P0 links and candidate-unclaimed entries
+are leads only. Insufficient validation or claim access → UNRESOLVED.
 Designated in-diff clauses are ordinary claim sources with recorded
 provenance — never evidence that their own deliverable exists. Before returning
 UNCLAIMED_CANDIDATE for a unit, check the candidate scope {candidate_scope}

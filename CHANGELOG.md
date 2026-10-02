@@ -2,6 +2,14 @@
 
 ## Unreleased (working tree)
 
+### 2026-10-02 — Phase 0: claims → chunker → join → gate
+
+- **Phase-0 substrate replaced.** Capture source bytes, draft claims with `#fast` (including source consistency), run the shipped `kernel/tools/chunker.mjs`, propose witnessed links with `#fast`, then check the sweep in the coordinator. The former `cure_light_census` dependency is demoted: no canonical claim IDs, plugin gate permission or census denominator.
+- **Bounded, file-based joins.** Fixed-window units target 4 KiB / ceiling 6 KiB at logical boundaries. Pack full claims plus whole units by input length only — no unit-count cap or output reservation. Compact JSONL is mandatory; appending is optional. P0.5 checks paths, typed rows, IDs, duplicates, witnesses and complete assignment coverage; approved retry/re-split handles truncation.
+- **Leads, not verdicts.** Phase 0 emits candidate-unclaimed only. V1 validates/freezes claims against sources, accounts for every unit and alone finalizes UNCLAIMED. Source designation, repair pauses, state/OID discipline, notebook ownership and review-basis gates remain.
+- **Provenance and open pilot work.** The frame records claims-draft / units-manifest / join-draft refs and hashes plus chunker path/sha256/recipe tied to `cure_light_source_head_oid`. The coordinator gate is not a shipped tool. The chunker is behavior-validated against the reference simulation fixture (27 units / 11 files) with the port fixes documented in `chunker.md`; production schema naming, the supported Node floor, non-UTF8 paths and repeated-hunk range accounting remain explicit checkpoints, as do the input ceiling, retry/re-split policy, suite-level claims and the detailed V1 contract.
+- **Docs:** `kernel/SKILL.md`, `kernel/references/{intake-and-scope,pipeline-model,conformance-pass,evidence-format,closure-verification,chunker}.md`, `kernel/tools/chunker.mjs`, `libs/pi-driver/SKILL.md`, `libs/pi-driver/references/{requirements-check,notebook-plan-contract}.md`, `templates/KICKOFF.md`, `assets/child-pass-prompt-template.md`, `docs/contract-adequacy-validation-plan.md`, `docs/OPEN-ISSUES.md`, `kernel/references/debt-pass.md`, `BOOTSTRAP.md`.
+
 ### 2026-09-30 — Substrate version unpin
 
 - **The engine declares no specific `cure_light_census` release.** The declared substrate pin (`@grzegorznowak/pi-cure-light-census@1.0.2`) is removed across kernel, driver, templates, assets and docs: the package is referenced by name only, and requirement rows 10–11 plus the run frame no longer carry an expected version. Rationale: removing the doc-level pin avoids engine churn on every plugin release while keeping the guarantees that matter.

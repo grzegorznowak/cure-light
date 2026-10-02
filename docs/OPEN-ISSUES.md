@@ -32,7 +32,7 @@ There's no auto-post flow; the single review comment waits for operator approval
 
 ## 7. Dependency: model-groups plugin present
 
-Fleet groups (`flash`, `code-review`, `planner`, ...) exist only if the model-groups plugin is present. Requirement check downgrades to inherit-parent spawning otherwise, but that silently changes fleet parallelism. The conservative reading is: a pi runtime WITHOUT the plugin should run the pipeline in single-pass mode, not pretend it has a fleet.
+Fleet groups (`flash`, `code-review`, `planner`, ...) exist only if the model-groups plugin is present. Requirement check downgrades to inherit-parent spawning otherwise, but that silently changes fleet parallelism. The conservative reading is: a pi runtime WITHOUT the plugin should run the pipeline in single-pass mode, not pretend it has a fleet. The Phase-0 re-plan narrows this fallback: P0.2/P0.4 require fast; absence pauses those steps. The single-pass/inherited fallback here applies only to vector work.
 
 ## 8. Hygiene lens: deterministic preflight is repo-dependent
 

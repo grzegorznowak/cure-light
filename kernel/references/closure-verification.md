@@ -10,7 +10,7 @@ Closure runs after a deliberate re-pull (the operator decides at the gate; the c
 git -C <subject-path> rev-parse HEAD   → the new state's subject_oid
 ```
 
-The code delta is `git diff <last-reviewed subject_oid>..<new subject_oid>` — old findings re-validated against the new tree, never against an assumed remote tip. If the subject did not change **and** the captured contract did not change, say so (no work has been pulled — no code and no contract change) or wait. A changed PR body/issue/locked decision with an unchanged subject OID is **contract-only repair**: no code work is pulled, but it is still a new review state — recapture the contract snapshot and recompile the claim registry with the installed `cure_light_census` tool (`claims_prepare` → labeling children → `claims_finalize` → `gate_check`), recompile affected claim verdicts/attributions/projections, and reuse only the identity-checked mechanical census; the delta under review is the contract delta, never an edited claims page or an inherited registry. An in-diff source repair normally changes the subject OID even when executable code bytes are unchanged, and gets the same new-state treatment on the new `base..subject` pair. Old-state content is read at its own OID (`git show <old_subject_oid>:<path>`) — the working tree holds the new subject only.
+The code delta is `git diff <last-reviewed subject_oid>..<new subject_oid>` — old findings re-validated against the new tree, never against an assumed remote tip. If the subject did not change **and** the captured contract did not change, say so (no work has been pulled — no code and no contract change) or wait. A changed PR body/issue/locked decision with an unchanged subject OID is **contract-only repair**: no code work is pulled, but it is still a new review state — recapture the contract snapshot, rerun the P0.2 claims pass and P0.4/P0.5 join/gate against the new claims, then revalidate/freeze the V1 directory and re-adjudicate affected claim verdicts/attributions/projections. Reuse only identity-checked mechanical unit artifacts when base/subject/recipe/payload identity is unchanged; the delta under review is the contract delta, never an edited claims page, inherited draft links or inherited negatives. An in-diff source repair normally changes the subject OID even when executable code bytes are unchanged, and gets the same new-state treatment on the new `base..subject` pair. Old-state content is read at its own OID (`git show <old_subject_oid>:<path>`) — the working tree holds the new subject only.
 
 ## 2. Map findings → touched paths
 
@@ -60,13 +60,13 @@ section; old-state counts are never carried into a new-state comment.
 - **Do not present decision-deferrals as fixes.** "Locked as intentional" is a decision, not a fix — record it and surface the decision author to the operator.
 - **Do not resurrect closed-by-operator items** unless the operator reopens them or new evidence clearly falls outside the suppression scope.
 - **Doc/test-only closures are acknowledged as such**, so the operator knows the behavior itself is untouched — and a contract-only repair never flips a code finding green.
-- **A fresh manifest per state; no inherited negatives.** A contract-only repair (or any new state) recompiles and re-seals: new capture/registry/manifest hashes and a new `gate_check` permission under the installed `cure_light_census` package, with the recorded tool identity re-verified for the state. An old state's permission, zero-error report, census or "no gaps" verdict never carries into the new state — only identity-checked mechanical inputs may be reused, and never as coverage of the new contract.
+- **A fresh manifest per state; no inherited negatives.** A contract-only repair or any new state recaptures sources and records fresh claim/join refs/hashes, P0.5 sweep evidence and V1 validation. Re-verify the shipped chunker path/sha256/recipe against the recorded cure-light source identity. Old draft links, candidate-unclaimed lists, zero-error reports and final negatives never count as coverage of the new contract; only identity-checked mechanical unit inputs may be reused.
 
 ## Coverage in closure
 
 A closure run is a new review state: the prior state's coverage pages describe
 their own `subject_oid`, and the delta loop above re-validates findings without
-re-running the Vector 1 census. Two rules keep that honest:
+re-running Vector 1 unit accounting. Two rules keep that honest:
 
 - **New ranges are surfaced, or their absence is disclosed.** Compare the
 delta's added ranges against the old state's coverage page or its durable
@@ -76,7 +76,7 @@ unexplained ranges outside the finding-touched paths are either checked in the
 closure run or the closure render states plainly that V1 coverage was not
 re-run. Old dispositions are never presented as coverage of the new head —
 never claim new full coverage from them.
-- **Re-adjudication is per finding, on new pins.** Reclassify only against the new state's contract snapshot/source hash and validated census; a changed contract can affect every formerly unclaimed group, so affected claim verdicts and attributions are recompiled rather than inherited.
+- **Re-adjudication is per finding, on new pins.** Reclassify only against the new state's contract snapshot/source hash, validated unit inventory and frozen V1 claim directory; a changed contract can affect every formerly unclaimed group, so affected claim verdicts and attributions are recompiled rather than inherited.
 - **`unclaimed-delivery` closes only through the contract.** When an author
 declaration/justification resolves such a finding, the PR body changed the
 captured contract: recapture it in the new state with the author declaration
