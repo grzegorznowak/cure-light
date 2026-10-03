@@ -1,0 +1,7 @@
+index dccaff6..ff1c239 100644
+--- a/ünï©.txt
++++ b/ünï©.txt
+@@ -1,2 +1,2 @@
+-base content of ünï©.txt
++subject content of ünï©.txt
+ second base line

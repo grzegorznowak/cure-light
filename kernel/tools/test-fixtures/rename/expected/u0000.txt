@@ -1,0 +1,7 @@
+new file mode 100644
+index 0000000..3e89de3
+--- /dev/null
++++ b/new-name.txt
+@@ -0,0 +1,2 @@
++renamed content line one
++renamed content line two

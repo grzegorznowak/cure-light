@@ -1,0 +1,7 @@
+index 32a55ab..83b4d7b 100644
+--- a/テスト/日本語.txt
++++ b/テスト/日本語.txt
+@@ -1,2 +1,2 @@
+-base content of テスト/日本語.txt
++subject content of テスト/日本語.txt
+ second base line

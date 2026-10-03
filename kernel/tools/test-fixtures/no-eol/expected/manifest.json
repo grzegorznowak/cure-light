@@ -1,0 +1,42 @@
+{
+ "schema_version": "code-units-sim/2",
+ "recipe": {
+  "chunker": "chunker.mjs",
+  "target_bytes": 4096,
+  "ceiling_bytes": 6144,
+  "context": 3,
+  "block_preference": true
+ },
+ "identity": {
+  "repo": "<REPO>",
+  "base_ref": "main",
+  "subject_ref": "subject",
+  "base_oid": "99852942d28114c7ee79bd173b2f051e5f552963",
+  "subject_oid": "cf2d31e7ec1852b72936d01b4c6eeb40af438578"
+ },
+ "counts": {
+  "units": 1,
+  "files": 1,
+  "line_split_units": 0,
+  "total_bytes": 171
+ },
+ "units": [
+  {
+   "unit_id": "u0000",
+   "file": "units2/u0000.txt",
+   "path": "no-eol.txt",
+   "ranges": [
+    {
+     "old_start": 1,
+     "old_count": 3,
+     "new_start": 1,
+     "new_count": 3
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 171,
+   "blocks": 1,
+   "boundary_kind": "block"
+  }
+ ]
+}

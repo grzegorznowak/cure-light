@@ -1,0 +1,7 @@
+index 657e331..325ed93 100644
+--- a/café.txt
++++ b/café.txt
+@@ -1,2 +1,2 @@
+-base content of café.txt
++subject content of café.txt
+ second base line

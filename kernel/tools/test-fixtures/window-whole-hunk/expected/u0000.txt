@@ -1,0 +1,19 @@
+index 5ab399f..3b204ab 100644
+--- a/multi.txt
++++ b/multi.txt
+@@ -1,5 +1,5 @@
+ multi line 01 [multi-marker]
+-multi line 02 [multi-marker]
++multi line 02 changed [multi-marker]
+ multi line 03 [multi-marker]
+ multi line 04 [multi-marker]
+ multi line 05 [multi-marker]
+@@ -18,7 +18,7 @@ multi line 17 [multi-marker]
+ multi line 18 [multi-marker]
+ multi line 19 [multi-marker]
+ multi line 20 [multi-marker]
+-multi line 21 [multi-marker]
++multi line 21 changed [multi-marker]
+ multi line 22 [multi-marker]
+ multi line 23 [multi-marker]
+ multi line 24 [multi-marker]

@@ -5,6 +5,7 @@
 //     → <outDir>/units2/manifest.json + units2/uNNNN.txt payloads
 //
 // Contract: kernel/references/chunker.md. Zero dependencies beyond Node + git.
+// Tests: node --test "kernel/tools/*.test.mjs" (chunker.test.mjs + chunker.paths.test.mjs).
 // Fail-fast: usage errors, git/IO errors and lines that cannot fit the ceiling
 // are hard errors; the runner never splits mid-line and never writes a manifest
 // for a failed run.

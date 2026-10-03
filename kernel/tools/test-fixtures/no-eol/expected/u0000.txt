@@ -1,0 +1,9 @@
+index b02ce29..a27526e 100644
+--- a/no-eol.txt
++++ b/no-eol.txt
+@@ -1,3 +1,3 @@
+-first line
++first line changed
+ second line
+ no newline at end
+\ No newline at end of file

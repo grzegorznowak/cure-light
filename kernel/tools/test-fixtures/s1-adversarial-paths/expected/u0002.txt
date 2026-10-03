@@ -1,0 +1,7 @@
+index 416fe2d..971126b 100644
+--- a/a b/c b/d.txt	
++++ b/a b/c b/d.txt	
+@@ -1,2 +1,2 @@
+-base content of a b/c b/d.txt
++subject content of a b/c b/d.txt
+ second base line

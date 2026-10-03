@@ -1,0 +1,7 @@
+index 8dfc86f..22ddda2 100644
+--- "a/quote\"q.txt"
++++ "b/quote\"q.txt"
+@@ -1,2 +1,2 @@
+-base content
++subject content
+ second base line

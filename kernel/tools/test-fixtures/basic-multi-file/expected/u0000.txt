@@ -1,0 +1,19 @@
+index 1c3084e..17f062e 100644
+--- a/alpha.txt
++++ b/alpha.txt
+@@ -1,5 +1,5 @@
+ alpha line 01 [alpha-marker]
+-alpha line 02 [alpha-marker]
++alpha line 02 changed [alpha-marker]
+ alpha line 03 [alpha-marker]
+ alpha line 04 [alpha-marker]
+ alpha line 05 [alpha-marker]
+@@ -12,7 +12,7 @@ alpha line 11 [alpha-marker]
+ alpha line 12 [alpha-marker]
+ alpha line 13 [alpha-marker]
+ alpha line 14 [alpha-marker]
+-alpha line 15 [alpha-marker]
++alpha line 15 changed [alpha-marker]
+ alpha line 16 [alpha-marker]
+ alpha line 17 [alpha-marker]
+ alpha line 18 [alpha-marker]
