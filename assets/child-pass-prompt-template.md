@@ -154,7 +154,7 @@ settled, preserve the existing source-consistency witness record requirements
 (quotes/offsets/hashes/affected IDs/materiality) without fabricating a new schema.
 V1 validates/freezes claims against sources before adjudication.
 
-### P0.4 Link draft
+### P0.4 Per-box join JSONL
 
 The coordinator packs by input length only: instructions + the **full**
 `claims[].id` / `statement` list + whole units in manifest order. Never trim the
