@@ -2,6 +2,11 @@
 
 ## Unreleased (working tree)
 
+### 2026-10-03 — V1 claim-validation boundary
+
+- **V1 claim validation is a draft audit, not a second consistency sweep.** V1 validates the `claims-draft/3` for statement/quote/source-ref fidelity, the claim/nonclaim split and completeness against the authorized source set, and dispositions P0.2's source-consistency records (accept, or dispute with a witness); it re-opens within-/cross-source adjudication only on a missing/uncaptured designated source, a quote/source-ref fidelity failure, a disputed/unsupported record, or a material contradiction the audit itself surfaces. Newly surfaced or unaccepted contradictions enter the existing `repair_required` logic; final status remains V1's.
+- **Docs:** `kernel/references/conformance-pass.md`, `kernel/references/intake-and-scope.md`.
+
 ### 2026-10-02 — Vector 2 review checks
 
 - **Vector 2 gains two mandatory review checks**, adapted from an external PR-review prompt's "reasoning behind / effects on the user" premise: **justification** (state the change's rationale, its observable tradeoff, and any evidence that contradicts it) and **user impact** (affected actor, task, before/after, failure/recovery path, compatibility/migration cost). They render into a new `{review_checks}` child-prompt slot and are closed `checked-and-clear` when empty — a check not run is a frame error, like an unowned lens. An evidenced contradiction/harm is an ordinary Vector-2 finding; a *missing* rationale is an operator question (never invented intent) and a preference without harm stays on the lens trail. Scoped to Vector 2 so it does not re-open Vector 1's intent match or Vector 3's architecture review.
