@@ -4,7 +4,7 @@ Run BEFORE the fleet spends anything. Each line is a hard gate with a fallback o
 
 Two groups: **pre-pull rows** run at boot and feed the frame gate (they need only gh + the runtime, never a local tree); **deferred rows** (5/8/9) need the pulled subject and run at the **Phase 0 gate** — the check is marked complete only after they have run. Nothing in the target repo is cloned, checked out, or read locally before the subject pull (subject-first, kernel/SKILL.md §2).
 
-**Declared engine requirements (row 10).** Phase 0 uses Node and git for the zero-dependency chunker shipped with cure-light. Record `kernel/tools/chunker.mjs`, its exact-byte sha256 and recipe at `cure_light_source_head_oid`. No census-plugin install, GitHub Packages token or plugin gate permission is required. The subject tree never supplies the engine executable. Phase-0 claims/join require `#fast`; a missing or degenerate required group pauses its stage and does not silently change that proposer.
+**Declared engine requirements (row 10).** Phase 0 uses Node (22 or newer) and git for the zero-dependency chunker shipped with cure-light. Record `kernel/tools/chunker.mjs`, its exact-byte sha256 and recipe at `cure_light_source_head_oid`. No census-plugin install, GitHub Packages token or plugin gate permission is required. The subject tree never supplies the engine executable. Phase-0 claims/join require `#fast`; a missing or degenerate required group pauses its stage and does not silently change that proposer.
 
 ## Hard requirements
 
@@ -19,7 +19,7 @@ Two groups: **pre-pull rows** run at boot and feed the frame gate (they need onl
 | 7 | pre-pull | Phase-0 `fast` and vector fleet groups present | inspect group list (`fast`, `flash`, `code-review`, …) | missing/degenerate `fast` → pause for operator; no substitution for P0.2/P0.4; a required vector group that is absent or degenerate pauses the affected stage — no substitution (inherited parent, planner, coder, or other group) |
 | 8 | Phase 0 | git diff base..subject works on the **pulled** tree | `git -C <subject-path> diff <base_oid>..<subject_oid> --stat` | fetch the base ref into the tree's repo and retry; if still failing → STOP |
 | 9 | Phase 0 | (chhound rail) index health | `{ch_prefix}_daemon_status` | use bash/rg/grep; never block |
-| 10 | pre-pull | Node + git available; shipped chunker present with recorded engine source identity and exact-byte sha256/recipe | `node --version`; `git --version`; verify `kernel/tools/chunker.mjs` against the recorded cure-light source and hash its bytes | STOP the chunker path if runtime/script/identity is unavailable or mismatched; never substitute subject-tree process code |
+| 10 | pre-pull | Node 22+ and git available; shipped chunker present with recorded engine source identity and exact-byte sha256/recipe | `node --version` (must be >= 22); `git --version`; verify `kernel/tools/chunker.mjs` against the recorded cure-light source and hash its bytes | STOP the chunker path if runtime/script/identity is unavailable or mismatched; never substitute subject-tree process code |
 
 Row 4 semantics: the `ch-chhound` probe and the fallback ladder are defined in chhound-driver.md §Presence. The frame's planned mechanism is a **plan**, never a sandbox guarantee — a sandbox failure at Phase 0 falls back per chhound-driver.md (plain worktree + git/rg). Row 8 is a post-pull check on the pulled tree only: `gh pr diff` NEVER substitutes the subject diff — the remote head may differ from the pulled subject, and diffing the wrong tree would corrupt scope and origin classification.
 
@@ -28,7 +28,7 @@ Row 4 semantics: the `ch-chhound` probe and the fallback ladder are defined in c
 - Research tools missing → git diff, `rg`, `grep`, direct `read`. Evidence quality stays the same; cost rises a little.
 - Vector fleet groups missing or degenerate → pause the affected stage; no substitution (inherited parent, planner, coder, or other group) and no serialized-pass fallback. Phase-0 claims/join remain #fast only; if fast is unavailable, pause rather than silently substitute a proposer.
 - Notebook missing → scratch dir for frame/findings (same layout minus the authoritative coverage store); findings survive until context compaction (warning given). Vector 1 accounting has no authoritative ledger and the run must not assert complete coverage; the source-designation/consistency and `review_basis` records also lack an authoritative store — record the limitation and never assert `ready` (conformance-pass.md; notebook-plan-contract.md).
-- Shipped chunker or Node missing → stop that Phase-0 path and ask for the missing engine prerequisite. No plugin install is a fallback, and no unverified unit inventory permits complete-coverage language.
+- Shipped chunker or a Node below 22 → stop that Phase-0 path and ask for the missing engine prerequisite. No plugin install is a fallback, and no unverified unit inventory permits complete-coverage language.
 
 ## Stop conditions
 
@@ -36,7 +36,7 @@ Row 4 semantics: the `ch-chhound` probe and the fallback ladder are defined in c
 - (Phase 0) the subject tree cannot be pulled at all → stop; no evidence base (intake-and-scope.md §0.1). Pre-pull there is deliberately no subject tree — a missing tree stops the run only when the Phase-0 pull itself fails.
 - (Phase 0, row 8) the pulled tree still cannot diff base..subject after a fetch retry → stop; origin classification needs the base diff, and `gh pr diff` never substitutes it.
 - (chhound rail) rail confirmed but sandbox/connect/index broken → recorded fallback (plain worktree + git/rg), never a stop by itself.
-- (pre-pull, row 10) Node/git or the shipped chunker is unavailable, or script identity cannot be matched to the recorded cure-light source → stop the chunker path; never use the subject tree's executable. Missing `fast` pauses the claims/join path for an explicit operator decision.
+- (pre-pull, row 10) Node 22+/git or the shipped chunker is unavailable, or script identity cannot be matched to the recorded cure-light source → stop the chunker path; never use the subject tree's executable. Missing `fast` pauses the claims/join path for an explicit operator decision.
 
 ## Output of the check
 

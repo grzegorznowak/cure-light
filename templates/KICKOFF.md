@@ -76,7 +76,7 @@ report the output.
 
 ## 8. Phase-0 prerequisites and expectations
 
-- **Engine tool**: Node + git and the zero-dependency `kernel/tools/chunker.mjs` shipped with cure-light. The frame records its path, exact-byte sha256 and recipe at `cure_light_source_head_oid`; never run a subject-tree copy. No census-plugin install or private-package credential is required.
+- **Engine tool**: Node 22+ and git, plus the zero-dependency `kernel/tools/chunker.mjs` shipped with cure-light. The frame records its path, exact-byte sha256 and recipe at `cure_light_source_head_oid`; never run a subject-tree copy. No census-plugin install or private-package credential is required.
 - **Sequence**: capture source bytes → `#fast` claims (`claims-draft/3`, including source consistency) → chunker units → `#fast` witnessed join JSONL → coordinator P0.5 gate. The gate is behavior, not a second shipped tool.
 - **Packing/output**: full claims + whole units, in manifest order, bounded by input length only; no unit-count cap or output reservation. JSONL on disk is mandatory, appends optional. The gate checks the exact output paths and complete unit sweep, IDs/pairs/types/witnesses and recorded budgets; truncation is retried/re-split under the approved policy, never treated as “no match”.
 - **Authority**: draft links mean “look here”, never “this works”. Phase 0 emits candidate-unclaimed only; V1 validates/freezes claims against captured sources, accounts for all units and alone finalizes UNCLAIMED. Material contradictions or missing designation still default to the repair pause before V1.

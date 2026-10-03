@@ -29,7 +29,7 @@ Read [libs/pi-driver/SKILL.md](../libs/pi-driver/SKILL.md) only if this runtime 
 
 ### 0. Run the quick requirements check (pi runtimes)
 
-If the pi notebook driver applies, run it first per [requirements-check.md](../libs/pi-driver/references/requirements-check.md). Pre-pull rows check gh/git, Node for the zero-dependency shipped chunker, the engine script's path/sha256/recipe and source HEAD identity, notebook availability and the required Phase-0 `#fast` group. Subject-tree rows defer to the Phase-0 gate; the check completes only then. No census-plugin install, private package credential or plugin identity permission is required. Missing hard requirements pause before fleet cost; never substitute a subject-tree executable or silently change the Phase-0 proposer group. Never start a fleet on an unverified subject.
+If the pi notebook driver applies, run it first per [requirements-check.md](../libs/pi-driver/references/requirements-check.md). Pre-pull rows check gh/git, Node 22+ for the zero-dependency shipped chunker, the engine script's path/sha256/recipe and source HEAD identity, notebook availability and the required Phase-0 `#fast` group. Subject-tree rows defer to the Phase-0 gate; the check completes only then. No census-plugin install, private package credential or plugin identity permission is required. Missing hard requirements pause before fleet cost; never substitute a subject-tree executable or silently change the Phase-0 proposer group. Never start a fleet on an unverified subject.
 
 ### 1. Ask the intake fields once
 

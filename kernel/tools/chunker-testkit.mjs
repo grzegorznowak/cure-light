@@ -1,12 +1,13 @@
 // cure-light chunker testkit — shared helpers for kernel/tools/chunker.test.mjs
-// and chunker.paths.test.mjs. Zero dependencies beyond Node + git.
+// and chunker.paths.test.mjs. Requires Node >= 22 and git; no other deps.
 //
-// CI recipe (ubuntu-latest, actions/setup-node + git are enough):
+// CI recipe (ubuntu-latest, actions/setup-node with node-version 22+ + git):
 //
 //   node --test "kernel/tools/*.test.mjs"
 //
-// On Node 22/24 a directory argument is not expanded by the test runner
-// (`node --test kernel/tools/` fails with MODULE_NOT_FOUND); use the glob above.
+// A directory argument is not expanded by the Node 22/24 test runner
+// (`node --test kernel/tools/` fails with MODULE_NOT_FOUND); the glob above is
+// the supported invocation.
 //
 // Every fixture repo is built at test time under os.tmpdir() with fixed author
 // and committer dates, an isolated git config (GIT_CONFIG_GLOBAL/SYSTEM=/dev/null),
