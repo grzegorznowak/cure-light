@@ -164,8 +164,9 @@ and a V1 attribution edge is not a Vector 2 correctness review.
 
    Every `outside` occurrence gets a disposition from the owning V2 split: tree-read and
    accounted — verified as a consumer (a lead, tree-verified like any index output,
-   Evidence rule) or judged not a consumer at the site — or routed as an uninspected
-   finding → the in-scope route (blast-lens.md), which leaves the row a hit.
+   Evidence rule) or judged not a consumer at the site — or left uninspected, which
+   leaves the row a hit; only a verified in-scope consumer's explicitly deferred
+   obligation routes as a LOW V2 finding (blast-lens.md).
    **Enumeration complete is not inspection clear**: a chunk-triaged occurrence is
    navigation metadata, never clearance — the `sweep` row clears only when every
    `outside` occurrence is tree-read and accounted; the `in-diff` occurrences are
