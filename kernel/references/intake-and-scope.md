@@ -28,7 +28,7 @@ At Phase 0:
 - [ ] (pi) `notebook_index` responds.
 - [ ] (pi, optional) chhound index health (`{ch_prefix}_daemon_status`); fallback = bash/rg/grep. A broken index never blocks.
 
-If any hard requirement fails: state the fallback (git/rg instead of chhound; plain worktree instead of sandbox; inherit-parent instead of fleet groups) or STOP before fleet cost.
+If any hard requirement fails: state the fallback (git/rg instead of chhound; plain worktree instead of sandbox) or STOP before fleet cost; a missing or degenerate required group pauses that stage instead — never a substitute.
 
 ## 0.2 Capture sources and draft claims
 

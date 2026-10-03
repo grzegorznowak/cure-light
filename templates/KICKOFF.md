@@ -26,11 +26,13 @@
 
 ## 4. Fleet groups (if this runtime provides the model-groups plugin)
 
-- Phase-0 claims and join: `fast` only (pause if unavailable; no silent inherited substitute)
-- Conformance: `flash` (or inherited)
+- Phase-0 claims and join: `fast` only (pause if unavailable; no substitution)
+- Conformance: `flash` only (pause if unavailable; no substitution)
 - Implementation: `code-review`
 - Debt: `code-review`
 - Yagni (if enabled): `code-review`
+
+Required groups are binding: a group that is absent or degenerate (present but cannot resolve to a usable model/group) pauses the affected stage — no substitution (no inherited parent, `planner`/`coder`, or other group).
 
 ## 5. Draft policy (never auto-post otherwise)
 
