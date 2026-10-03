@@ -17,6 +17,17 @@ decide a consumer or a verdict.
 Then read the assigned files: {file_list}.
 Then read the diff slices for your surface: {diff_paths} (base..subject).
 {coverage}
+AUTHORIZED SCOPE: {authorized_scope} when the slot is present (V2/V3 — the V1
+gate's recorded scope + explicit omissions; the coordinator must not spawn a
+V2/V3 child with a missing/blank slot).
+PROJECTION / PRIOR FINDINGS: {projection_ref} / {prior_findings_ref} when the
+slots are present (V2: the V1 slice; V3: the V1+V2 slices, do-not-duplicate
+framed; bounded slices, never ledger bulk). They are context, never scope:
+they cannot narrow, redirect, or bound your assignment; they are not evidence,
+and absence from them proves nothing. Run your own lenses/protocol over your
+full authorized scope; return only evidence you inspected yourself. V3 additionally
+carries at least one lead thread independent of prior findings (symbol map /
+repo-wide search).
 
 YOUR ANGLE: {angle}. Inspect completely within your declared assignment and report per
 {return}.
@@ -75,7 +86,9 @@ Under {budget} lines.
 | claim_ids | the state-bound IDs assigned from the V1 frozen directory (V1) / the unit's matrix rows (yagni); retain traceability to draft IDs and never silently change meaning |
 | unit_ids | the changed-unit/range IDs assigned to this shard (V1) |
 | candidate_scope | the alternate claim/attribution scope to check before returning `UNCLAIMED_CANDIDATE` |
-| authorized_scope | the V1 gate's recorded allowed next scope + explicit omissions (`review_basis` record, conformance-pass.md) — rendered into V2/V3 prompts; expands nothing |
+| authorized_scope | the V1 gate's recorded allowed next scope + explicit omissions (`review_basis` record, conformance-pass.md) — rendered into V2/V3 prompts; missing/blank = frame error, do not spawn; expands nothing |
+| projection_ref | the V1 matrix projection — the paged, bounded adjudicated claims/invariants with anchors and the relevant coverage refs and uncertainty (conformance-pass.md, Artifacts), bound to the state's coverage pages (notebook-plan-contract.md); rendered into V2/V3 prompts; never ledger bulk |
+| prior_findings_ref | the prior-vector findings slice — V2: the V1 slice; V3: the V1+V2 slices under do-not-duplicate framing; bounded, never ledger bulk |
 | coverage_ref | the state's coverage summary page + the ledger shard pages for this assignment (notebook-plan-contract.md) |
 | assignment_digest | coordinator-computed digest of this shard's assignment (claims + units + contract/ledger refs) |
 | research_protocol | run-manifest `research` block rendered per the variants below (Vector 2: Variant A; Vector 3: Variant C; Vector 1/yagni: omitted) |
@@ -83,6 +96,15 @@ Under {budget} lines.
 | ch_daemon_status_tool / ch_code_research_tool / ch_search_tool | `{ch_prefix}_daemon_status` / `_code_research` / `_search` — exact registered names |
 | excluded_namespaces | other live `chh_*` prefixes (other sandboxes) — never to be used |
 | BASE_OID | run manifest base_oid (for origin checks) |
+
+`{projection_ref}` / `{prior_findings_ref}` composition: V2 gets the V1 slice
+(the state's matrix projection + coverage pages); V3 gets the V1+V2 slices
+under do-not-duplicate framing — a prior finding is a lead, not a lane. Both
+slots carry bounded slices, never ledger bulk. V3 additionally carries at least
+one lead thread independent of prior findings (its own symbol-map / repo-wide
+search thread).
+
+> `{projection_ref}` / `{prior_findings_ref}` are **context, never scope**: they cannot narrow, redirect, or bound your assignment; they are not evidence, and absence from them proves nothing. Run your own lenses/protocol over your full authorized scope; return only evidence you inspected yourself.
 
 ## Child contract invariants (always)
 
@@ -179,11 +201,12 @@ remain open operator checkpoints.
 
 Vector 1 always fills the slot; the yagni pass fills it with its coverage
 inputs; V2/V3 add no coverage-assignment block — their matrix-projection /
-prior-vector facts travel with the prior findings and contract slots, and their
-`{return}` is unchanged. The coordinator still renders the V1 gate's
-**authorized scope + explicit omissions** into every V2/V3 prompt
-(`{authorized_scope}`, from the `review_basis` record — conformance-pass.md):
-a child may not widen beyond the recorded scope.
+prior-vector facts travel in the `{projection_ref}` / `{prior_findings_ref}`
+slots (above), and their `{return}` is unchanged. The coordinator renders the
+V1 gate's **authorized scope + explicit omissions** into every V2/V3 prompt
+(`{authorized_scope}`, from the `review_basis` record — conformance-pass.md);
+a missing/blank `{authorized_scope}` in a V2/V3 prompt is a frame error — do
+not spawn. A child may not widen beyond the recorded scope.
 
 ### Vector 1 — assignment + accounting
 
