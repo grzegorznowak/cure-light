@@ -98,7 +98,7 @@ Each vector's fleet splits the contract surface, capacity-bounded within the app
 
 - conformance: contract surfaces (derivation core · persistence/schema guard · spawn/router gate · main-session+TUI · tests), each compiled into bounded claim/range shards — one verdict owner per claim, one accounting owner per unit — plus residual attribution shards for changed units with no candidate claim — candidate-unclaimed entries are leads for V1, never final negatives (work packaging only, never invented contracts)
 - implementation: sealed concepts the review already established (never open-ended), + **`read` lens and the `blast` judgment rows** (the once-per-state sweep runs in the deterministic preflight)
-- debt: pluggability · boundary ownership · versioning/migrations · projections · perf/operability, + **`dead`/`name`/`quality` lens ownership**
+- debt: pluggability · boundary ownership · versioning/migrations · projections · perf/operability, + **`dead`/`read`/`name`/`quality` lens ownership**
 
 Slice granularity is chosen so each child reads a bounded file set + the relevant contract slice + its assigned artifact refs and V1 coverage shard pages, and returns under a defined evidence budget.
 
@@ -135,7 +135,7 @@ repair_required: {required, records: [{reason, affected_scope, evidence_refs[]}]
 review_basis: {value: ready | limited-only | blocked | unknown, repair_required: {required, records, continuation}, blockers, allowed_next_scope, operator_disposition_ref}   # recorded after V1; repair_required reuses the Phase-0 record shape and identity (same frame page), finalized here, never recomputed; bound to source versions, Phase-0 artifact refs/hashes, V1 frozen claims + coverage evidence
 coverage: {version, owner: v1, status, summary_ref: coverage-<owner>-<pr>-s<n>, ledger_refs: [coverage-<owner>-<pr>-s<n>-p<k>], claims_ref/hash, scope, exclusions: {policy, classes, approvals}, counts_by_state_and_side, completion_flags: {enumeration, accounting, attribution, claim_conformance}, budget, assignment_ref/hash, audit, errors}   # V1 frozen claim directory + accounting over units_manifest; notebook pages remain authoritative for V1 states
 notebook (when available): pipeline-frame-<owner>-<pr>-s<n> + contract-<owner>-<pr>-s<n> + claims-<owner>-<pr>-s<n> + coverage-<owner>-<pr>-s<n> (+ ledger shards) + symbol-map-<owner>-<pr>-s<n> + pr-<n>-review   # per review state (pr-<n>-review: per PR); the map is the state's symbol_sweep artifact
-lens_matrix: {type: preflight, dead: preflight+v3, read: v2+v3, name: v3, blast: preflight+v2, quality: v3}   # see hygiene-lens.md + blast-lens.md + quality-lens.md
+lens_matrix: {type: preflight, dead: preflight+v3, read: v2+v3, name: v3, blast: preflight+v2, quality: v3, yagni: off}   # all seven lenses; enabled runs replace off with yagni-pass; only active lenses need owners (see hygiene-lens.md + yagni-pass.md + blast-lens.md + quality-lens.md)
 symbol_sweep: <artifact ref — state's symbol map page/file (symbol-map-<owner>-<pr>-s<n> | scratch path); mode: chhound-rail | rg>   # preflight symbol map, recipe in chhound-driver.md (Symbol sweep); reused by V2/V3/yagni + the comment render
 symbol_sweep_symbols: [..]   # optional: explicit identifiers the operator adds to the extracted sweep set
 research: {mode: chhound-rail | direct-tree, ch_prefix: <registered chh_* prefix | none>, excluded: [<other live chh_* prefixes>], v2_protocol: code-research-if-ready, v3_protocol: search-extensive-if-ready, shadow: off}   # protocols in implementation-pass.md + debt-pass.md; shadow on only by explicit operator choice
@@ -146,5 +146,7 @@ cure_light_source_head_oid: <cure-light source HEAD at intake>   # review proven
 
 The provenance field `cure_light_source_head_oid` is captured **once, at intake**, from the cure-light source checkout (`git -C <cure-light clone> rev-parse HEAD`). It is the "version at the time of reviewing": the single review comment composes its attribution footer from this manifest value alone, never re-derived per vector (see evidence-format.md, External routing).
 
-Every lens in the matrix must have ≥1 owning pass before Phase 0 proceeds — a
-lens without an owner is a frame error, not a "nothing found" default.
+Every **active** lens in the matrix must have ≥1 owning pass before Phase 0
+proceeds — a lens without an owner is a frame error, not a "nothing found"
+default; an inactive lens (matrix `off`, e.g. a skipped yagni pass) needs no
+owner.

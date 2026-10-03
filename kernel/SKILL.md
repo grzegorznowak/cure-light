@@ -78,6 +78,8 @@ When the operator says the implementer "worked on the review" (or re-pulls the P
 
 - `verified-fixed` — code + test evidence at old/new lines
 - `re-classified` — category/claim changed
+- `test-only` — only tests changed; behavior identical
+- `doc-only` — only comments/docs changed
 - `deferred-decision` — acknowledged but knowingly unfixed (never presented as fixed)
 - `closed-by-operator` — operator suppressed it (e.g. "don't re-raise"); auditable, re-openable on new evidence
 - `re-opened` — prior proof no longer holds

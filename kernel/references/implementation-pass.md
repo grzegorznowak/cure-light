@@ -108,8 +108,13 @@ error, like an unowned lens:
   is a Vector-2 finding at its severity; a preference without harm stays on the lens
   trail.
 
-Clear/advisory outcomes route like the hygiene and `blast` lens rows; only an
-*evidenced* contradiction or concrete harm enters the bug table, at its own severity.
+Each mandatory check closes with one recorded outcome — `checked-and-clear` |
+`advisory` | `question` | `finding` — in the `pr-<n>-review` trail
+(evidence-format.md, Notebook layout): `checked-and-clear`/`advisory` are trail
+rows like the hygiene and `blast` lens rows; a `question` (missing/unstated
+rationale, unresolved impact judgement) routes to the decisions page; only an
+*evidenced* contradiction or concrete harm is a `finding` and enters the bug
+table, at its own severity.
 
 ## Aggregation + disposition
 
