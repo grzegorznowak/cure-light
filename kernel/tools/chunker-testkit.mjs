@@ -5,6 +5,9 @@
 //
 //   node --test "kernel/tools/*.test.mjs"
 //
+// On Node 22/24 a directory argument is not expanded by the test runner
+// (`node --test kernel/tools/` fails with MODULE_NOT_FOUND); use the glob above.
+//
 // Every fixture repo is built at test time under os.tmpdir() with fixed author
 // and committer dates, an isolated git config (GIT_CONFIG_GLOBAL/SYSTEM=/dev/null),
 // and repo-local user.name/email, so manifests and payloads are reproducible.

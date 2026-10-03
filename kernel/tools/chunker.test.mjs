@@ -13,7 +13,7 @@ import path from "node:path";
 import {
   CEILING_BYTES, CHUNKER_PATH, FIXTURES_DIR, RECIPE, TOOLS_DIR,
   assertRunContract, assertRunMatchesGolden, assertRunsEquivalent,
-  branch, buildFixture, cleanupTempDirs, commitAll, createFixtureRepo,
+  branch, buildFixture, cleanupTempDirs, commitAll, commitIndex, createFixtureRepo,
   discoverFixtures, gitChangedFileOrder, gitDiffRaw, loadFixture,
   manifestPath, readManifest, readRunArtifacts, revParse, runChunker,
   runGit, spawnChunker, symlink, tempDir, write,
@@ -220,6 +220,28 @@ describe("manifest and payload contract", () => {
     assert.equal(normalized(run2.outDir), normalized(run.outDir), "manifest bytes identical after repo normalization");
     assertRunsEquivalent(run, run2, repo, "determinism");
   });
+
+  it("uses two-dot refs, not a merge-base substitution", () => {
+    const repo = createFixtureRepo("two-dot");
+    write(repo, "f.txt", "one\n");
+    write(repo, "g.txt", "g1\n");
+    commitAll(repo, "A");
+    const oidA = revParse(repo, "main");
+    write(repo, "f.txt", "two\n");
+    commitAll(repo, "B");
+    runGit(repo, ["checkout", "-b", "subject", oidA, "--quiet"]);
+    write(repo, "g.txt", "g2\n");
+    commitAll(repo, "C");
+
+    const run = runChunker({ repo, base: "main", subject: "subject" });
+    const manifest = assertRunContract(run, { label: "two-dot" });
+    const twoDot = gitChangedFileOrder(repo, "main", "subject");
+    const threeDot = runGit(repo, ["diff", "--name-only", "--no-renames", "main...subject"])
+      .stdout.split("\n").filter(Boolean);
+    assert.notDeepStrictEqual([...threeDot].sort(), [...twoDot].sort(), "fixture must make two-dot and three-dot differ");
+    const manifestPaths = [...new Set(manifest.units.map((u) => u.path))].sort();
+    assert.deepStrictEqual(manifestPaths, [...twoDot].sort(), "manifest follows the two-dot changed-file set");
+  });
 });
 
 describe("S3 line-split labeling", () => {
@@ -411,6 +433,21 @@ describe("hostile config/env negatives", () => {
       name: "repo-local diff.interHunkContext=10",
       apply: (repo) => runGit(repo, ["config", "diff.interHunkContext", "10"]),
     },
+    {
+      name: "repo-local color.ui=always + color.diff=always",
+      apply: (repo) => {
+        runGit(repo, ["config", "color.ui", "always"]);
+        runGit(repo, ["config", "color.diff", "always"]);
+      },
+    },
+    {
+      name: "repo-local diff.algorithm=histogram",
+      apply: (repo) => runGit(repo, ["config", "diff.algorithm", "histogram"]),
+    },
+    {
+      name: "repo-local diff.context=10",
+      apply: (repo) => runGit(repo, ["config", "diff.context", "10"]),
+    },
   ];
 
   for (const testCase of hostileCases) {
@@ -431,8 +468,20 @@ describe("hostile config/env negatives", () => {
 
   it("repo-local diff.submodule=log and diff.ignoreSubmodules=all cannot hide the pointer", async () => {
     const { repo } = await buildFixture("submodule-ignore");
+    // The golden fixture commits `ignore = all` on purpose; for the config
+    // variants drop it first so the clean baseline really shows the pointer
+    // (otherwise both runs are degenerate empty inventories and the
+    // equivalence check would pass without any pinning).
+    runGit(repo, ["checkout", "subject", "--quiet"]);
+    write(repo, ".gitmodules", "[submodule \"sub\"]\n\tpath = sub\n\turl = ../sub\n");
+    runGit(repo, ["add", ".gitmodules"]);
+    commitIndex(repo, "subject without committed ignore");
     const clean = runChunker({ repo });
     assertRunContract(clean, { label: "submodule clean" });
+    assert.ok(
+      readManifest(clean.outDir).units.some((u) => u.path === "sub"),
+      "baseline really shows the pointer",
+    );
     runGit(repo, ["config", "diff.submodule", "log"]);
     const logged = runChunker({ repo });
     assertRunContract(logged, { label: "diff.submodule=log" });
@@ -468,6 +517,27 @@ describe("external diff safety", () => {
     assert.ok(!existsSync(envMarker), "GIT_EXTERNAL_DIFF must not run");
     const manifest = assertRunContract(res, { label: "extdiff" });
     assert.ok(manifest.units.some((u) => u.path === "doc.txt"), "normal units still produced");
+  });
+
+  it("config-driven textconv driver never runs", () => {
+    const repo = createFixtureRepo("textconv");
+    const scripts = tempDir("textconv-scripts");
+    const marker = path.join(scripts, "textconv.marker");
+    const script = path.join(scripts, "tc.sh");
+    writeFileSync(script, `#!/bin/sh\ntouch "${marker}"\necho converted\n`, { mode: 0o755 });
+    write(repo, ".gitattributes", "*.txt diff=tx\n");
+    write(repo, "doc.txt", "base doc\n");
+    commitAll(repo, "base");
+    branch(repo, "subject");
+    write(repo, "doc.txt", "subject doc\n");
+    commitAll(repo, "subject");
+    runGit(repo, ["config", "diff.tx.textconv", script]);
+
+    const res = runChunker({ repo });
+    assert.equal(res.status, 0);
+    assert.ok(!existsSync(marker), "textconv driver must not run");
+    const manifest = assertRunContract(res, { label: "textconv" });
+    assert.ok(manifest.units.some((u) => u.path === "doc.txt"), "normal diff still produced");
   });
 });
 
@@ -513,6 +583,25 @@ describe("documented-limit locks", () => {
     const hostilePaths = readManifest(hostile.outDir).units.map((u) => u.path);
     assert.deepStrictEqual([...hostilePaths].sort(), [...cleanPaths].sort(), "same unit set");
     assert.notDeepStrictEqual(hostilePaths, cleanPaths, "orderFile did reorder (limit exercised)");
+  });
+
+  it("invalid UTF-8 diff content decodes lossily; byte_len measures replacement bytes", () => {
+    const repo = createFixtureRepo("lossy-content");
+    write(repo, "data.txt", "base line\n");
+    commitAll(repo, "base");
+    branch(repo, "subject");
+    writeFileSync(path.join(repo, "data.txt"), Buffer.concat([
+      Buffer.from("subject caf"), Buffer.from([0xe9]), Buffer.from(" line\n"),
+    ]));
+    commitAll(repo, "subject");
+
+    const run = runChunker({ repo });
+    const manifest = assertRunContract(run, { label: "lossy-content" });
+    const unit = manifest.units[0];
+    assert.equal(unit.boundary_kind, "block");
+    const bytes = readFileSync(path.join(run.outDir, unit.file));
+    assert.equal(bytes.length, unit.byte_len, "byte_len measures the stored replacement bytes");
+    assert.match(bytes.toString("utf8"), /\+subject caf\ufffd line/, "lossy replacement character present");
   });
 });
 
