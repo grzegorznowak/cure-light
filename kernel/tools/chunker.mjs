@@ -30,13 +30,21 @@ const fail = (msg) => { console.error(`chunker: ${msg}`); process.exit(1); };
 
 // Two-dot diff, no renames, no external diffs/textconv (subject-configured
 // filters are subject-tree executables and are never run), stable paths.
+// The recipe is pinned against subject/runner git config: explicit prefixes
+// defeat diff.noprefix/srcPrefix/dstPrefix, GIT_DIFF_OPTS is cleared (it
+// overrides -U), submodules are always rendered so a committed ignore=all
+// cannot hide a pointer change, and blank-empty/hunk-context config cannot
+// move payload bytes or hunk boundaries.
 let diff;
 try {
   diff = execFileSync("git", [
     "-C", repo, "-c", "core.quotepath=false",
-    "diff", `-U${CONTEXT}`, "--no-ext-diff", "--no-color", "--no-renames",
+    "-c", "diff.suppressBlankEmpty=false",
+    "diff", `-U${CONTEXT}`, "--src-prefix=a/", "--dst-prefix=b/",
+    "--inter-hunk-context=0", "--submodule=short", "--ignore-submodules=none",
+    "--no-ext-diff", "--no-color", "--no-renames",
     "--no-textconv", "--diff-algorithm=myers", `${base}..${subject}`,
-  ], { maxBuffer: 1 << 28 }).toString("utf8");
+  ], { maxBuffer: 1 << 28, env: { ...process.env, GIT_DIFF_OPTS: "" } }).toString("utf8");
 } catch (err) {
   fail(`git diff failed: ${err.message}`);
 }
