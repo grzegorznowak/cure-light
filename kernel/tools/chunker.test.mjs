@@ -315,6 +315,46 @@ describe("window bounds, grouping and diff order", () => {
     for (const unit of manifest.units) if (seen.at(-1) !== unit.path) seen.push(unit.path);
     assert.deepStrictEqual(seen, gitChangedFileOrder(repo, "main", "subject"));
   });
+
+  it("column-0 def detection is grouping-only: an indented def falls to the blank-line rule", () => {
+    // Identical 100-line change; the only difference is whether the marker line
+    // is a column-0 `def` (def-boundary grouping) or indented (blank-line rule;
+    // with no blank lines the whole hunk is one block). Sizes are tuned so the
+    // def-split blocks fit under the ceiling while the unsplit block does not:
+    // grouping changes, coverage does not.
+    const build = (name, defLine) => {
+      const repo = createFixtureRepo(name);
+      const base = [];
+      for (let i = 0; i < 200; i += 1) base.push(`code line ${String(i).padStart(3, "0")} ` + "x".repeat(20));
+      write(repo, "mod.py", `${base.join("\n")}\n`);
+      commitAll(repo, "base");
+      branch(repo, "subject");
+      const lines = [];
+      for (let i = 0; i < 200; i += 1) {
+        lines.push(i >= 5 && i <= 104
+          ? `changed line ${String(i).padStart(3, "0")} ` + "y".repeat(18)
+          : `code line ${String(i).padStart(3, "0")} ` + "x".repeat(20));
+      }
+      lines[54] = defLine;
+      write(repo, "mod.py", `${lines.join("\n")}\n`);
+      commitAll(repo, "subject");
+      return repo;
+    };
+
+    const col0 = runChunker({ repo: build("indent-def-col0", "def anchor():") });
+    const indented = runChunker({ repo: build("indent-def-indented", "    def anchor():") });
+    const col0Manifest = assertRunContract(col0, { label: "def col0" });
+    const indentedManifest = assertRunContract(indented, { label: "def indented" });
+
+    assert.equal(col0Manifest.counts.line_split_units, 0, "def-split blocks fit: no line split");
+    assert.ok(col0Manifest.units.every((u) => u.boundary_kind === "block"), "def-grouped units are blocks");
+    assert.ok(indentedManifest.counts.line_split_units > 0, "indented def is not a boundary: the hunk must line-split");
+    assert.ok(indentedManifest.units.every((u) => u.boundary_kind === "line-split"), "oversized-block units are line-splits");
+    for (const [label, run] of [["col0", col0], ["indented", indented]]) {
+      const text = readManifest(run.outDir).units.map((u) => unitText(run, u)).join("\n");
+      assert.ok(text.includes("changed line 005") && text.includes("changed line 104"), `${label} covers the whole changed range`);
+    }
+  });
 });
 
 describe("no-hunk and special surfaces", () => {
