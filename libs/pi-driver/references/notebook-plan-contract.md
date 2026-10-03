@@ -56,7 +56,7 @@ closure and finalization can cite the accounting without loading every shard.
 
 When `handoff` is available and the operator confirms the frame:
 
-1. Write `pipeline-frame-<owner>-<pr>-s<n>` (compiled options + planned subject mechanism — the manifest's tree fields land at the Phase 0 gate) and `pr-<n>-review` (findings skeleton).
+1. Write and read back — verifying both match — `pipeline-frame-<owner>-<pr>-s<n>` (compiled options + planned subject mechanism — the manifest's tree fields land at the Phase 0 gate) and `pr-<n>-review` (findings skeleton); the readback is the notebook write-availability proof (requirements-check.md row 6).
 2. Discard recoverable code-trivia pages; refresh the durable decision page.
 3. Draft the handoff prompt that carries ONLY: the frame's location, the current state (intake complete, requirements pass/fallback), the immediate next step (Phase 0 pull subject + contract → Vector 1), and any blocker or failed path worth avoiding.
 4. Call `handoff` with `discardPages` for code-trivia pages and the task prompt pointing at the frame page by name.

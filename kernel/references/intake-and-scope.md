@@ -70,7 +70,7 @@ Missing-source candidates name the resource, affected draft IDs, the reference q
 P0.1 source capture (verbatim bytes + sha256 refs)
   → P0.2 claims pass (#fast; claims-draft/3 + source-consistency)
   → P0.3 shipped chunker (units manifest + whole-unit payloads)
-  → P0.4 join pass (#fast; compact link-draft/1 JSONL per box)
+  → P0.4 join pass (#fast; compact per-box join JSONL attempt — row shape P0.4)
   → P0.5 coordinator gate (counts, types, witnesses, budgets, complete sweep)
   → join-draft/1 + candidate-unclaimed[]
   → capacity-bounded V1 split → operator Phase-0 gate

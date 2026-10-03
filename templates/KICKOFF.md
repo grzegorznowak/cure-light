@@ -39,21 +39,25 @@
 > — the developer opens them; gh issue bodies are never drafted.
 
 ```
-draft_comment: [false]   # prepare the single review comment for operator approval
+draft_comment: [false]   # review-only; draft the single review comment on explicit request
 ```
 
 ## 6. Pauses / operator gates
 
 > Default: pause after each vector (`per_vector`). Tick any extra checkpoints you want.
-> `before_post` is **enforced** — not optional — whenever `draft_comment` is enabled.
+
+**Mandatory gates (not checkboxes):**
+
+- **Frame confirmation** — the frame is compiled unsealed, shown, and **waits for your explicit confirmation** before it is written, read back, and sealed/handed off (notebook-plan-contract.md).
+- **Before post** — **enforced** whenever `draft_comment` is enabled.
+- **Repair pause** — a material unresolved contradiction between captured sources, or any other `repair_required` defect (missing designation/orientation included), pauses the run **before Vector 1**; continuing takes your explicit recorded `repair_required.continuation` mode (an evidence-only V1 run or an explicitly limited V1-only review), and neither clears the defect nor authorizes ordinary downstream work.
+
+Optional pauses:
 
 ```
-- [ ] after intake (frame confirmation)
 - [x] after each vector
 - [ ] after closure re-review
 ```
-
-Automatic (not a checkbox): a material unresolved contradiction between captured sources — or any other `repair_required` defect such as missing designation/orientation — pauses the run **before Vector 1**; continuing anyway takes your explicit recorded authorization (an evidence-only V1 run for a contradiction, or an explicitly limited V1-only review), and neither clears the defect.
 
 ## 7. Chhound rail (only when the pi-chhound plugin is present)
 
@@ -85,19 +89,20 @@ report the output.
 > Fetch the manifest, follow its instructions exactly: fetch every listed file
 > as raw markdown (no summarization, preserve bytes), report each file's line
 > count, run the quick requirements check, ask the intake fields once (owner/
-> repo, PR number, vectors, draft policy), compile the run plan into the
-> notebook, and — because this runtime provides the pi notebook + handoff —
-> seal the compiled frame and hand off so the next context kicks off Phase 0
-> (pull subject + contract) then Vector 1. Report the requirements result and compiled plan back before
-> proceeding. No clone or install.
+> repo, PR number, vectors, draft policy), compile the run plan unsealed and
+> show the compiled frame (with the requirements result) for explicit
+> confirmation, wait for that confirmation, then write + read back the frame and
+> findings skeleton and — because this runtime provides the pi notebook +
+> handoff — seal the compiled frame and hand off so the next context kicks off
+> Phase 0 (pull subject + contract) then Vector 1. No clone or install.
 
 ## What happens next (expectation set)
 
 1. The agent fetches + reads the kernel and driver, reports line counts.
 2. It runs the quick requirements check (gh auth, repo, PR OID, planned subject mechanism, Node/git + shipped chunker identity, Phase-0 fast availability, notebook, groups — the subject-tree rows defer to Phase 0).
 3. It asks the intake fields **once** — usually nothing is missing if KICKOFF is filled.
-4. It compiles the run frame and shows it for confirmation.
-5. It saves the frame + findings pages, and (if the runtime provides handoff) seals and hands off.
+4. It compiles the run frame unsealed and shows it for the operator's explicit confirmation — it waits there.
+5. On the operator's explicit confirmation, it writes and reads back the frame + findings pages, and (if the runtime provides handoff) seals and hands off.
 6. Phase 0 runs in the new context: pull the subject first; capture the verbatim contract (`contract-<owner>-<pr>-s<n>` on pi, disk fallback otherwise) and source refs/hashes; draft claims with `#fast` including source-consistency work; run the shipped chunker; propose links with `#fast` into per-box JSONL; run coordinator P0.5 checks and compile capacity-bounded vector splits. Record subject/base OIDs, changed files, chunker identity, claims/unit/join refs/hashes, counts, hard cases, exclusions and budgets; complete deferred requirement rows and show the Phase-0 gate. `repair_required` defaults to pause before V1 unless you authorize the existing named, bounded exception. Notebook-less fallback still lacks the authoritative V1 claim/coverage/gate-disposition store and cannot assert complete coverage or readiness.
 7. Vector 1 (conformance — validate/freeze claims, adjudicate claims, account for all units and finalize UNCLAIMED) fleets out; report; gate — the coordinator records the review basis (`ready` / `limited-only` / `blocked` / `unknown`) and any outstanding repair requirement before Vector 2 may be planned. Then the deterministic preflight (symbol map), Vector 2, Vector 3, then output.
 8. On "the implementer worked on the review", the closure loop re-validates per finding and publishes the table.
