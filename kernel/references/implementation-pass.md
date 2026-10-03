@@ -71,7 +71,7 @@ Verify by diffing the base commit (`git show <base>:<path>`) and citing where th
 ## Child return format
 
 ```text
-[F<id>] file:line — what — concrete failure mode (exploit or user-visible) — severity (HIGH/MED/LOW)
+[V2-<n>] file:line — what — concrete failure mode (exploit or user-visible) — severity (HIGH/MED/LOW)
 origin: PR-introduced | pre-existing (base evidence: <base:<path>:<line>)
 ```
 

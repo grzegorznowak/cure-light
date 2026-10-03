@@ -5,7 +5,7 @@ Every finding in a cure-light run conforms to this shape. It is the interop cont
 ## Finding schema
 
 ```yaml
-id: <vector-letter><#>            # V1-V3 + seq, e.g. F2-03 or D3-01 (yagni: Y-01)
+id: V1-<n> | V2-<n> | D3-<n> | Y-<n>   # V1 conformance, V2 implementation, D3 debt, Y yagni; e.g. V1-03, V2-03, D3-01, Y-01
 vector: conformance | implementation | debt | yagni
 lens: type | dead | read | name | blast | test | security | yagni | quality | none   # optional; see hygiene-lens.md + blast-lens.md + quality-lens.md
 lens-checked: [<lens>, ...]       # lenses proven exercised on this artifact

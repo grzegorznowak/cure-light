@@ -57,7 +57,7 @@ Before the first search, read the run's **symbol map** (`symbol_sweep` artifact 
 ## Child return format
 
 ```text
-[D<id>] concept — why fragile/short-lived — concrete future failure when <2nd constraint | next version | new host> arrives — severity (HIGH blocks future feature work / MED / LOW)
+[D3-<n>] concept — why fragile/short-lived — concrete future failure when <2nd constraint | next version | new host> arrives — severity (HIGH blocks future feature work / MED / LOW)
 ```
 
 - Verify with file:line where the shape is hard-coded.

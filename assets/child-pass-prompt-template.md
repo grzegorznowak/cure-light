@@ -77,7 +77,7 @@ Under {budget} lines.
 | diff_paths | the focused diff hunks for the surface |
 | angle | the surface (conformance) / sealed invariant (implementation) / bigger concept (debt) / functionality unit (yagni) |
 | lenses | the lens list this split owns, from the run lens matrix (pipeline-model.md; checklists per owning reference: hygiene-lens.md, blast-lens.md, quality-lens.md, yagni-pass.md) |
-| return | from the pass contract: conformance: claim block + unit block + `CLOSE` (conformance-pass.md); implementation/debt: `[F] file:line`, `[D] concept`; yagni: `ENGINEERING` / `[Y]` / `NOT-YAGNI` (yagni-pass.md) |
+| return | from the pass contract: conformance: claim block + unit block + `CLOSE` (conformance-pass.md); implementation/debt: `[V2-<n>] file:line`, `[D3-<n>] concept`; yagni: `ENGINEERING` / `[Y-<n>]` / `NOT-YAGNI` (yagni-pass.md) |
 | budget | output-size cap (lines); enforced; truncation = inconclusive |
 | coverage | the vector's coverage block (below): V1 assignment + return shape; yagni scoring inputs; omitted for V2/V3 |
 | review_checks | from the pass contract: Vector 2 renders the justification + user-impact checks (Review-checks variant below); other vector-template passes render `n/a`; separate Phase-0/non-vector bindings are exempt |
