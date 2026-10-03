@@ -1,0 +1,24 @@
+{
+ "schema_version": "code-units-sim/2",
+ "recipe": {
+  "chunker": "chunker.mjs",
+  "target_bytes": 4096,
+  "ceiling_bytes": 6144,
+  "context": 3,
+  "block_preference": true
+ },
+ "identity": {
+  "repo": "<REPO>",
+  "base_ref": "main",
+  "subject_ref": "subject",
+  "base_oid": "7020f30b7f98b9850bdd43c797dbadc248c8f1c7",
+  "subject_oid": "7020f30b7f98b9850bdd43c797dbadc248c8f1c7"
+ },
+ "counts": {
+  "units": 0,
+  "files": 0,
+  "line_split_units": 0,
+  "total_bytes": 0
+ },
+ "units": []
+}

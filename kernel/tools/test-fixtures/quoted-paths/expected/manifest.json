@@ -1,0 +1,93 @@
+{
+ "schema_version": "code-units-sim/2",
+ "recipe": {
+  "chunker": "chunker.mjs",
+  "target_bytes": 4096,
+  "ceiling_bytes": 6144,
+  "context": 3,
+  "block_preference": true
+ },
+ "identity": {
+  "repo": "<REPO>",
+  "base_ref": "main",
+  "subject_ref": "subject",
+  "base_oid": "f4203a6db6677e64c08b279a84df2fa8477db553",
+  "subject_oid": "6f8781bc9bd3c457e132c40f8eb9839e250a0926"
+ },
+ "counts": {
+  "units": 4,
+  "files": 4,
+  "line_split_units": 0,
+  "total_bytes": 556
+ },
+ "units": [
+  {
+   "unit_id": "u0000",
+   "file": "units2/u0000.txt",
+   "path": "diff --git \"a/back\\\\slash.txt\" \"b/back\\\\slash.txt\"",
+   "ranges": [
+    {
+     "old_start": 1,
+     "old_count": 2,
+     "new_start": 1,
+     "new_count": 2
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 142,
+   "blocks": 1,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0001",
+   "file": "units2/u0001.txt",
+   "path": "diff --git \"a/line\\nname.txt\" \"b/line\\nname.txt\"",
+   "ranges": [
+    {
+     "old_start": 1,
+     "old_count": 2,
+     "new_start": 1,
+     "new_count": 2
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 140,
+   "blocks": 1,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0002",
+   "file": "units2/u0002.txt",
+   "path": "diff --git \"a/quote\\\"q.txt\" \"b/quote\\\"q.txt\"",
+   "ranges": [
+    {
+     "old_start": 1,
+     "old_count": 2,
+     "new_start": 1,
+     "new_count": 2
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 136,
+   "blocks": 1,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0003",
+   "file": "units2/u0003.txt",
+   "path": "diff --git \"a/tab\\tname.txt\" \"b/tab\\tname.txt\"",
+   "ranges": [
+    {
+     "old_start": 1,
+     "old_count": 2,
+     "new_start": 1,
+     "new_count": 2
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 138,
+   "blocks": 1,
+   "boundary_kind": "block"
+  }
+ ]
+}

@@ -91,9 +91,12 @@ Rules:
    product criticality — suggestion-only on the lens trail.
 6. **`blast` rows are advisory, its instances are findings** (blast-lens.md): row
    hits follow the lens trail; a concrete data-hazard instance routes to the bug
-   table as a Vector 2 finding at its own severity; the preflight's mechanical
-   symbol map may surface as the comment's `Symbol impact` section
-   (chhound-driver.md / evidence-format.md).
+   table as a Vector 2 finding at its own severity; a verified in-scope
+   consumer's explicitly deferred compatibility obligation is a **LOW Vector 2
+   finding (assurance-gap)** — reviewer omission / an unread occurrence alone is
+   not an author bug, and concrete harm keeps the ordinary instance severity; the
+   preflight's mechanical symbol map may surface as the comment's `Symbol
+   impact` section (chhound-driver.md / evidence-format.md).
 
 ## Optional pass: yagni (over-engineering / YAGNI)
 

@@ -1,0 +1,7 @@
+deleted file mode 100644
+index 3e89de3..0000000
+--- a/old-name.txt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-renamed content line one
+-renamed content line two

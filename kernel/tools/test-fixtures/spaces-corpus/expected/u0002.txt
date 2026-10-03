@@ -1,0 +1,7 @@
+index 721cb93..6135c6b 100644
+--- a/dir with spaces/file name.txt	
++++ b/dir with spaces/file name.txt	
+@@ -1,2 +1,2 @@
+-base content of dir with spaces/file name.txt
++subject content of dir with spaces/file name.txt
+ second base line

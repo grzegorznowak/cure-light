@@ -30,9 +30,9 @@ The notebook advertises replay convenience only (no CAS, no audit, no cross-mach
 
 There's no auto-post flow; the single review comment waits for operator approval (`before_post` is mandatory whenever drafting is enabled). That's a feature, but it means the pipeline ends awaiting humans. A future version could offer a "wet-batch" mode for trusted repos with clear review-eyes-off.
 
-## 7. Dependency: model-groups plugin present
+## 7. Dependency: model-groups plugin present — RESOLVED by strict binding (2026-10-04)
 
-Fleet groups (`flash`, `code-review`, `planner`, ...) exist only if the model-groups plugin is present. Requirement check downgrades to inherit-parent spawning otherwise, but that silently changes fleet parallelism. The conservative reading is: a pi runtime WITHOUT the plugin should run the pipeline in single-pass mode, not pretend it has a fleet. The Phase-0 re-plan narrows this fallback: P0.2/P0.4 require fast; absence pauses those steps. The single-pass/inherited fallback here applies only to vector work.
+Fleet groups (`flash`, `code-review`, `planner`, ...) exist only if the model-groups plugin is present. **Operator decision (2026-10-04): strict group binding.** A required group that is absent or degenerate (present but cannot resolve to a usable model/group) **pauses the affected stage**; there is no substitution — no inherited parent, planner, coder, or other group — for any stage, and no serialized-pass fallback. P0.2/P0.4 require `fast`; absence pauses those steps. A runtime without the plugin therefore runs only the stages whose required groups actually resolve — never a pretend fleet.
 
 ## 8. Hygiene lens: deterministic preflight is repo-dependent
 

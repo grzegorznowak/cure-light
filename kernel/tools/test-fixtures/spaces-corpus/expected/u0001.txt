@@ -1,0 +1,7 @@
+index 06face7..5f6deab 100644
+--- a/Untitled Folder/untitled.txt	
++++ b/Untitled Folder/untitled.txt	
+@@ -1,2 +1,2 @@
+-base content of Untitled Folder/untitled.txt
++subject content of Untitled Folder/untitled.txt
+ second base line

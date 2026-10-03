@@ -57,9 +57,9 @@ These seed the session so it can compile the review process. Fetch them in order
 
 1. Run the **quick requirements check** (pi-driver `requirements-check.md`) — pre-pull rows only; the subject-tree rows (5/8/9) defer to the Phase 0 gate, where the check completes.
 2. Ask the **intake fields once** (from `KICKOFF.md` — see below for the field list).
-3. Compile the run frame (frozen options + planned subject mechanism — no tree fields yet) and save it to the notebook per `notebook-plan-contract.md`.
-4. If `handoff` is available in this runtime, seal the compiled frame and hand off so the next context starts from the sealed compile, pulls the subject (the first tree read — no local target checkout is read before it), records `subject_path` / `subject_oid` at the Phase 0 gate, and runs **Phase 0 → Vector 1**. Else continue in-session.
-5. Report the requirements-check result and the compiled plan before proceeding.
+3. Compile the run frame (frozen options + planned subject mechanism — no tree fields yet; held unsealed) and show the compiled frame with the requirements-check result to the operator.
+4. **Wait for the operator's explicit frame confirmation.** Do not write, read back or seal before it.
+5. On confirmation, write the frame page + findings skeleton and read both back (notebook-plan-contract.md), then — if `handoff` is available in this runtime — seal the compiled frame and hand off so the next context starts from the sealed compile, pulls the subject (the first tree read — no local target checkout is read before it), records `subject_path` / `subject_oid` at the Phase 0 gate, and runs **Phase 0 → Vector 1**. Else continue in-session.
 
 ## Bootstrap prompt (paste into a fresh session)
 
@@ -69,7 +69,9 @@ These seed the session so it can compile the review process. Fetch them in order
 > files as raw markdown (no summarization, preserve bytes), report each file's
 > line count, run the quick requirements check, ask the intake fields once
 > (owner/repo, PR number, vectors, auto-draft policy — from KICKOFF.md), compile
-> the run plan into the notebook, and — because this runtime provides the pi
-> notebook + handoff — seal the compiled frame and hand off so the next context
-> kicks off Phase 0 (pull subject + contract) then Vector 1. Report the requirements
-> result and the compiled plan back before proceeding. No clone or install.
+> the run plan unsealed and show the compiled frame (with the requirements
+> result) for explicit confirmation, wait for that confirmation, then write +
+> read back the frame and findings skeleton and — because this runtime provides
+> the pi notebook + handoff — seal the compiled frame and hand off so the next
+> context kicks off Phase 0 (pull subject + contract) then Vector 1. No clone
+> or install.

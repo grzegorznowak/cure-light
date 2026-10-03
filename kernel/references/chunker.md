@@ -32,18 +32,31 @@ failure never counts as coverage of the changed surface.
 Use two-dot `base..subject`, not a merge-base substitution:
 
 ```text
-git -C <repo> -c core.quotepath=false diff -U3 --no-ext-diff --no-color \
-    --no-renames --no-textconv --diff-algorithm=myers <base>..<subject>
+git -C <repo> -c core.quotepath=false -c diff.suppressBlankEmpty=false \
+    diff -U3 --src-prefix=a/ --dst-prefix=b/ --inter-hunk-context=0 \
+    --submodule=short --ignore-submodules=none \
+    --no-ext-diff --no-color --no-renames --no-textconv \
+    --diff-algorithm=myers <base>..<subject>
 ```
 
 `--no-textconv` and `--no-ext-diff` keep subject-configured diff filters (which
 are subject-tree executables) out of the run; `core.quotepath=false` keeps paths
-stable. Partition in diff file order into windows, target 4096 bytes / ceiling
+stable. The recipe is also pinned against subject- and runner-side configuration
+that would otherwise change the inventory: explicit `--src-prefix`/`--dst-prefix`
+defeat `diff.noprefix`/`diff.srcPrefix`/`diff.dstPrefix`; `GIT_DIFF_OPTS` is
+cleared for the git child (it overrides `-U3`); `--submodule=short
+--ignore-submodules=none` keeps pointer changes visible even under a committed
+`ignore=all`; `--inter-hunk-context=0` and `-c diff.suppressBlankEmpty=false`
+pin hunk partitioning and payload bytes. Partition in diff file order into
+windows, target 4096 bytes / ceiling
 6144 bytes. Prefer file-end → hunk-end → block-end → line-end, never mid-line.
 Whole hunks fit together when within the ceiling; oversized hunks are grouped at
 logical block boundaries before line fallback. Block detection is a lexical
 heuristic: definition-start lines (`def`, `class`, `function`, `export`, etc.),
-otherwise blank-line paragraphs — not AST ownership. Units never cross files.
+otherwise blank-line paragraphs — not AST ownership. Definition-start detection
+is column-0 only: an indented definition (`    def f()`) is not recognized and
+falls to the blank-line paragraph rule; the consequence is grouping only, never
+unit coverage. Units never cross files.
 P0.4 packs whole units in manifest order and never splits a unit between children.
 
 An indivisible line larger than the ceiling cannot satisfy both bounds: the
@@ -92,8 +105,10 @@ exact payload byte measure; buffered emission preserves diff order; `line-split`
 does not stick past the buffer that produced it; `--no-textconv` /
 `core.quotepath=false` hardening; an over-ceiling indivisible line is a hard
 error. Remaining limits: paths that are not valid UTF-8 may be mangled by text
-decoding; a path git still C-quotes (embedded quotes, backslashes or control
-characters) is stored as the raw header text rather than a decoded path;
+decoding; diff content is decoded as UTF-8 and invalid byte sequences are
+replaced (lossy), so `byte_len` measures the replacement bytes rather than the
+subject's original bytes; a path git still C-quotes (embedded quotes, backslashes
+or control characters) is stored as the raw header text rather than a decoded path;
 splitting can repeat a hunk's full range in several units, so ranges are not a
 disjoint line denominator; and runner-specific git configuration beyond the
 explicit flags above is not asserted. These are port-validation checkpoints, not

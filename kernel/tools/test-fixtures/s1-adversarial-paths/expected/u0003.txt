@@ -1,0 +1,7 @@
+index e4c958e..053544e 100644
+--- a/b
++++ b/b
+@@ -1,2 +1,2 @@
+-base content of b
++subject content of b
+ second base line

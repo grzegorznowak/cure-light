@@ -1,0 +1,12 @@
+index 94ab2b8..f9fe1b1 100644
+--- a/beta.txt
++++ b/beta.txt
+@@ -2,7 +2,7 @@ beta line 01 [beta-marker]
+ beta line 02 [beta-marker]
+ beta line 03 [beta-marker]
+ beta line 04 [beta-marker]
+-beta line 05 [beta-marker]
++beta line 05 changed [beta-marker]
+ beta line 06 [beta-marker]
+ beta line 07 [beta-marker]
+ beta line 08 [beta-marker]

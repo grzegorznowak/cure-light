@@ -1,0 +1,7 @@
+index 3aba6b7..364a9ce 100644
+--- a/ x.txt	
++++ b/ x.txt	
+@@ -1,2 +1,2 @@
+-base content of  x.txt
++subject content of  x.txt
+ second base line

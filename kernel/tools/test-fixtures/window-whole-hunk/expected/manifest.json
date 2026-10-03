@@ -1,0 +1,82 @@
+{
+ "schema_version": "code-units-sim/2",
+ "recipe": {
+  "chunker": "chunker.mjs",
+  "target_bytes": 4096,
+  "ceiling_bytes": 6144,
+  "context": 3,
+  "block_preference": true
+ },
+ "identity": {
+  "repo": "<REPO>",
+  "base_ref": "main",
+  "subject_ref": "subject",
+  "base_oid": "5b4e00a102f0aae6d2340812e3c101376d05244a",
+  "subject_oid": "4800528fb4e14f0af422a73b73314c5580910bb9"
+ },
+ "counts": {
+  "units": 3,
+  "files": 3,
+  "line_split_units": 0,
+  "total_bytes": 1188
+ },
+ "units": [
+  {
+   "unit_id": "u0000",
+   "file": "units2/u0000.txt",
+   "path": "multi.txt",
+   "ranges": [
+    {
+     "old_start": 1,
+     "old_count": 5,
+     "new_start": 1,
+     "new_count": 5
+    },
+    {
+     "old_start": 18,
+     "old_count": 7,
+     "new_start": 18,
+     "new_count": 7
+    }
+   ],
+   "hunk_count": 2,
+   "byte_len": 560,
+   "blocks": 2,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0001",
+   "file": "units2/u0001.txt",
+   "path": "one.txt",
+   "ranges": [
+    {
+     "old_start": 2,
+     "old_count": 7,
+     "new_start": 2,
+     "new_count": 7
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 314,
+   "blocks": 1,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0002",
+   "file": "units2/u0002.txt",
+   "path": "two.txt",
+   "ranges": [
+    {
+     "old_start": 4,
+     "old_count": 7,
+     "new_start": 4,
+     "new_count": 7
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 314,
+   "blocks": 1,
+   "boundary_kind": "block"
+  }
+ ]
+}

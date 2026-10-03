@@ -56,10 +56,15 @@ Reading finds the hazard **class**; only a fixture proves the **instance**.
   finding** at its own severity (HIGH possible). That finding is what blocks;
   the lens only finds the class. Cross-cutting rule 1 holds unchanged: **a lens
   never blocks vector gating by itself** (hygiene-lens.md).
-- **A deferred / uninspected consumer is in scope.** The PR introduced or
-  enforced that path, so it routes as a visible **Vector 2 finding in the bug
-  table**, to be addressed — never auto-downstreamed (evidence-format.md, Scope
-  routes the comment). The `sweep` coverage row itself stays trail-only.
+- **A deferred / uninspected consumer.** Reviewer omission / an unread
+  occurrence alone is **not an author bug** — the `sweep` coverage row stays
+  trail-only. When a **verified in-scope consumer**'s compatibility obligation
+  is **explicitly deferred**, record a **LOW Vector 2 finding (assurance-gap)**
+  in the bug table: cite the deferred value, the consumer relation, the
+  unchecked obligation, and the verification required — to be addressed, never
+  auto-downstreamed (evidence-format.md, Scope routes the comment). Concrete
+  harm keeps the ordinary instance rule above (the instance's own severity,
+  HIGH possible).
 
 ## Determinism
 

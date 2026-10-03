@@ -1,0 +1,110 @@
+{
+ "schema_version": "code-units-sim/2",
+ "recipe": {
+  "chunker": "chunker.mjs",
+  "target_bytes": 4096,
+  "ceiling_bytes": 6144,
+  "context": 3,
+  "block_preference": true
+ },
+ "identity": {
+  "repo": "<REPO>",
+  "base_ref": "main",
+  "subject_ref": "subject",
+  "base_oid": "03c95498a06c3137bfaec73149db0be0d231d77d",
+  "subject_oid": "047ba6aa7bf7587f5bdb9fff1b0a1f79b7ba6e74"
+ },
+ "counts": {
+  "units": 5,
+  "files": 5,
+  "line_split_units": 0,
+  "total_bytes": 926
+ },
+ "units": [
+  {
+   "unit_id": "u0000",
+   "file": "units2/u0000.txt",
+   "path": " x.txt",
+   "ranges": [
+    {
+     "old_start": 1,
+     "old_count": 2,
+     "new_start": 1,
+     "new_count": 2
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 142,
+   "blocks": 1,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0001",
+   "file": "units2/u0001.txt",
+   "path": "Untitled Folder/untitled.txt",
+   "ranges": [
+    {
+     "old_start": 1,
+     "old_count": 2,
+     "new_start": 1,
+     "new_count": 2
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 230,
+   "blocks": 1,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0002",
+   "file": "units2/u0002.txt",
+   "path": "dir with spaces/file name.txt",
+   "ranges": [
+    {
+     "old_start": 1,
+     "old_count": 2,
+     "new_start": 1,
+     "new_count": 2
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 234,
+   "blocks": 1,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0003",
+   "file": "units2/u0003.txt",
+   "path": "trail ",
+   "ranges": [
+    {
+     "old_start": 1,
+     "old_count": 2,
+     "new_start": 1,
+     "new_count": 2
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 142,
+   "blocks": 1,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0004",
+   "file": "units2/u0004.txt",
+   "path": "two  spaces.txt",
+   "ranges": [
+    {
+     "old_start": 1,
+     "old_count": 2,
+     "new_start": 1,
+     "new_count": 2
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 178,
+   "blocks": 1,
+   "boundary_kind": "block"
+  }
+ ]
+}
