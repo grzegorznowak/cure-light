@@ -10,7 +10,7 @@
 ### 2026-10-02 — Vector 2 review checks
 
 - **Vector 2 gains two mandatory review checks**, adapted from an external PR-review prompt's "reasoning behind / effects on the user" premise: **justification** (state the change's rationale, its observable tradeoff, and any evidence that contradicts it) and **user impact** (affected actor, task, before/after, failure/recovery path, compatibility/migration cost). They render into a new `{review_checks}` child-prompt slot and are closed `checked-and-clear` when empty — a check not run is a frame error, like an unowned lens. An evidenced contradiction/harm is an ordinary Vector-2 finding; a *missing* rationale is an operator question (never invented intent) and a preference without harm stays on the lens trail. Scoped to Vector 2 so it does not re-open Vector 1's intent match or Vector 3's architecture review.
-- **Explicit fleet binding.** Claims/join and vector children receive their declared groups explicitly; any vector fallback is recorded, while missing `fast` still pauses P0.2/P0.4 rather than silently inheriting the coordinator's model.
+- **Explicit fleet binding.** Claims/join and vector children receive their declared groups explicitly; a missing or degenerate required group pauses its stage — `fast` included for P0.2/P0.4 — rather than falling back to another model.
 - **Per-stage group map.** The manifest makes P0.2 claims, P0.4 join and V1/V2/V3 groups explicit; the worked example identifies its group defaults as a current-policy illustration rather than historical execution evidence.
 - **Docs:** `assets/child-pass-prompt-template.md`, `kernel/references/{implementation-pass,intake-and-scope}.md`, `libs/pi-driver/SKILL.md`, `docs/example-review.md`.
 
