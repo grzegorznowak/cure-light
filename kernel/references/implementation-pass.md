@@ -89,6 +89,28 @@ Vector 2 also owns the **`blast` lens** — data × call-site blast radius: the 
 
 **Style rule reconciled**: hygiene findings are *detected* by Vector 2 splits but do not enter the bug table — they route to the lens trail with LOW default severity and are operator-suppressible per instance. What the old rule forbade is *unrouted style noise in bug findings*; it never forbade systematic detection.
 
+## Required review checks (justification + user impact)
+
+Every Vector-2 child also runs two mandatory checks, rendered into its prompt's
+`{review_checks}` slot (child-pass-prompt-template.md, Review-checks variant) and
+closed `checked-and-clear` when they yield nothing — a check not run is a frame
+error, like an unowned lens:
+
+- **Justification** — the change's rationale as given (contract clause or code
+  comment), the observable tradeoff it makes, and any evidence that contradicts
+  that stated reason. A *contradiction you can evidence* — the code does not behave
+  as the stated reason requires — is an ordinary Vector-2 finding; a *missing or
+  unstated* rationale is an operator QUESTION, never invented intent and never a
+  finding by itself. This challenges the change's reasoning, not Vector 1's intent
+  match and not a refactor proposal.
+- **User impact** — the affected actor, the task, the before/after behavior, the
+  failure/recovery path, and any compatibility or migration cost. A concrete harm
+  is a Vector-2 finding at its severity; a preference without harm stays on the lens
+  trail.
+
+Clear/advisory outcomes route like the hygiene and `blast` lens rows; only an
+*evidenced* contradiction or concrete harm enters the bug table, at its own severity.
+
 ## Aggregation + disposition
 
 The coordinator segments findings into:

@@ -119,7 +119,7 @@ run: owner/repo pr# — review state <n>
 subject_path: <pulled tree dir>   # sandbox or plain worktree — the tree under review
 subject_oid: <git HEAD of the pulled tree at Phase 0>   # whatever the pull has; the version reviewed
 base_oid: <PR base>   remote_head_oid: <gh-reported PR head at intake — informational>
-vectors: [..]  groups: {flash, code-review}
+vectors: [..]  groups: {claims: fast, join: fast, conformance: flash, implementation: code-review, debt: code-review}
 draft_comment, pauses
 changed_files: [...]
 contract_ref: contract-<owner>-<pr>-s<n>   # notebook page (pi); disk path in fallback runs

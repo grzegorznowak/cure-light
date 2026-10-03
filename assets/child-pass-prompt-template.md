@@ -29,6 +29,8 @@ kernel/references/yagni-pass.md; a lens you check and clear
 is explicitly NOT-A-HIT. Advisory lens hits go to the lens trail, never the bug
 table — a concrete `blast` hazard instance is a Vector 2 finding instead.
 
+REVIEW CHECKS: {review_checks}
+
 RESEARCH STEP: then execute the research step per {research_protocol} when the
 slot is present (Vector 2: code-research protocol; Vector 3: search-extensive
 protocol; Vector 1/yagni: omitted). The slot carries the exact registered tool
@@ -67,6 +69,7 @@ Under {budget} lines.
 | return | from the pass contract: conformance: claim block + unit block + `CLOSE` (conformance-pass.md); implementation/debt: `[F] file:line`, `[D] concept`; yagni: `ENGINEERING` / `[Y]` / `NOT-YAGNI` (yagni-pass.md) |
 | budget | output-size cap (lines); enforced; truncation = inconclusive |
 | coverage | the vector's coverage block (below): V1 assignment + return shape; yagni scoring inputs; omitted for V2/V3 |
+| review_checks | from the pass contract: Vector 2 renders the justification + user-impact checks (Review-checks variant below); other vector-template passes render `n/a`; separate Phase-0/non-vector bindings are exempt |
 | claim_directory_ref | run manifest `coverage.claims_ref` — the V1-validated/frozen, complete queryable claim directory, with source refs and a recorded hash; never a Phase-0 draft alone |
 | claim_basis_ref | the V1 validation/freeze evidence and source refs/hashes, plus claims-draft / units-manifest / join-draft refs/hashes and P0.5 sweep evidence; no plugin gate permission |
 | claim_ids | the state-bound IDs assigned from the V1 frozen directory (V1) / the unit's matrix rows (yagni); retain traceability to draft IDs and never silently change meaning |
@@ -217,6 +220,31 @@ Leads only: re-read the code in the subject tree; do not re-adjudicate
 attribution or coverage ownership, and do not treat a claim GAP as excluding
 its explained ranges. The full contract is at {contract_ref}. Return per
 yagni-pass.md: ENGINEERING JUSTIFIED/CHALLENGED, Y rows, NOT-YAGNI, NONE.
+```
+
+## Review-checks variant (filler for {review_checks})
+
+Vector 2 fills the slot with both checks below; other vector-template passes render
+`n/a`. P0.2/P0.4 children and the non-vector preflight sweep use separate bindings
+and do not receive this slot.
+They are **mandatory in a Vector 2 prompt** — a check not run is a frame error,
+like an unowned lens — and each is closed `checked-and-clear` when it yields
+nothing. This is the external-reviewer "reasoning behind / effects on the user"
+premise (rationale challenge + user consequence), scoped to Vector 2 so it does not
+re-open Vector 1's intent match or Vector 3's architecture review.
+
+```text
+REVIEW CHECKS (Vector 2; both mandatory)
+- JUSTIFICATION: state the change's rationale as given (contract clause or code
+  comment), the observable tradeoff it makes, and any evidence that contradicts
+  that stated reason. A contradiction you can evidence — the code does not behave
+  as the stated reason requires — is a finding; a missing or unstated rationale is
+  an operator QUESTION, never invented intent and never a finding by itself.
+- USER IMPACT: name the affected actor, the task, the before/after behavior, the
+  failure/recovery path, and any compatibility or migration cost. A concrete harm
+  is a Vector-2 finding at its severity; a preference without harm stays on the
+  lens trail.
+Close each check `checked-and-clear` when it yields nothing.
 ```
 
 ## Research protocol variants (filler for {research_protocol})
