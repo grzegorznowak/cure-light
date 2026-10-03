@@ -2,6 +2,26 @@
 
 ## Unreleased (working tree)
 
+### 2026-10-03 — V1 claim-validation boundary
+
+- **V1 claim validation is a draft audit, not a second consistency sweep.** V1 validates the `claims-draft/3` for statement/quote/source-ref fidelity, the claim/nonclaim split and completeness against the authorized source set, and dispositions P0.2's source-consistency records (accept, or dispute with a witness); it re-opens within-/cross-source adjudication only on a missing/uncaptured designated source, a quote/source-ref fidelity failure, a disputed/unsupported record, or a material contradiction the audit itself surfaces. Newly surfaced or unaccepted contradictions enter the existing `repair_required` logic; final status remains V1's.
+- **Docs:** `kernel/references/conformance-pass.md`, `kernel/references/intake-and-scope.md`.
+
+### 2026-10-02 — Vector 2 review checks
+
+- **Vector 2 gains two mandatory review checks**, adapted from an external PR-review prompt's "reasoning behind / effects on the user" premise: **justification** (state the change's rationale, its observable tradeoff, and any evidence that contradicts it) and **user impact** (affected actor, task, before/after, failure/recovery path, compatibility/migration cost). They render into a new `{review_checks}` child-prompt slot and are closed `checked-and-clear` when empty — a check not run is a frame error, like an unowned lens. An evidenced contradiction/harm is an ordinary Vector-2 finding; a *missing* rationale is an operator question (never invented intent) and a preference without harm stays on the lens trail. Scoped to Vector 2 so it does not re-open Vector 1's intent match or Vector 3's architecture review.
+- **Explicit fleet binding.** Claims/join and vector children receive their declared groups explicitly; any vector fallback is recorded, while missing `fast` still pauses P0.2/P0.4 rather than silently inheriting the coordinator's model.
+- **Per-stage group map.** The manifest makes P0.2 claims, P0.4 join and V1/V2/V3 groups explicit; the worked example identifies its group defaults as a current-policy illustration rather than historical execution evidence.
+- **Docs:** `assets/child-pass-prompt-template.md`, `kernel/references/{implementation-pass,intake-and-scope}.md`, `libs/pi-driver/SKILL.md`, `docs/example-review.md`.
+
+### 2026-10-02 — Phase 0: claims → chunker → join → gate
+
+- **Phase-0 substrate replaced.** Capture source bytes, draft claims with `#fast` (including source consistency), run the shipped `kernel/tools/chunker.mjs`, propose witnessed links with `#fast`, then check the sweep in the coordinator. The former `cure_light_census` dependency is demoted: no canonical claim IDs, plugin gate permission or census denominator.
+- **Bounded, file-based joins.** Fixed-window units target 4 KiB / ceiling 6 KiB at logical boundaries. Pack full claims plus whole units by input length only — no unit-count cap or output reservation. Compact JSONL is mandatory; appending is optional. P0.5 checks paths, typed rows, IDs, duplicates, witnesses and complete assignment coverage; approved retry/re-split handles truncation.
+- **Leads, not verdicts.** Phase 0 emits candidate-unclaimed only. V1 validates/freezes claims against sources, accounts for every unit and alone finalizes UNCLAIMED. Source designation, repair pauses, state/OID discipline, notebook ownership and review-basis gates remain.
+- **Provenance and open pilot work.** The frame records claims-draft / units-manifest / join-draft refs and hashes plus chunker path/sha256/recipe tied to `cure_light_source_head_oid`. The coordinator gate is not a shipped tool. The chunker is behavior-validated against the reference simulation fixture (27 units / 11 files) with the port fixes documented in `chunker.md`; production schema naming, the supported Node floor, non-UTF8 paths and repeated-hunk range accounting remain explicit checkpoints, as do the input ceiling, retry/re-split policy, suite-level claims and the detailed V1 contract.
+- **Docs:** `kernel/SKILL.md`, `kernel/references/{intake-and-scope,pipeline-model,conformance-pass,evidence-format,closure-verification,chunker}.md`, `kernel/tools/chunker.mjs`, `libs/pi-driver/SKILL.md`, `libs/pi-driver/references/{requirements-check,notebook-plan-contract}.md`, `templates/KICKOFF.md`, `assets/child-pass-prompt-template.md`, `docs/contract-adequacy-validation-plan.md`, `docs/OPEN-ISSUES.md`, `kernel/references/debt-pass.md`, `BOOTSTRAP.md`.
+
 ### 2026-09-30 — Substrate version unpin
 
 - **The engine declares no specific `cure_light_census` release.** The declared substrate pin (`@grzegorznowak/pi-cure-light-census@1.0.2`) is removed across kernel, driver, templates, assets and docs: the package is referenced by name only, and requirement rows 10–11 plus the run frame no longer carry an expected version. Rationale: removing the doc-level pin avoids engine churn on every plugin release while keeping the guarantees that matter.

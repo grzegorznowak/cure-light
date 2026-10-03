@@ -6,11 +6,13 @@ A condensed walk-through of a real cure-light-style review, to imitate rather th
 
 ## The run manifest (condensed)
 
+> **Current-policy illustration:** the `groups` line below shows current stage defaults, not a claim that the historical PR #27 run used P0.2/P0.4.
+
 ```text
 owner/repo: agenticoding/pi-agenticoding
 pr: 27   head f6a4615 → … → 0091fdc (moved 4× mid-review)
 vectors: [conformance, implementation, debt]
-groups: {conformance: flash, implementation: code-review, debt: code-review}
+groups: {claims: fast, join: fast, conformance: flash, implementation: code-review, debt: code-review}
 contract: PR description + issue #26 (bullets + tech context + LOCKED decisions Q1/Q2)
 ```
 

@@ -26,6 +26,7 @@
 
 ## 4. Fleet groups (if this runtime provides the model-groups plugin)
 
+- Phase-0 claims and join: `fast` only (pause if unavailable; no silent inherited substitute)
 - Conformance: `flash` (or inherited)
 - Implementation: `code-review`
 - Debt: `code-review`
@@ -67,29 +68,13 @@ report the output.
 
 ---
 
-## 8. Installed toolchain (Phase-0 prerequisites and expectations)
+## 8. Phase-0 prerequisites and expectations
 
-- **Environment**: Node ≥22.19 with Pi and the installed single tool `cure_light_census`
-  (`@grzegorznowak/pi-cure-light-census`), provisioned from private GitHub Packages
-  with a classic PAT carrying `read:packages`; remote intake uses your existing
-  `gh`/`git` credentials. A missing install or credential fails loud — never an
-  ad-hoc registry.
-- **Engine-owned tool (D4)**: every call verifies the installed package against its
-  `dist/TOOL.json` (`describe_sha256`/`artifact.sha256`) and fails closed with
-  `PIN_MISMATCH`; the run exposes the five actions `census_run`/`census_check`,
-  `claims_prepare`/`claims_finalize`, `gate_check`, and never executes the subject
-  tree's `tools/` (reviewed content only).
-- **Labeling time**: whole-source labeling costs one child call per designated
-  source that fits the caps (≤16 KiB raw / ≤80 units / ≤64 KiB complete worker input);
-  larger sources use bounded slices — one child call per ≤16 KiB / ≤80-unit slice
-  (≤32 slices default, ≤4 concurrent, plus corrected/boundary calls). Tool compute is
-  seconds; labeling is the dominant fleet cost.
-- **Fail-closed**: any pin mismatch (`PIN_MISMATCH`), missing install/credential, failed
-  reconcile/assemble/validate/manifest, `gate_check` not verified with both coverage
-  booleans, claims-page projection mismatch, or published worker instructions too
-  incomplete to produce validator-valid proposals **stops Phase 0** — no hand-built
-  registry, no relaxed gate, no coordinator-normalized worker proposals, no auto-continue
-  (a missing rule is a substrate defect reported to the plugin maintainers).
+- **Engine tool**: Node + git and the zero-dependency `kernel/tools/chunker.mjs` shipped with cure-light. The frame records its path, exact-byte sha256 and recipe at `cure_light_source_head_oid`; never run a subject-tree copy. No census-plugin install or private-package credential is required.
+- **Sequence**: capture source bytes → `#fast` claims (`claims-draft/3`, including source consistency) → chunker units → `#fast` witnessed join JSONL → coordinator P0.5 gate. The gate is behavior, not a second shipped tool.
+- **Packing/output**: full claims + whole units, in manifest order, bounded by input length only; no unit-count cap or output reservation. JSONL on disk is mandatory, appends optional. The gate checks the exact output paths and complete unit sweep, IDs/pairs/types/witnesses and recorded budgets; truncation is retried/re-split under the approved policy, never treated as “no match”.
+- **Authority**: draft links mean “look here”, never “this works”. Phase 0 emits candidate-unclaimed only; V1 validates/freezes claims against captured sources, accounts for all units and alone finalizes UNCLAIMED. Material contradictions or missing designation still default to the repair pause before V1.
+- **Open pilot checkpoints**: input ceiling, retry/re-split policy, suite-level claim handling and the detailed V1 contract require an operator decision; do not infer these from a simulation's numeric budget.
 
 ---
 
@@ -109,10 +94,10 @@ report the output.
 ## What happens next (expectation set)
 
 1. The agent fetches + reads the kernel and driver, reports line counts.
-2. It runs the quick requirements check (gh auth, repo, PR OID, planned subject mechanism, toolchain install + plugin provision, notebook, groups — the subject-tree rows defer to Phase 0).
+2. It runs the quick requirements check (gh auth, repo, PR OID, planned subject mechanism, Node/git + shipped chunker identity, Phase-0 fast availability, notebook, groups — the subject-tree rows defer to Phase 0).
 3. It asks the intake fields **once** — usually nothing is missing if KICKOFF is filled.
 4. It compiles the run frame and shows it for confirmation.
 5. It saves the frame + findings pages, and (if the runtime provides handoff) seals and hands off.
-6. Phase 0 runs in the new context: pull the subject (the first tree read — no orientation in local target checkouts before it), compile the contract (writing the verbatim `contract-<owner>-<pr>-s<n>` page on pi runs — disk fallback otherwise) and run the installed plugin (`claims_prepare` → labeling children → `claims_finalize` → `gate_check`; the claims page is a projection of the canonical registry on pi runs — a notebook-less fallback has no authoritative claim/coverage store and cannot assert complete coverage), record subject path/OID + changed files + toolchain identity into the frame, complete the deferred requirements rows, run the bounded source-consistency pass (a material unresolved contradiction between captured sources — or any other `repair_required` defect → provisional repair + default pause before V1; a named evidence-only V1 run only if you authorize it), run the census (`census_run` + `census_check`, 0.3a), compile the capacity-bounded splits (0.3b), and show the actual counts, the exclusion policy, coverage-page location, budgets, plugin gate report/permissions and consistency outcome at the Phase-0 gate.
-7. Vector 1 (conformance — claim adjudication + changed-unit accounting) fleets out; report; gate — the coordinator records the review basis (`ready` / `limited-only` / `blocked` / `unknown`) and any outstanding repair requirement before Vector 2 may be planned. Then the deterministic preflight (symbol map), Vector 2, Vector 3, then output.
+6. Phase 0 runs in the new context: pull the subject first; capture the verbatim contract (`contract-<owner>-<pr>-s<n>` on pi, disk fallback otherwise) and source refs/hashes; draft claims with `#fast` including source-consistency work; run the shipped chunker; propose links with `#fast` into per-box JSONL; run coordinator P0.5 checks and compile capacity-bounded vector splits. Record subject/base OIDs, changed files, chunker identity, claims/unit/join refs/hashes, counts, hard cases, exclusions and budgets; complete deferred requirement rows and show the Phase-0 gate. `repair_required` defaults to pause before V1 unless you authorize the existing named, bounded exception. Notebook-less fallback still lacks the authoritative V1 claim/coverage/gate-disposition store and cannot assert complete coverage or readiness.
+7. Vector 1 (conformance — validate/freeze claims, adjudicate claims, account for all units and finalize UNCLAIMED) fleets out; report; gate — the coordinator records the review basis (`ready` / `limited-only` / `blocked` / `unknown`) and any outstanding repair requirement before Vector 2 may be planned. Then the deterministic preflight (symbol map), Vector 2, Vector 3, then output.
 8. On "the implementer worked on the review", the closure loop re-validates per finding and publishes the table.

@@ -6,7 +6,7 @@
 
 ## Split
 
-By **bigger concepts**, drilled down from the facts Vectors 1–2 already established. The claim matrix / matrix projection and any disclosed coverage uncertainty travel as leads like any other — V3 never ingests the census breadth (the coverage ledger's range detail) and never re-adjudicates attribution or inherits its ownership. Standard axes (pick the ones that apply):
+By **bigger concepts**, drilled down from the facts Vectors 1–2 already established. The claim matrix / matrix projection and any disclosed coverage uncertainty travel as leads like any other — V3 never ingests the unit-accounting breadth (the coverage ledger's range detail) and never re-adjudicates attribution or inherits its ownership. Standard axes (pick the ones that apply):
 
 1. **Pluggability / extensibility claim** — is an advertised "pluggable" surface real, or a hard-coded vertical slice? (The classic: a spec says "extensible to X constraints"; code ships one hard-coded constraint type. Count the touch points a 2nd type needs.)
 2. **Boundary ownership** — which module owns what; does a persistence module now depend on host model resolution; are cap-invariants enforced at the right layer?
