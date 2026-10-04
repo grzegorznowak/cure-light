@@ -35,9 +35,10 @@ cure-light/
 ├── BOOTSTRAP.md              ← the remote manifest + bootstrap prompt
 ├── kernel/                   ← the review method (the master skill)
 │   ├── SKILL.md              ← dispatcher: phases, gates, rules
-│   └── references/           ← pipeline-model, intake, the 3 pass contracts,
-│                               hygiene-lens, blast-lens, yagni-pass, quality-lens, closure-verification,
-│                               evidence-format, chhound-driver
+│   ├── references/           ← pipeline-model, intake, the 3 pass contracts,
+│   │                           hygiene-lens, blast-lens, yagni-pass, quality-lens, closure-verification,
+│   │                           evidence-format, chhound-driver
+│   └── tools/verify.mjs      ← pinned mechanical verifier (kernel/tools/verify.mjs; claims|units|join)
 ├── libs/pi-driver/           ← pi binding (notebook + handoff + model-groups)
 │   ├── SKILL.md
 │   └── references/           ← requirements-check, notebook-plan-contract

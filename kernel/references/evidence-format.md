@@ -60,7 +60,12 @@ disposition never establishes readiness.
 
 **Artifact identity is not semantic proof.** Phase 0 records source captures,
 claims-draft, units-manifest and join-draft refs/hashes plus the shipped chunker's
-path/sha256/recipe bound to `cure_light_source_head_oid`. Draft claim and unit IDs
+path/sha256/recipe and the pinned verifier's path/sha256/tool_version bound to
+`cure_light_source_head_oid`, with the delegated `verify claims|units|join`
+verdict refs/hashes/exit codes bound to those exact inputs. The verifier proves
+recorded artifact mechanics (identity, pins, shapes, witnesses, budgets) only —
+never claim correctness, source-universe completeness or final attribution.
+Draft claim and unit IDs
 are scoped to those artifacts, not canonical semantic identities. P0.5 validates
 row mechanics and the assigned sweep, not claim correctness or final negative
 attribution. V1 findings cite the validated/frozen claim directory and unit

@@ -13,8 +13,10 @@ The prototype Python `tools/` units are retired, and the former standalone
 `cure_light_census` dependency is demoted. Phase 0 now captures sources, drafts
 claims with `#fast` (including source consistency), runs the shipped
 [`kernel/tools/chunker.mjs`](../kernel/tools/chunker.mjs), proposes witnessed
-JSONL links with `#fast`, and checks the sweep in the coordinator. Only the
-chunker ships as a tool; no gate/campaign harness is implied. F1–F10 remain a
+JSONL links with `#fast`, and checks the sweep in the coordinator. The chunker
+and the pinned mechanical verifier
+([`kernel/tools/verify.mjs`](../kernel/tools/verify.mjs)) ship as engine tools;
+no F1–F10 gate/campaign harness is implied. F1–F10 remain a
 validation plan until an executable contract-adequacy campaign is built.
 
 **Phase boundaries under test.** The P0.5 fixture checks the coordinator's

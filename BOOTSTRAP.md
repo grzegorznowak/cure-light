@@ -51,7 +51,7 @@ These seed the session so it can compile the review process. Fetch them in order
 - Do **not** summarize, paraphrase, or truncate. The kernel text is normative.
 - Hold the fetched text in a scratch location you can re-read during the session.
 - Report `file: <line-count>` for every file before proceeding.
-- The Phase-0 chunker executable at `$RAW_BASE/kernel/tools/chunker.mjs` must be fetched as exact raw bytes (never markdown-normalized) and its sha256 recorded at fetch time before the Phase-0 run (remote-boot source-OID binding for the executable remains an explicit checkpoint).
+- The Phase-0 engine executables — `$RAW_BASE/kernel/tools/chunker.mjs` and the pinned mechanical verifier `$RAW_BASE/kernel/tools/verify.mjs` — must be fetched as exact raw bytes (never markdown-normalized), and each sha256 recorded at fetch time together with the verifier path and `tool_version`, before the Phase-0 run. Fetch executables from the immutable resolved `cure_light_source_head_oid` raw URL, not a moving `main` after freeze. Resolve the actual source identity or stop the executable gate: a raw `main` URL does not by itself prove the OID. The existing remote-boot source-binding checkpoint for the wider docs fetch stands; no install and no test/fixture fetch is needed.
 
 ## After fetching
 

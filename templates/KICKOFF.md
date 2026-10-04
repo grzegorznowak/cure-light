@@ -26,7 +26,7 @@
 
 ## 4. Fleet groups (if this runtime provides the model-groups plugin)
 
-- Phase-0 claims and join: `fast` only (pause if unavailable; no substitution)
+- Phase-0 claims, join and mechanical verification: `fast` only (pause if unavailable; no substitution)
 - Conformance: `flash` only (pause if unavailable; no substitution)
 - Implementation: `code-review`
 - Debt: `code-review`
@@ -76,11 +76,11 @@ report the output.
 
 ## 8. Phase-0 prerequisites and expectations
 
-- **Engine tool**: Node 22+ and git, plus the zero-dependency `kernel/tools/chunker.mjs` shipped with cure-light. The frame records its path, exact-byte sha256 and recipe at `cure_light_source_head_oid`; never run a subject-tree copy. No census-plugin install or private-package credential is required.
-- **Sequence**: capture source bytes → `#fast` claims (`claims-draft/3`, including source consistency) → chunker units → `#fast` witnessed join JSONL → coordinator P0.5 gate. The gate is behavior, not a second shipped tool.
+- **Engine tools**: Node 22+ and git, plus the zero-dependency `kernel/tools/chunker.mjs` and the pinned mechanical verifier `kernel/tools/verify.mjs` shipped with cure-light. The frame records the chunker's path/exact-byte sha256/recipe and the verifier's path/sha256/tool_version at `cure_light_source_head_oid`; never run a subject-tree copy or a run-authored verification script. No census-plugin install or private-package credential is required.
+- **Sequence**: capture source bytes → `#fast` claims (`claims-draft/3`, including source consistency) → delegated `fast` mechanical verification (`verify claims`) → chunker units → delegated `verify units` → `#fast` witnessed join JSONL → delegated `verify join` after the merged candidate is prepared → coordinator P0.5 semantic gate consuming the pinned verdicts. That gate is not a second semantic gate: the `fast` child runs the pinned tool read-only and returns the verdict verbatim, and the coordinator never re-implements or reruns its checks. A nonzero, stale or mismatched verdict fails the mechanical boundary.
 - **Packing/output**: full claims + whole units, in manifest order, bounded by input length only; no unit-count cap or output reservation. JSONL on disk is mandatory, appends optional. The gate checks the exact output paths and complete unit sweep, IDs/pairs/types/witnesses and recorded budgets; truncation is retried/re-split under the approved policy, never treated as “no match”.
-- **Authority**: draft links mean “look here”, never “this works”. Phase 0 emits candidate-unclaimed only; V1 validates/freezes claims against captured sources, accounts for all units and alone finalizes UNCLAIMED. Material contradictions or missing designation still default to the repair pause before V1.
-- **Open pilot checkpoints**: input ceiling, retry/re-split policy, suite-level claim handling and the detailed V1 contract require an operator decision; do not infer these from a simulation's numeric budget.
+- **Authority**: draft links mean “look here”, never “this works”. Verification proves artifact mechanics only, never claim correctness. Phase 0 emits candidate-unclaimed only; V1 validates/freezes claims against captured sources, accounts for all units and alone finalizes UNCLAIMED. Material contradictions or missing designation still default to the repair pause before V1.
+- **Open pilot checkpoints**: the operator-approved input ceiling stays a decision, while the witness bound (160), one retry, halves and depth ≤ 1 are recorded envelope constants; the byte output ceiling is monitoring-only unless declared — never convert bytes to tokens. Suite-level claim handling, possible `medium` tightening and the detailed V1 contract remain open; do not infer any of these from a simulation's numeric budget.
 
 ---
 
@@ -101,10 +101,10 @@ report the output.
 ## What happens next (expectation set)
 
 1. The agent fetches + reads the kernel and driver, reports line counts.
-2. It runs the quick requirements check (gh auth, repo, PR OID, planned subject mechanism, Node/git + shipped chunker identity, Phase-0 fast availability, notebook, groups — the subject-tree rows defer to Phase 0).
+2. It runs the quick requirements check (gh auth, repo, PR OID, planned subject mechanism, Node/git + shipped chunker and pinned-verifier identity, Phase-0 fast availability (proposers + mechanical verification), notebook, groups — the subject-tree rows defer to Phase 0).
 3. It asks the intake fields **once** — usually nothing is missing if KICKOFF is filled.
 4. It compiles the run frame unsealed and shows it for the operator's explicit confirmation — it waits there.
 5. On the operator's explicit confirmation, it writes and reads back the frame + findings pages, and (if the runtime provides handoff) seals and hands off.
-6. Phase 0 runs in the new context: pull the subject first; capture the verbatim contract (`contract-<owner>-<pr>-s<n>` on pi, disk fallback otherwise) and source refs/hashes; draft claims with `#fast` including source-consistency work; run the shipped chunker; propose links with `#fast` into per-box JSONL; run coordinator P0.5 checks and compile capacity-bounded vector splits. Record subject/base OIDs, changed files, chunker identity, claims/unit/join refs/hashes, counts, hard cases, exclusions and budgets; complete deferred requirement rows and show the Phase-0 gate. `repair_required` defaults to pause before V1 unless you authorize the existing named, bounded exception. Notebook-less fallback still lacks the authoritative V1 claim/coverage/gate-disposition store and cannot assert complete coverage or readiness.
+6. Phase 0 runs in the new context: pull the subject first; capture the verbatim contract (`contract-<owner>-<pr>-s<n>` on pi, disk fallback otherwise) and source refs/hashes; draft claims with `#fast` including source-consistency work; run the shipped chunker; propose links with `#fast` into per-box JSONL; delegate `fast` mechanical verification (`verify claims|units|join`) and run the coordinator P0.5 semantic gate against its pinned verdict; compile capacity-bounded vector splits. Record subject/base OIDs, changed files, chunker identity, the verifier pin, per-command verdict refs/hashes/exit codes, claims/unit/join refs/hashes, counts, hard cases, exclusions and budgets; complete deferred requirement rows and show the Phase-0 gate. `repair_required` defaults to pause before V1 unless you authorize the existing named, bounded exception. Notebook-less fallback still lacks the authoritative V1 claim/coverage/gate-disposition store and cannot assert complete coverage or readiness.
 7. Vector 1 (conformance — validate/freeze claims, adjudicate claims, account for all units and finalize UNCLAIMED) fleets out; report; gate — the coordinator records the review basis (`ready` / `limited-only` / `blocked` / `unknown`) and any outstanding repair requirement before Vector 2 may be planned. Then the deterministic preflight (symbol map), Vector 2, Vector 3, then output.
 8. On "the implementer worked on the review", the closure loop re-validates per finding and publishes the table.

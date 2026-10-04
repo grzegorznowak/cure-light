@@ -96,6 +96,11 @@ Under {budget} lines.
 | ch_daemon_status_tool / ch_code_research_tool / ch_search_tool | `{ch_prefix}_daemon_status` / `_code_research` / `_search` — exact registered names |
 | excluded_namespaces | other live `chh_*` prefixes (other sandboxes) — never to be used |
 | BASE_OID | run manifest base_oid (for origin checks) |
+| verifier_command | the frame-recorded exact invocation template (actual: `node <pinned-engine>/kernel/tools/verify.mjs <claims\|units\|join> --run <run-root>`) |
+| verifier_path | the frame/run-manifest verifier path (`kernel/tools/verify.mjs`) |
+| verifier_sha256 | the frame-recorded exact-byte sha256 of the pinned verifier |
+| run_root | the run-artifact root (the `--run` target) — never the subject tree |
+| artifact_class | `claims` \| `units` \| `join` — the command to run |
 
 `{projection_ref}` / `{prior_findings_ref}` composition: V2 gets the V1 slice
 (the state's matrix projection + coverage pages); V3 gets the V1+V2 slices
@@ -125,10 +130,12 @@ search thread).
 ## Phase-0 children — separate bindings
 
 Phase-0 children are not vector children and do not use the vector template.
-Both the P0.2 claims pass and P0.4 join proposer use `#fast`; if unavailable,
-pause rather than silently substitute a group. Their outputs are drafts/leads,
-not plugin canonical artifacts or V1 verdicts. Only the chunker ships as a tool;
-P0.5 is coordinator behavior.
+The P0.2 claims pass, the P0.4 join proposer and the mechanical verification
+child use `#fast`; if unavailable, pause rather than silently substitute a
+group. Their outputs are drafts/leads, not plugin canonical artifacts or V1
+verdicts. The engine ships the chunker and the pinned mechanical verifier
+(`kernel/tools/verify.mjs`); the P0.5 merge/acceptance decision is coordinator
+behavior that consumes the verifier's pinned verdict.
 
 ### P0.2 Claims draft
 
@@ -136,11 +143,14 @@ P0.5 is coordinator behavior.
 Read the authorized captured sources at {source_capture_refs}, with designation,
 role/precedence and version/hash evidence. Do not inspect delivery to invent intent.
 Write claims-draft/3 at {claims_draft_path}:
-sources[{ref,class,file}],
+sources[{source_ref,locator,path,role,sha256,byte_length[,blob_subject]}],
 claims[{id,statement,source_ref,quote,also_in}],
-nonclaims[{kind,source_ref,quote,reason}], conflicts[],
-notes[{kind,text,source_refs,quote}],
-missing_source_candidates[{description,referenced_by,referenced_quote,why_it_matters}].
+nonclaims[{id,statement,source_ref,quote,reason}],
+conflicts[{id,kind,materiality,quotes[{source_ref,quote,offset_bytes}],
+           affected_claim_ids,precedence,witness,reasoning}],
+notes[{note}] (a quote-bearing note carries the defined optional
+source_ref+quote pair),
+missing_source_candidates[{resource,affected_claim_ids,reference_quote,why_it_matters}].
 Use run-scoped draft IDs. Include stated fixes and acceptance requirements;
 separate background/advisory/evidence from promises and never duplicate a clause
 as both claim and nonclaim. Absorb bounded within-/cross-source consistency:
@@ -149,9 +159,8 @@ unstated precedence or silently authorize a resource. Preserve source quotes.
 Return the artifact path and compact counts/hard cases, not a semantic verdict.
 ```
 
-The populated conflict-record schema remains an operator checkpoint; until
-settled, preserve the existing source-consistency witness record requirements
-(quotes/offsets/hashes/affected IDs/materiality) without fabricating a new schema.
+This nested profile is the frozen `claims-draft/3` structural shape (the S28
+profile); no alternate shape is accepted by the pinned `verify claims` command.
 V1 validates/freezes claims against sources before adjudication.
 
 ### P0.4 Per-box join JSONL
@@ -176,7 +185,7 @@ A link says “look here”, not “this works”. high = plainly where the clai
 subject lives; medium = partially related; low = weak. Include every witnessed
 link; no per-unit cap. Never duplicate a (unit_id,claim_id) pair. claim_id must
 exist in the complete supplied claims list. role_hint is implements | tests |
-necessary-support | removes/changes.
+necessary-support | removes | changes.
 Witness: nonempty verbatim fragment from THIS unit's file, include its diff
 marker, single line, <=160 characters in this pilot; never quote another unit.
 If the unit cuts a block, reason only from bytes present. Use unresolved:null
@@ -189,13 +198,41 @@ links/by-closeness, zero-link units and unresolved units; do not paste JSONL.
 
 P0.5 validates file existence, strict types/fields, every assigned unit exactly
 once, valid IDs/enums and unique pairs, witness bounds and exact-byte containment,
-and the recorded budgets. Retain failed attempts and retry/re-split under the
-approved policy; do not invent links or turn missing rows into candidates.
+and the recorded budgets. Retain the original worker attempts plus failed
+attempts and retry/re-split records under the approved policy; do not invent
+links or turn missing rows into candidates.
 The merged join-draft carries candidate-unclaimed only; V1 finalizes negatives.
 
-The 160-character witness cap is reference-pilot N (not an approved production
-default); tightening `medium`, the input ceiling and the retry/re-split policy
-remain open operator checkpoints.
+The 160-character witness cap and the retry/re-split constants are recorded
+pilot policy (the run envelope pins `witness_max_chars: 160`, one retry, halves,
+depth ≤ 1; the verifier refuses other values); the operator-approved input
+ceiling remains a pilot decision, and tightening `medium` remains an open
+semantic checkpoint.
+
+### Mechanical verification child (`fast`; not a reviewer)
+
+The coordinator MUST spawn a `fast` child explicitly to execute the pinned
+`{verifier_command}` against artifact class `{artifact_class}`. The child
+verifies the frame-recorded `{verifier_path}` / `{verifier_sha256}`, reads run
+artifacts only, runs the tool, and returns the stdout JSON verdict verbatim
+plus the exit code and stderr summary. Read-only: do not interpret, repair or
+normalize, do not write artifacts or the notebook, do not run subject code, and
+do not substitute checks. Missing/degenerate `fast` pauses; no coordinator
+fallback. A nonzero exit, a missing or unparseable verdict, a truncated return,
+a tool/hash mismatch, or an ok/exit inconsistency fails this mechanical gate.
+The coordinator consumes the verdict; it never overrides, reimplements or
+reruns checks in its own context. It may obtain repaired artifacts as new
+retained attempts and re-delegate, or pause. Materiality, source
+authority/precedence, `repair_required`, `review_basis`, attribution and
+dispositions remain coordinator/V1 semantic work. This child is not under the
+vector template's subject-read invariant: the verifier must NOT read the
+subject tree, never executes subject code, git or the network, and treats
+`{run_root}` as the artifact root — never the subject.
+
+The frame fills `{verifier_command}`, `{verifier_path}`, `{verifier_sha256}`,
+`{run_root}` and `{artifact_class}`; a missing or blank slot is a frame error —
+do not spawn. The verifier pin freezes at frame seal and the artifact refs land
+at their gates.
 
 ## Coverage block variants (filler for {coverage})
 
