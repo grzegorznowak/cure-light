@@ -1,0 +1,12 @@
+{
+  "description": "Original raw S28 witnesses that fail the FR diff-marker rule. Kept as rejection/regression evidence for the synthetic pass seed; the raw corpus in the vault is untouched. Do not treat these as valid pass fixtures.",
+  "source": "/home/vscode/cure-light-pr17-s28-vault/run-artifacts/join/join-draft.v1.json",
+  "fails": "witness starts mid-line; first character is not a diff marker, so `witness diff marker missing` must fire",
+  "cases": [
+    { "unit_id": "u0000", "claim_id": "C21", "witness": "__pycache__/" },
+    { "unit_id": "u0001", "claim_id": "C08", "witness": "the optional over-engineering/YAGNI pass (fresh-context, post-handoff)" },
+    { "unit_id": "u0002", "claim_id": "C31", "witness": "Phase-0 rule clarifications (e2e triage follow-up) and substrate pin 1.0.2" },
+    { "unit_id": "u0002", "claim_id": "C27", "witness": "Worker-proposal integrity (E1)** — a worker-authored proposal is the run's recorded evidence, never a draft" },
+    { "unit_id": "u0002", "claim_id": "C28", "witness": "Bundled-instruction escalation (E2)** — the plugin's bundled slice instructions are the operational worker contract" }
+  ]
+}

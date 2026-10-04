@@ -1,0 +1,21 @@
+index 0ffe051..9fc9b46 100644
+--- a/kernel/SKILL.md
++++ b/kernel/SKILL.md
+@@ -17,7 +17,7 @@ Read these references completely before establishing a process:
+ 6. [references/closure-verification.md](references/closure-verification.md) — the re-review loop
+ 7. [references/hygiene-lens.md](references/hygiene-lens.md) — the lens dimension: code-hygiene family, deterministic preflight, lens trail
+ 8. [references/blast-lens.md](references/blast-lens.md) — the `blast` lens (V2-owned: data × call-site blast radius, advisory rows vs blocking instances)
+-9. [references/yagni-pass.md](references/yagni-pass.md) — the optional size/YAGNI pass (fresh-context, post-handoff)
++9. [references/yagni-pass.md](references/yagni-pass.md) — the optional over-engineering/YAGNI pass (fresh-context, post-handoff)
+ 10. [references/quality-lens.md](references/quality-lens.md) — the `quality` lens (V3-owned: maintainable shape, suite strength, consistency)
+ 11. [references/evidence-format.md](references/evidence-format.md) — finding schema, severity, origin
+ 12. [references/chhound-driver.md](references/chhound-driver.md) — the chunkhound research rail (pi-chhound plugin): sandbox pull, MCP connect, tool names, the symbol-sweep preflight recipe, discovery-only rule
+@@ -28,7 +28,7 @@ Read [libs/pi-driver/SKILL.md](../libs/pi-driver/SKILL.md) only if this runtime
+ 
+ ### 0. Run the quick requirements check (pi runtimes)
+ 
+-If the pi notebook driver applies, run it first per `libs/pi-driver/references/requirements-check.md`. The check splits: pre-pull rows run now; the subject-tree rows defer to the Phase 0 gate once the tree exists — the check is complete only then. If any hard requirement is missing, stop before fleet cost or state the fallback. Never start a fleet on an unverified subject.
++If the pi notebook driver applies, run it first per `libs/pi-driver/references/requirements-check.md`. The check splits: pre-pull rows run now; the subject-tree rows defer to the Phase 0 gate once the tree exists — the check is complete only then. The pre-pull rows include pinned toolchain/deps readiness for the installed single Pi tool `cure_light_census` (package `@grzegorznowak/pi-cure-light-census@1.0.2`, pinned against its `dist/TOOL.json` — a `PIN_MISMATCH` fails closed; Node ≥22.19 + Pi, no python/uv/venv/tree-sitter installs). If any hard requirement is missing, stop before fleet cost or state the fallback. A missing plugin dependency is a fail-loud stop (`DEPENDENCY_UNAVAILABLE` / `UNSUPPORTED_RUNTIME`), never a fallback registry. Never start a fleet on an unverified subject.
+ 
+ ### 1. Ask the intake fields once
+ 

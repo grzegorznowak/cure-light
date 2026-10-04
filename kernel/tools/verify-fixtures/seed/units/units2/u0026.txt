@@ -1,0 +1,33 @@
+@@ -48,6 +86,7 @@ compiler output — never a silent skip and never a finding-status by itself.
+ - **HIGH** — data loss / security / wrong routing / a contract-mandated behavior is contradicted or unverifiable at the core and no backstop exists.
+ - **MED** — real user-visible defect or race, or a behavior claim missing the test that would catch its regression; backstopped so not catastrophic.
+ - **LOW** — brittle, fragile, or coverage-without-assurance; cosmetic; deferred by design.
++- **Unclaimed-delivery findings (`conformance_kind`)**: LOW default; MED only for material undeclared behavior / API / operational commitment with an articulated review or compatibility consequence — never HIGH from the absence of a declaration alone; independent current harm is a Vector 2 finding.
+ - **Yagni rows (`yagni` lens)**: LOW default, MED ceiling — existence questions are advisory (non-blocking); current harm is V2's, future-change cost is V3's.
+ - **Quality rows (`quality` lens)**: LOW default, MED only when the quality problem's *own scale* is material — never HIGH, rated independently of product criticality (a spaghetti tree in a payments feature is not elevated because payments is critical); advisory (non-blocking), lens-trail only.
+ - **Blast rows (`blast` lens)**: LOW default, MED ceiling — never HIGH, suggestion-only; the concrete hazard instance is a Vector 2 finding at its own severity (blast-lens.md).
+@@ -66,18 +105,22 @@ Vector-2 and Vector-3 children attach a RESEARCH TRACE footer (implementation-pa
+ 
+ ## Writing findings
+ 
+-- Every finding needs a **concrete failure mode** — not a style opinion.
++- Every finding needs a **concrete failure mode** — not a style opinion. The narrow exception: `unclaimed-delivery` states the undeclared delivered behavior and its unit evidence instead of an invented runtime failure; coverage states themselves are ledger records, not findings.
++- Deletion / metadata findings state the anchor's `side`, `oid`, path and `range_or_event`, plus the checked subject absence (or the surviving subject anchor) — never a bare "file is gone".
+ - `NOT-A-BUG` results are listed too (checked and dismissed), cheap honesty that keeps the fleet honest.
+ - Hygiene hits follow the **lens trail** (hygiene-lens.md): detection mandatory, LOW by default, operator-suppressible per instance — they never pollute the bug table.
+ - `yagni` rows (yagni pass) follow the same lens trail with the same suppression/closure semantics — suggestion-only, never bug/debt tables.
+ - `quality` rows (V3 lens) follow the same lens trail — suggestion-only, rated by the problem's own scale, never bug/debt tables.
+ - `blast` rows (V2 lens) follow the same lens trail — suggestion-only, never bug/debt tables; the concrete data-hazard instance routes to the bug table as a Vector 2 finding (blast-lens.md).
+ - Evidence is read from the state's **subject tree** at its recorded `subject_oid` (intake-and-scope.md §0.1). Every row carries `subject_oid`; if a child read a different tree, its output is `inconclusive` — a checkout whose HEAD differs from the row's OID is a different tree.
++- A completeness statement cites the canonical pins: the `cure_light_census` `registry_hash` and the `gate_check` permission for the claim universe, the `census_hash` for the changed-unit denominator. Mechanical pins never stand in for semantic coverage — "complete" means accounted/attributed under the state's pins, not that every claim was judged correct.
+ 
+ ## Notebook layout
+ 
+-- `pipeline-frame-<owner>-<pr>-s<n>` — frozen run options, base OID, planned subject mechanism; the manifest's tree fields (`subject_path` / `subject_oid`, changed-file list) are recorded at the Phase 0 gate (notebook-plan-contract.md). Written at seal, completed at Phase 0.
++- `pipeline-frame-<owner>-<pr>-s<n>` — frozen run options, base OID, planned subject mechanism; the manifest's tree fields (`subject_path` / `subject_oid`, changed-file list), contract-source pins/designation, the source-consistency outcome (provisional `repair_required` / evidence-only authorization) and the post-V1 `review_basis` record are recorded at their gates (notebook-plan-contract.md). Written at seal, completed at Phase 0 and the V1 gate.
+ - `symbol-map-<owner>-<pr>-s<n>` — the preflight symbol map (chhound-driver.md, Symbol sweep): selected symbols, census heat table, capped outside locations, provenance/caps. One per review state; a bounded state cache kept while the state's consumers run (V2 sweep, V3 seed, yagni), discarded when the state closes.
++- `coverage-<owner>-<pr>-s<n>` — Vector 1 coverage summary/index: denominator and counts by state and side, completion flags, exclusion classes/policy, exact refs to the ledger shards. The paged ledger records themselves live in `coverage-<owner>-<pr>-s<n>-p<k>` pages (bounded, coordinator-owned, **in-notebook** — never scratch files); workers read only their assigned pages/slices. Kept through the state's closure/finalization window, retired after durable snapshots land.
++- `claims-<owner>-<pr>-s<n>` — the **projection of the canonical claim registry** produced by the pinned `cure_light_census` claim run (identical claim IDs, counts and `registry_hash`; reassembly/hash-equality checked; published only under the state's `gate_check` permission): canonical claim IDs, source spans + quote hashes, context/nonclaim labels (unit-aligned; parent/group links are coordinator-added in this plugin v1), per-source class/designating pointer/selection rule/interpretation (normative vs advisory, precedence), labeling-mode provenance. The queryable complete claim directory for Vector 1 negative attribution (paged `-p<k>` when long). Source-consistency contradiction records (exact quotes/offsets/source hashes/affected claim IDs, materiality witness) live with it.
+ - `pr-<n>-review` — findings table (schema rows) + closure table. Appended per vector.
+ - `decisions` (durable, survives the PR) — deferred-decision and closed-by-operator records with author/time/rationale/scope, plus the leading subarea open questions.
+ 

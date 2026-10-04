@@ -1,0 +1,16 @@
+@@ -82,11 +86,12 @@ Rules:
+    symbol map may surface as the comment's `Symbol impact` section
+    (chhound-driver.md / evidence-format.md).
+ 
+-## Optional pass: yagni (size / YAGNI)
++## Optional pass: yagni (over-engineering / YAGNI)
+ 
+ Beyond the three vectors sits one **optional, vector-shaped pass**: yagni — is
+-the PR's physical size in lines changed justified by its contract, and what is
+-YAGNI? It runs only when the operator enables it (intake checkbox or on-demand
++the engineering used to deliver the claimed behavior justified, or over-built?
++It owns no size accounting — that is Vector 1's changed-unit accounting
++(yagni-pass.md). It runs only when the operator enables it (intake checkbox or on-demand
+ after the Vector 3 gate), post-handoff in a fresh context, on the same run manifest and subject tree. It owns the `yagni` lens while active (yagni-pass.md); when skipped,
+ that lens is inactive (`off`) and needs no owner. Hits route to the lens trail,
+ never the bug/debt table.

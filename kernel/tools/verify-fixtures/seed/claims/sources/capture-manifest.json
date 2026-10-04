@@ -1,0 +1,82 @@
+{
+  "run": "grzegorznowak/cure-light#17",
+  "review_state": "s1",
+  "cure_light_source_head_oid": "5eedc0de5eedc0de5eedc0de5eedc0de5eedc0de",
+  "subject_oid": "afe5145da30fa7d5d2e212296f2c458d2bf7e941",
+  "base_oid": "c79a54c57322b45498ffd01db45a876a4712e138",
+  "remote_head_oid": "afe5145da30fa7d5d2e212296f2c458d2bf7e941",
+  "subject_path": "/tmp/cure-grzegorznowak-cure-light-17/tree",
+  "pr_state_observed": {
+    "state": "MERGED",
+    "isDraft": false,
+    "baseRefName": "main",
+    "headRefOid": "afe5145da30fa7d5d2e212296f2c458d2bf7e941",
+    "mergedAt": "2026-09-30T03:24:42Z",
+    "merge_commit": "cd4cdb53c1e4c6f368de08ef98e12e5a52e4b569",
+    "createdAt": "2026-09-23T14:37:36Z",
+    "updatedAt": "2026-09-30T03:24:42Z",
+    "policy": "MERGED/closed is the EXPECTED state for this run; refs/pull/17/head still fetchable and head OID frozen"
+  },
+  "captured_at_utc": "2026-10-03T06:13:13Z",
+  "sources": [
+    {
+      "locator": "pr:body",
+      "class": "api-document",
+      "role": "declares",
+      "designating_pointer": "the PR body itself (primary contract source)",
+      "path": "sources/pr-body.md",
+      "capture_sha256": "4910224c9fbe2d1ef12bd00923ba983b2cf0c6f1fc30d2360fde55a1b03314e0",
+      "capture_byte_length": 20413,
+      "title_path": "sources/pr-title.txt",
+      "title_sha256": "8c7a847d7a39904d0ea7fee40f151d05265d10417d1a563a533c3765f22d6060",
+      "title_byte_length": 245,
+      "version_ref": "PR body as of 2026-09-30T03:24:42Z (updatedAt; final revision after 2026-09-29 follow-up)"
+    },
+    {
+      "locator": "repo:docs/contract-adequacy-validation-plan.md",
+      "class": "designated-in-diff-source",
+      "role": "declares",
+      "designating_pointer": "pr:body — 'Designated in-diff source (explicit pointer).' — 'added by the v0.5.13 commit, is explicitly designated as an in-diff claim source ... whose F1–F10 scenario clauses are its operative content'",
+      "path": "sources/designated-contract-adequacy-validation-plan.md",
+      "blob_subject": "283d629221ec249a893630d65cce3653f3461d62",
+      "blob_base": null,
+      "delta_base_note": "Added by this PR (git status A); no base-side blob exists at base_oid c79a54c5. Whole file is the delta.",
+      "capture_sha256": "2636ac18bf39c4bc756a39a0b82d95e7e26791bfe1cf67a60726589fa94104af",
+      "capture_byte_length": 10736,
+      "git_hash_object": "283d629221ec249a893630d65cce3653f3461d62",
+      "capture_equals_git_blob": true,
+      "source_format": "markdown",
+      "version_ref": "subject_oid afe5145da30fa7d5d2e212296f2c458d2bf7e941"
+    }
+  ],
+  "changed_files": [
+    ".gitignore",
+    "BOOTSTRAP.md",
+    "CHANGELOG.md",
+    "README.md",
+    "assets/child-pass-prompt-template.md",
+    "assets/finding-schema.json",
+    "docs/contract-adequacy-validation-plan.md",
+    "kernel/SKILL.md",
+    "kernel/references/blast-lens.md",
+    "kernel/references/chhound-driver.md",
+    "kernel/references/closure-verification.md",
+    "kernel/references/conformance-pass.md",
+    "kernel/references/debt-pass.md",
+    "kernel/references/evidence-format.md",
+    "kernel/references/implementation-pass.md",
+    "kernel/references/intake-and-scope.md",
+    "kernel/references/pipeline-model.md",
+    "kernel/references/quality-lens.md",
+    "kernel/references/yagni-pass.md",
+    "libs/pi-driver/references/notebook-plan-contract.md",
+    "libs/pi-driver/references/requirements-check.md",
+    "templates/KICKOFF.md"
+  ],
+  "changed_files_count": 22,
+  "linked_issues": [],
+  "notes": [
+    "Phase-0 substrate for THIS review is the PR #21 file-based, plugin-free engine (census plugin demoted): P0.2 claims-draft/3 via #fast, shipped chunker, P0.4 join via #fast, coordinator P0.5 gate.",
+    "The subject PR body claims the plugin cure_light_census@1.0.2 as ITS Phase-0 substrate; that is the subject's claim, captured verbatim, not this review's mechanism."
+  ]
+}

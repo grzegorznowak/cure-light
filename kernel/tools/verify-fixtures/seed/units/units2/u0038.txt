@@ -1,0 +1,14 @@
+index 9f0a94b..a5d90ed 100644
+--- a/kernel/references/quality-lens.md
++++ b/kernel/references/quality-lens.md
+@@ -51,5 +51,8 @@ diff; origin by base-diff like every vector.
+   with no demonstrated contract gap.
+ - **V2 test integrity** — a *demonstrable* behavioral regression that stays
+   green; `quality.test` is advisory strength only.
+-- **`yagni` lens** — existence / size; `quality` is the shape of logic that
+-  *should* exist. A rewrite suggestion is not a YAGNI challenge.
++- **`yagni` lens** — existence / over-engineering: it challenges *unnecessary
++  mechanisms serving a claimed behavior* (yagni-pass.md); `quality` is the
++  maintainable shape/idiom of logic that *should* exist. Traceability to a claim
++  is not an over-engineering dismissal, and a rewrite suggestion is not a YAGNI
++  challenge.

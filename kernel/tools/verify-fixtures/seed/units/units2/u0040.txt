@@ -1,0 +1,35 @@
++An `EXPLAINED` unit is **not dismissed** as NOT-A-HIT: "the feature was
++required" does not mean every abstraction it shipped was. Accounting for units
++with no claim link belongs to Vector 1; this pass asks only whether what a
++claim *did* deliver is over-built.
+ 
+ `yagni` is an active lens only while this pass runs; a skipped pass deactivates
+-it (the lens matrix shows `off`, exempt from the coverage assertion). Size
+-weight is an **assessment dimension** of `yagni`, not its own lens.
++it (the lens matrix shows `off`, exempt from the coverage assertion).
+ 
+ ## Child return format
+ 
+ ```text
+-SIZE: JUSTIFIED — <unit → claim trace summary, file:line per chunk>
+-   | CHALLENGED — <untraceable chunks, file:line>
+-Y[<id>] file:line — what — which contract claim it does NOT serve — why speculative
++ENGINEERING: JUSTIFIED — <unit → served claim, file:line per mechanism, why required>
++   | CHALLENGED — <unit → unnecessary mechanism, file:line>
++Y[<id>] file:line — served claim: <claim_id / locked decision> — unnecessary mechanism:
++   <what> — present justification missing: <why the requirement does not need it>
+    — severity (LOW/MED) — origin: PR-introduced | pre-existing (base: <base>:<path>:<line>)
+ NOT-YAGNI: <surface checked and defended by a locked decision>
+ NONE: <unit> — no candidates
+@@ -65,7 +75,10 @@ Evidence at the subject tree (subject_oid); origin by base-diff like every vecto
+ LOW/MED only — never HIGH (current harm → Vector 2; future-change cost →
+ Vector 3; this pass only questions existence). Suggestion-only: rows are
+ **non-blocking**, route to the **lens trail** (operator-suppressible per
+-instance, closure-classifiable) — never the bug/debt table.
++instance, closure-classifiable) — never the bug/debt table. Pure unused
++surface → `dead` lens (link, don't duplicate). `EXCLUDED` accounting is not
++quality clearance; an explicit operator extension may ask about unclaimed units
++without changing their V1 attribution.
+ 
+ ## Aggregation
+ 

@@ -1,0 +1,32 @@
++Severity: `LOW` default; `MED` only for material undeclared behavior/API/operational commitment with an articulated review or compatibility consequence — never merely many lines, never `HIGH` from absent declaration alone. Independent current harm routes to Vector 2. Groups beyond the output cap are disclosed with counts, never silently dropped.
++
++Claim gaps keep their concrete divergence; the old "GAP without a user-visible divergence is dropped" rule is retired. For `unclaimed-delivery` the concrete failure is *delivered behavior absent from the captured declared scope*, evidenced by unit/contract IDs plus the attribution audit — no runtime failure is invented, and unclaimed ≠ wrong/over-engineered. Deletion and metadata findings carry explicit anchors `{side, oid, path, range_or_event}` plus the checked subject absence or surviving anchor.
+ 
+ ## Failure to avoid
+ 
+-- **Paraphrased contracts.** Children must compare against the verbatim locked decisions, not a summary.
+-- **Over-claiming from tests.** "Tested" ≠ "true" if the test fixture doesn't match the real system (mock-reality mismatch is itself a finding).
+-- **No-op findings.** A GAP without a concrete user-visible divergence is dropped.
++- **Paraphrased contracts** — compare against verbatim locked decisions, never a summary.
++- **Unaccounted units** — an absent unit or digest mismatch stays `UNRESOLVED`; retries within cap; never inferred from a sibling.
++- **False coverage from a broad slogan** — exact range edges, role + rationale, separate satisfaction, split mixed parents.
++- **Over-claiming from tests** — "tested" ≠ "true"; mock-reality mismatch is itself a finding.
++- **Mechanical completeness sold as semantic proof** — counts prove accounting, not correctness. The pinned tool's bytes/hashes, the `gate_check` permission and the `census_hash` are mechanical pins, not evidence that all authorized sources were selected or that labels are semantically right.
++- **Run-authored or hand-patched registry** — canonical IDs/bytes come only from the pinned `cure_light_census` tool; a coordinator-authored `registry2.py`, a hand-added claim ID or a claims page diverging from the canonical `registry_hash` is a repair-level defect, never an improvisation to acceptance.
++- **False completeness without the gate** — a complete claim universe exists only under the state's `gate_check` permission; without it the affected units stay `UNRESOLVED`/incomplete and no "complete coverage" language may be used.
++- **Guessed negatives** — every definitive `GAP` / `UNCLAIMED` and every basis blocker needs a concrete witness; a hunch, a high unclaimed ratio, a feature-like filename, "not clear", or the mere absence of a VERIFIED claim never decides. Check alternative attributions — including qualifying designated in-diff clauses — before finalizing.
++- **Whole-diff ingestion** — no agent reads the full diff; ledger access is page/range-scoped.
+ 
+ ## Disposition on completion
+ 
+-Output goes to the notebook findings page. Operator gate: proceed to Vector 2 only when Vector 1 has a clean/accepted disposition (open contract gaps don't block, but they are carried into Vector 2 as context).
+\ No newline at end of file
++The claim matrix and coverage summary go to `pr-<n>-review` / the state's coverage pages. After the semantic verdicts and attribution reconciliation, and before the gate, the coordinator records the state's **review basis** — a planning disposition, not a finding and not a score:
++
++- `ready` — a grounded basis supports the declared planned continuation (not "all claims VERIFIED" and not full-diff bug coverage).
++- `limited-only` — a defensible bounded subset exists; the whole requested review implies unsupported scope.
++- `blocked` — no worthwhile requested split exists.
++- `unknown` — budget/evidence/source classification is insufficient; not an author-fault verdict and never a pass by default.
++
++The record names the viable candidate surfaces (locked clauses, coherent expected behavior, implementation/absence anchors, material uncertainty), the **basis blockers** (requested surface, unavailable/incompatible source, affected claim IDs/findings/coverage groups, concrete witness, surviving permitted subset), the allowed next scope, and any operator disposition ref; it is bound to the state's base/subject OIDs, source versions/hashes, canonical `registry_hash` + `gate_check` report/permissions, `census_hash`, coverage hashes and V1 projection identity. A separate **`repair_required`** status records description defects and unresolved material source contradictions (provisional from Phase 0, final here) — it never computes evidence backing and is never waived by a ready basis. A provisional early-pass finding is never silently upgraded or downgraded at this gate: its witness records (conflicting quotes/offsets/source hashes/affected claim IDs) are carried as-is, and only a new review state with repaired sources can clear them.
++

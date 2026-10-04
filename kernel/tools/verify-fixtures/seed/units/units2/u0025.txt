@@ -1,0 +1,63 @@
+index 367969e..0233be8 100644
+--- a/kernel/references/evidence-format.md
++++ b/kernel/references/evidence-format.md
+@@ -13,13 +13,18 @@ summary: one line
+ evidence:
+   file: path:line            # primary anchor in the subject tree
+   code: <verbatim or exact shape>
++  side: subject | base | metadata    # optional; required when the anchor is not a surviving subject-tree line
++  oid: <tree OID the anchor was read from>   # optional; old/base-side or metadata-event provenance
++  range_or_event: <old-side range / metadata event ref at its OID>   # optional; deletion / rename / mode / binary anchors
+ severity: HIGH | MED | LOW
+ origin: PR-introduced | pre-existing   # Vector 2+ ; conformance is PR-only by definition
+ disposition: fix-in-PR | pre-existing-debt | deferred-decision | track-separately
+              # fix-in-PR = in scope (introduced or enforced); pre-existing-debt = out-of-scope
+              # follow-up (recommended or downstream); deferred-decision / track-separately record
+              # an accepted deferral or an own ticket
+-failure_mode: <concrete user-visible or future failure>
++conformance_kind: claim-gap | unclaimed-delivery   # optional; Vector-1 findings only (see below)
++coverage_ref: <coverage page ref + canonical claim IDs / unit group/selector + canonical registry_hash + census_hash>   # optional; ties a V1 finding to ledger records projected from the pinned tool's canonical artifacts
++failure_mode: <concrete failure: divergence for claim-gap; undeclared delivered behavior for unclaimed-delivery>
+ status: open | verified-fixed | re-classified | test-only | doc-only | deferred-decision | closed-by-operator | re-opened
+ owner: <implementer | operator | subsystem>
+ subject_oid: <tree OID this row's evidence was read from>   # optional in schema; the coordinator fills it on every new/updated row
+@@ -31,6 +36,39 @@ are optional (a conformance finding usually has `lens: none`); when they are
+ absent the row still counts toward the vector, but the **lens matrix** (see
+ pipeline-model.md) is what proves per-lens coverage of the run.
+ 
++**Coverage is not a taxonomy.** Vector 1 keeps per-unit accounting in the
++coverage ledger (notebook pages, below); only two narrow kinds become findings:
++`conformance_kind: claim-gap` (the old GAP shape — missing backing,
++contradiction, overstatement) and `conformance_kind: unclaimed-delivery` —
++delivered behavior absent from the captured declared scope, evidenced by unit
++IDs plus the attribution audit. An unclaimed-delivery finding is **in-scope and
++blocking**: the owner declares/justifies the behavior in the PR description or
++removes it (a declaration changes the contract and lands as a closed/new state,
++closure-verification.md). It is never demoted to a follow-up; its narrow
++failure-mode exception is documented under Writing findings.
++
++**Contract adequacy is a gate disposition, not a finding kind.** Description
++defects — a misleading/empty body, missing source designation or orientation, a
++material unresolved source contradiction — are author-facing conformance items
++with the existing kinds/severity and a concrete remedy (source-declaration vs
++delivery-role separation: conformance-pass.md §Sources declare); a
++`review_basis` value (`ready` / `limited-only` / `blocked` / `unknown`) and its
++basis blockers are coordinator process records (frame/claims pages), never an
++omnibus "bad contract" finding, a new severity class, or a new comment section.
++A ready basis never erases a blocking finding, and an accepted finding
++disposition never establishes readiness.
++
++**Mechanical pins, not semantic proof.** Claim IDs, counts and `registry_hash`
++come only from the pinned `cure_light_census` tool and are consumed
++only under the state's `gate_check` permission; the changed-unit denominator and
++its IDs come from the pinned census artifact `census.json` (`changed-range-census/1`, `census_hash`). A finding or
++coverage page that cites an ID absent from the canonical registry, or asserts
++completeness without the gate permission, is invalid — re-seal and re-project,
++never improvise or hand-add an ID. Mechanical passes prove byte identity,
++ownership and internal consistency; they never prove that all authorized
++sources were selected, that labels are semantically right, or that coverage is
++complete (conformance-pass.md).
++
+ `subject_oid` is schema-optional for backward compatibility but **rule-required**
+ for every new or updated row: it records which review-state tree the row's
+ evidence was read from, so a findings page spanning several review states never

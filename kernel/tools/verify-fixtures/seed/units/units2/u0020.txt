@@ -1,0 +1,39 @@
+-Each child receives: the relevant contract section for its surface (the run manifest's `contract_ref`), the assigned file list, the focused diff, and this stance.
++## Child return — two orthogonal blocks
+ 
+-## Child return format (compact, evidence-bound)
++Claim block, per assigned claim:
+ 
+ ```text
+-VERIFIED: <contract clause> → <file:line> — conforms
+-GAP: <contract clause> → <code reality> — what diverges (file:line)
+-NONE: <surface> — no gaps found
++CLAIM <claim_id> — VERIFIED: <implementation/test anchors file:line or range>
++CLAIM <claim_id> — GAP: <concrete divergence: missing backing, contradiction, overstatement> (file:line / unit IDs)
++CLAIM <claim_id> — INCONCLUSIVE: <what could not be decided and why>
+ ```
+ 
+-- GAPs must show a concrete divergence (missing backing, contradiction, or overstatement), not a style opinion.
+-- Verdict per surface; a surface with no gap says so explicitly.
++Unit block, per assigned unit / leaf range:
++
++```text
++ATTRIBUTED <unit_id> → <claim_id[,…]> — role: implements | tests | necessary-support | removes/changes | documents/specifies — why: <why this change serves this clause> — anchors: <file:line / range>
++UNCLAIMED_CANDIDATE <unit_id> — <delivered behavior> — checked: <claim-directory scope searched>
++EXCLUSION_REQUEST <unit_id> — class: <generated | vendor | lockfile | fixture | format | …> — proof: <evidence/tool output>
++UNRESOLVED <unit_id> — reason: <unread | truncated | disputed | failed | insufficient claim access>
++CLOSE <assignment digest> — processed: <n>/<n> — returned: <n> — remaining: <n>
++```
++
++Always explicit: `NONE` never substitutes for accounting, and the CLOSE line closes the assigned set. The claim block feeds the matrix; the unit block feeds the coverage ledger — a unit state is a coverage record, not a finding.
++
++Supporting infrastructure need not be named verbatim by the author, but the dependency must be demonstrated. Same filename, lexical resemblance, a broad feature slogan, mere test existence, or a claim's VERIFIED status alone cannot explain a whole hunk. A change can be *attributable yet contradict* its claim — attribution and claim satisfaction are separate axes.
++
++### Sources declare; delivery explains (no self-proof)
++
++A source clause defines an expected behavior for changed targets — its own bytes never verify that the behavior is implemented, nor excuse the source unit's own attribution. `declares` is a **source/provenance role** (which captured block asserts the clause), **not** an EXPLAINED edge. A changed doc/spec unit is explained only through `documents/specifies` against an **independent purpose/target anchor** — e.g. the body/issue asking to revise X to require Y, or a distinct objective in an explicitly designated package whose repo-native change-process interprets its spec deltas as the package deliverable; necessary-support needs a demonstrated dependency, never "same package". Same-unit and mutual self-ratification are prohibited: a spec cannot clear itself by existing, and two documents cannot ratify each other. A missing or disputed anchor leaves the unit `UNRESOLVED` pending clarification — never invented intent, never speculative `UNCLAIMED`. Missing **designation** is a different case: without any pointed source the affected units are `UNCLAIMED` against the captured contract with `repair_required` recorded (intake-and-scope.md §0.2); `UNRESOLVED` is for a designated source whose purpose/target anchor cannot be established.
++
++A docs-only PR that updates the actual specification is a **real deliverable**: compare the claimed text delta with the actual version, check scope/coherence/precedence, and mark well-anchored spec units `EXPLAINED` even with no executable code change — no phantom code, no behavior claim. A design-only deliverable with no code and no promise to implement code is not automatically a GAP. Multiple roles on one unit do not multiply the denominator; claim verdict and unit attribution stay orthogonal.
++
++## Accounting states (exactly one per changed leaf)
++
