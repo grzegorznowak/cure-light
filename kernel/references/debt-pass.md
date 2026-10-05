@@ -58,6 +58,8 @@ Before the first search, read the run's **symbol map** (`symbol_sweep` artifact 
 
 ## Child return format
 
+The terminal return is wrapped by the bounded return transport (4096 UTF-8 bytes; `assets/child-pass-prompt-template.md` §Bounded return transport): full evidence goes unchanged to a child-exclusive run artifact, and the wrapper is transport only. The format below is unchanged.
+
 ```text
 [D3-<n>] concept — why fragile/short-lived — concrete future failure when <2nd constraint | next version | new host> arrives — severity (HIGH blocks future feature work / MED / LOW)
 ```

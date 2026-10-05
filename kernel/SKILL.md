@@ -7,7 +7,7 @@ description: Run a structured three-vector pull-request review — contract-vs-c
 
 A **diagnostic review, not a fixer.** cure-light reviews a PR against its own stated contract and the surrounding codebase; it does not modify code. Findings surface as a **single review comment**, drafted only through operator-gated finalization.
 
-Read these references completely before establishing a process:
+**Boot loading is staged** — [references/context-loading.md](references/context-loading.md) is the boot set, stage map and read-once rule. At boot, load only: this SKILL's overview + global operating rules, the stage map, and the runtime pin metadata. The corpus below is fetched to the pinned disk mirror and each document is loaded completely once when its stage starts, then referenced — never a full-corpus read at boot:
 
 1. [references/pipeline-model.md](references/pipeline-model.md) — the 3-vector model, phases, gates
 2. [references/intake-and-scope.md](references/intake-and-scope.md) — Phase 0 pull subject + contract
@@ -90,6 +90,7 @@ Publish a closure table. See closure-verification.md.
 
 ## Operating rules (short version)
 
+- **Engine executables enter context as hashes, never as source.** Fetch the pinned verifier/chunker to disk at the resolved engine OID and hash the bytes; carry only `{path, sha256, tool_version|recipe}`. The coordinator must never read, search, grep or window their source in its own context. Executing the pinned CLI is not source ingestion. This forbids engine process code, not subject code: when the review subject is cure-light itself, assigned reviewer children inspect subject code as evidence like any other target. Missing `fast` pauses — never substitute a `fast` child, a run-authored script or coordinator reruns for the delegated boundary.
 - **Review the pulled subject tree, not the remote tip.** Whatever SHA the pull has is the version reviewed; capture it at Phase 0 and anchor every finding to it.
 - **Subject-first: no orientation before the subject pull.** Until Phase 0 pulls the subject, nothing in the target repo's local checkouts is read or used for orientation — per review state (a deliberate re-pull starts a new state under the same rule). Pre-pull access is remote-only plus presence probes (chhound-driver.md §Presence); the only pre-pull local git command is the cure-light source provenance capture.
 - **Findings need file:line evidence and a concrete failure mode.** Opinion without evidence does not enter the report.

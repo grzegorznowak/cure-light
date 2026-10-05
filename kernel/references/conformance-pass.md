@@ -34,6 +34,8 @@ Each child receives: subject/base identity, its contract source slices (captured
 
 ## Child return — two orthogonal blocks
 
+The terminal return is wrapped by the bounded return transport (4096 UTF-8 bytes; `assets/child-pass-prompt-template.md` §Bounded return transport): full evidence goes unchanged to a child-exclusive run artifact, and the wrapper is transport only. The block formats below are unchanged.
+
 Claim block, per assigned claim:
 
 ```text

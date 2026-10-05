@@ -70,6 +70,8 @@ Verify by diffing the base commit (`git show <base>:<path>`) and citing where th
 
 ## Child return format
 
+The terminal return is wrapped by the bounded return transport (4096 UTF-8 bytes; `assets/child-pass-prompt-template.md` §Bounded return transport): full evidence goes unchanged to a child-exclusive run artifact, and the wrapper is transport only. The format below is unchanged.
+
 ```text
 [V2-<n>] file:line — what — concrete failure mode (exploit or user-visible) — severity (HIGH/MED/LOW)
 origin: PR-introduced | pre-existing (base evidence: <base:<path>:<line>)

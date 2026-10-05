@@ -27,23 +27,25 @@ These seed the session so it can compile the review process. Fetch them in order
 11. `$RAW_BASE/kernel/references/quality-lens.md` — the `quality` lens (V3-owned: maintainable shape, suite strength, consistency)
 12. `$RAW_BASE/kernel/references/chhound-driver.md` — the chunkhound research rail (pi-chhound plugin): model-tool setup (`ch-chhound`), sandbox pull, MCP connect, tool names, the symbol-sweep preflight recipe, discovery-only rule
 13. `$RAW_BASE/kernel/references/evidence-format.md`
-14. `$RAW_BASE/kernel/references/chunker.md` — the shipped Phase-0 unit chunker (CLI/IO, recipe, limits)
+14. `$RAW_BASE/kernel/references/context-loading.md` — boot set + stage map + read-once rule
+15. `$RAW_BASE/kernel/references/artifact-contracts.md` — recorded artifact field contracts + repair map
+16. `$RAW_BASE/kernel/references/chunker.md` — the shipped Phase-0 unit chunker (CLI/IO, recipe, limits)
 
 ### Pi driver (notebook + handoff + model-groups binding — only if this runtime provides the pi notebook)
 
-15. `$RAW_BASE/libs/pi-driver/SKILL.md`
-16. `$RAW_BASE/libs/pi-driver/references/requirements-check.md`
-17. `$RAW_BASE/libs/pi-driver/references/notebook-plan-contract.md`
+17. `$RAW_BASE/libs/pi-driver/SKILL.md`
+18. `$RAW_BASE/libs/pi-driver/references/requirements-check.md`
+19. `$RAW_BASE/libs/pi-driver/references/notebook-plan-contract.md`
 
 ### Templates / assets (keep for reference during the episode)
 
-18. `$RAW_BASE/templates/KICKOFF.md`
-19. `$RAW_BASE/assets/finding-schema.json`
-20. `$RAW_BASE/assets/child-pass-prompt-template.md`
+20. `$RAW_BASE/templates/KICKOFF.md`
+21. `$RAW_BASE/assets/finding-schema.json`
+22. `$RAW_BASE/assets/child-pass-prompt-template.md`
 
 ### Worked example (optional, read after compiling the process)
 
-21. `$RAW_BASE/docs/example-review.md`
+23. `$RAW_BASE/docs/example-review.md`
 
 ## Fetching rules
 
@@ -52,6 +54,8 @@ These seed the session so it can compile the review process. Fetch them in order
 - Hold the fetched text in a scratch location you can re-read during the session.
 - Report `file: <line-count>` for every file before proceeding.
 - The Phase-0 engine executables — `$RAW_BASE/kernel/tools/chunker.mjs` and the pinned mechanical verifier `$RAW_BASE/kernel/tools/verify.mjs` — must be fetched as exact raw bytes (never markdown-normalized), and each sha256 recorded at fetch time together with the verifier path and `tool_version`, before the Phase-0 run. Fetch executables from the immutable resolved `cure_light_source_head_oid` raw URL, not a moving `main` after freeze. Resolve the actual source identity or stop the executable gate: a raw `main` URL does not by itself prove the OID. The existing remote-boot source-binding checkpoint for the wider docs fetch stands; no install and no test/fixture fetch is needed.
+- **Executable fetching is hash-only.** Fetch the two engine executables as exact bytes to disk at the immutable resolved `cure_light_source_head_oid`, compute their sha256 there, and bring back only metadata: `{path, sha256, tool_version}` for the verifier and `{path, sha256, recipe}` for the chunker. There is no windowed printing of executable source — no `cat`, `read`, `head`, `tail` or any window over the bytes — and no version extracted by reading or executing the script. An expected no-command exit 2 is a version smoke/usage refusal, never a verification pass.
+- **Fetching to disk is not loading into context.** The fetched corpus lives on the pinned disk mirror; only the boot set and each active stage's documents (`kernel/references/context-loading.md`, `kernel/references/artifact-contracts.md` when preparing artifacts) enter model context. No full-corpus read at boot.
 
 ## After fetching
 
