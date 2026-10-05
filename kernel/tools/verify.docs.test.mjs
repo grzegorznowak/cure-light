@@ -29,6 +29,9 @@ const norm = (s) => s.replace(/\s+/g, " ").trim();
 const CHILD_TEMPLATE = "assets/child-pass-prompt-template.md";
 const INTAKE = "kernel/references/intake-and-scope.md";
 const CONFORMANCE = "kernel/references/conformance-pass.md";
+const IMPLEMENTATION = "kernel/references/implementation-pass.md";
+const DEBT = "kernel/references/debt-pass.md";
+const CLOSURE = "kernel/references/closure-verification.md";
 const REQUIREMENTS = "libs/pi-driver/references/requirements-check.md";
 const KICKOFF = "templates/KICKOFF.md";
 const BOOTSTRAP = "BOOTSTRAP.md";
@@ -450,6 +453,39 @@ describe("docs contract — KICKOFF / BOOTSTRAP / SKILL / notebook contract", ()
     has(NOTEBOOK_CONTRACT, "literal delegated verification-child contract", "literal delegation contract");
     has(NOTEBOOK_CONTRACT, "current fast-child `verify join` verdict ref/hash/exit code", "verdict evidence bind");
     has(NOTEBOOK_CONTRACT, "freezes the verifier pin", "seal freeze");
+  });
+});
+
+describe("docs contract — fleet plans (experimental)", () => {
+  it("intake-and-scope records the per-vector fleet plan, timing and depth budgets", () => {
+    has(INTAKE, "**`fleet_plan`**", "fleet_plan record");
+    has(INTAKE, "A vector without a recorded plan does not spawn", "no-plan no-spawn");
+    has(INTAKE, "One child owns at most two sealed concepts (V2) or two debt axes (V3)", "per-child cap");
+    has(INTAKE, "no facet may be folded into another child silently", "no silent folding");
+    has(INTAKE, "the V1 `fleet_plan` (shard → group → owned claims/units → depth budget)", "phase-0 gate surface");
+    has(INTAKE, "at-most-two-facets-per-child cap", "pre-pull fleet policy");
+    has(INTAKE, "Any mid-run amendment to a plan is recorded at the next gate with a reason", "amendments recorded");
+  });
+
+  it("each vector's reference compiles and records its own fleet_plan at its gate", () => {
+    has(CONFORMANCE, "V1's recorded `fleet_plan`", "V1 plan");
+    has(IMPLEMENTATION, "V2's `fleet_plan`", "V2 plan");
+    has(IMPLEMENTATION, "at most two sealed concepts unless the plan records why", "V2 cap");
+    has(DEBT, "V3's `fleet_plan`", "V3 plan");
+    has(DEBT, "at most two debt axes unless the plan records why", "V3 cap");
+    has(DEBT, "at least two distinct search calls and one recorded evidence artifact (file:line) per owned axis/lens", "V3 depth budget");
+    has(CLOSURE, "plan-vs-actual fleet check", "closure check");
+    has(NOTEBOOK_CONTRACT, "per-vector `fleet_plan`", "frame field");
+    has(SKILL, "recorded `fleet_plan`", "SKILL rule");
+    has(PIPELINE, "recorded `fleet_plan`", "pipeline rule");
+  });
+
+  it("CHANGELOG appends the fleet-plan subsection above the single-join entry", () => {
+    has(CHANGELOG, "### 2026-10-05 — fleet plans: recorded splits + per-facet depth budgets (experimental)", "new subsection");
+    const body = read(CHANGELOG);
+    const newAt = body.indexOf("### 2026-10-05 — fleet plans");
+    const oldAt = body.indexOf("### 2026-10-05 — single `verify join` boundary");
+    assert.ok(newAt !== -1 && oldAt !== -1 && newAt < oldAt, "fleet-plan subsection must sit above the single-join entry");
   });
 });
 

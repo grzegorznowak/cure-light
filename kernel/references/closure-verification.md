@@ -46,6 +46,8 @@ Output to the notebook findings page, not as a fresh review. This is the artifac
 
 Re-validated rows update their `subject_oid` to the new subject — a row's `subject_oid` is the tree its current evidence was read from (evidence-format.md); a row not (yet) re-validated keeps its own `subject_oid` and is read at it.
 
+**Fleet check.** The closure report records the state's plan-vs-actual fleet check: per vector, planned vs spawned children and per-facet coverage against the agreed depth budgets. Any deviation carries its reason (an amendment recorded at a gate, a failed/timed-out child, an operator waiver); a planned facet that received no coverage is an explicit note or finding, never silence.
+
 **Closure publication.** By default, after closure verification, update the single review comment **in place**: fold in new or changed dispositions and note the new subject OID in its attribution footer. The `before_post` gate still applies. Post a separate fresh comment only when the operator prefers one.
 
 **Symbol map in a closure render.** The map belongs to a review state: a closure

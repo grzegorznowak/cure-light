@@ -2,6 +2,11 @@
 
 ## Unreleased (working tree)
 
+### 2026-10-05 — fleet plans: recorded splits + per-facet depth budgets (experimental)
+
+- **Planned fleet.** Each vector's split is a recorded `fleet_plan` (shard → owner → depth budget) compiled and surfaced before its children spawn — V1 before the Phase-0 gate (approved at it), V2 at the V1 gate, V3 at the V2 gate — for approval or a recorded amendment. One child owns at most two sealed concepts (V2) or two debt axes (V3) unless the plan records why; no facet folds into another child silently. Depth budgets are minimum checking floors: V1 verdicts/accounting + named checks, V2 `read` checks + four `blast` rows, V3 ≥2 searches + one evidence artifact per owned axis/lens. Closure records planned vs spawned and per-facet coverage.
+- **Docs:** `kernel/references/{intake-and-scope,pipeline-model,conformance-pass,implementation-pass,debt-pass,closure-verification}.md`, `kernel/SKILL.md`, `libs/pi-driver/references/notebook-plan-contract.md`, `templates/KICKOFF.md`.
+
 ### 2026-10-05 — single `verify join` boundary (claims/units diagnostics)
 
 - **One delegated boundary.** The per-state mechanical acceptance predicate is now the single delegated `verify join` verdict (envelope + one invocation), pinned to the exact input refs/hashes; a missing, stale or nonzero verdict stops the boundary exactly as before. `verify join` already re-runs the claims and units validators internally as fatal prerequisites (`join.prerequisites: prerequisite failed: <class>`, exit 1; unknown/wrong-kind prerequisite schemas keep the exit-2 refusal), so the separate mandatory invocations added per-class receipts and earlier-stage labels only, never coverage.
