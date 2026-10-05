@@ -63,10 +63,29 @@ Identity: `run`, `review_state` (nonempty strings), `subject_oid`, `base_oid` (l
 
 - `sources[]`: `{source_ref, locator, path, role, sha256, byte_length [, blob_subject]}` — `path` is **run-root relative** (e.g. `claims/sources/pr-body.md`); `sha256`/`byte_length` must equal both the capture record (`capture_sha256`/`capture_byte_length` for the matching `locator`) and the actual bytes.
 - `claims[]`: `{id, statement, source_ref, quote, also_in}`; `nonclaims[]`: `{id, statement, source_ref, quote, reason}`.
-- `conflicts[]`: `{id, kind, materiality, quotes[{source_ref, quote, offset_bytes}], affected_claim_ids, precedence, witness, reasoning}`.
+- `conflicts[]`: `{id, kind, materiality, quotes[{source_ref, quote, offset_bytes}], affected_claim_ids, precedence, witness, reasoning}`. `kind` is one of `within-source` or `cross-source`, and `materiality` is one of `material` or `non-material` — **structural enums only**; a richer semantic subtype belongs in `witness`/`reasoning`, never in `kind`. `precedence` is a required nonempty string; use `"none"` when no explicit precedence is stated. Violations fail fast on check `claims.conflicts` (`invalid conflict kind: "<id>": "<value>"` / `invalid conflict materiality: "<id>": "<value>"`), and a missing/empty `precedence` fails shape (`invalid field: /conflicts/<i>/precedence expected nonempty string`).
 - `notes[]`: `{note}` (a quote-bearing note carries the defined optional `source_ref` + `quote` pair).
 - `missing_source_candidates[]`: `{resource, affected_claim_ids, reference_quote, why_it_matters}`.
 - `source_consistency`: optional; **omit the key rather than record an empty value**. When present it must be an object: `status` (optional; nonempty string when present), `records[]` (optional; array of objects whose `id` must be a nonempty string that **resolves to a recorded `conflicts[].id`** — an unresolved id fails `claims.conflicts` with `consistency record not found: "<id>"`), and `notes` (optional; nonempty string when present). Empty strings fail shape (`invalid field: /source_consistency/... expected nonempty string`); a wrong container or wrong-typed `records` fails shape (`expected object` / `expected array`).
+
+One concrete valid conflict record (synthetic; `offset_bytes` is `null` when the quote is recorded without an offset pin):
+
+<!-- conflicts-example -->
+```json
+{
+  "id": "X1",
+  "kind": "cross-source",
+  "materiality": "material",
+  "quotes": [
+    { "source_ref": "pr:body", "quote": "one payload-removed replay", "offset_bytes": null },
+    { "source_ref": "issue:415:body", "quote": "no retries", "offset_bytes": null }
+  ],
+  "affected_claim_ids": ["C01"],
+  "precedence": "none",
+  "witness": "The two sources state incompatible request semantics.",
+  "reasoning": "Cross-source contradiction with no explicit precedence stated."
+}
+```
 
 <!-- claims-draft-example -->
 ```json
@@ -241,6 +260,9 @@ Per-box inputs and outputs (all pinned in `join_boxes`): `box-<id>.assignment.js
 | `envelope`, `assignment ... mismatch` / `missing instructions` / `missing p05 check` / `missing p05 evidence` / `input ceiling mismatch` | per-box assignment/instructions/P0.5 bindings refused at prep | §5 |
 | `shape`, `invalid field: /source_consistency/...` | `source_consistency` present but empty-string or wrong-typed object/array | §2 |
 | `claims.conflicts`, `consistency record not found: "<id>"` | `source_consistency.records[].id` not a recorded `conflicts[].id` | §2 |
+| `claims.conflicts`, `invalid conflict kind: "<id>": "<value>"` | `conflicts[].kind` not `within-source`/`cross-source` (structural enum; no semantic subtypes) | §2 |
+| `claims.conflicts`, `invalid conflict materiality: "<id>": "<value>"` | `conflicts[].materiality` not `material`/`non-material` | §2 |
+| `shape`, `invalid field: /conflicts/<i>/precedence expected nonempty string` | `conflicts[].precedence` missing/empty (use `"none"`) | §2 |
 
 ## 8. Repair protocol — a distinct `fast` artifact-preparation/repair child
 

@@ -2,6 +2,13 @@
 
 ## Unreleased (working tree)
 
+### 2026-10-05 — artifact contracts follow-up: `conflicts[]` vocabulary + precedence rule (S36 repair loop)
+
+- **`conflicts[]` vocabulary.** The claims-draft contract now states the exact enums `verify claims` enforces: `kind` is `within-source` or `cross-source` and `materiality` is `material` or `non-material` — structural enums only, with richer subtypes belonging in `witness`/`reasoning` (an invented `kind` subtype or graded materiality fails `claims.conflicts`). `precedence` is a required nonempty string (`"none"` when no precedence is stated), and a concrete valid conflict record is documented. The P0.2 child template carries the same vocabulary inline so the drafting child no longer has to infer it.
+- **Repair map.** §7 gains rows for `invalid conflict kind`, `invalid conflict materiality` and the `precedence` shape failure.
+- **No tool change.** `kernel/tools/verify.mjs` behavior, schemas, exit codes and written bytes are unchanged; the extended docs suite drives the real verifier (baseline pass plus kind/materiality/precedence mutations).
+- **Docs:** `kernel/references/artifact-contracts.md`, `assets/child-pass-prompt-template.md`, `kernel/tools/verify.docs.test.mjs`.
+
 ### 2026-10-05 — artifact contracts follow-up: join `boxes[]` + `source_consistency` (S35 repair loop)
 
 - **`boxes[]` entry schema.** The merged join-draft `boxes[]` contract is now field-by-field (`box_id`, `path`, `sha256` output pin, `rows`, `links`), with the pre-recording envelope rules stated separately: a single `join-draft*.json` (two candidates refuse `ambiguous join draft`), `boxes` must be an array, every entry needs nonempty `box_id`+`path` (`malformed join draft: boxes` / `boxes entry`), and the assignment/instructions/P0.5 bindings refuse with their own `REFUSE envelope: <reason>` details. This closes the gap that forced the S35 run's isolated schema-derivation probes.

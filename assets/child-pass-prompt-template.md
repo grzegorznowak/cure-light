@@ -170,6 +170,10 @@ conflicts[{id,kind,materiality,quotes[{source_ref,quote,offset_bytes}],
 notes[{note}] (a quote-bearing note carries the defined optional
 source_ref+quote pair),
 missing_source_candidates[{resource,affected_claim_ids,reference_quote,why_it_matters}].
+Conflicts vocabulary is exact: kind is `within-source` or `cross-source`;
+materiality is `material` or `non-material` (structural enums only — put the
+richer subtype wording in witness/reasoning); precedence is a required nonempty
+string, `"none"` when no precedence is stated.
 Use run-scoped draft IDs. Include stated fixes and acceptance requirements;
 separate background/advisory/evidence from promises and never duplicate a clause
 as both claim and nonclaim. Absorb bounded within-/cross-source consistency:
