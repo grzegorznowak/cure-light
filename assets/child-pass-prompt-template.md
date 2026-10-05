@@ -125,7 +125,7 @@ search thread).
 ## Given budget & cost
 
 - Set a per-child timeout and line budget at spawn. Over-budget or timed-out output is recorded as `inconclusive`, never `pass`.
-- The coordinator fans out children per vector with a concurrency cap and merges their records into the findings page.
+- The coordinator fans out a vector's compiled children as one concurrent batch (bounded by the concurrency cap), merges their records into the findings page, and never awaits one child before spawning the next; no coordinator write shares the spawn batch.
 
 ## Phase-0 children — separate bindings
 

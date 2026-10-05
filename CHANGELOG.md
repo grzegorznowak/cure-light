@@ -2,6 +2,11 @@
 
 ## Unreleased (working tree)
 
+### 2026-10-05 — vector children spawn as one parallel batch
+
+- **Parallel spawn batches.** A split's compiled children spawn concurrently as one batch — the coordinator never awaits one child before spawning the next — and no coordinator write shares the spawn batch. On pi a tool batch runs in parallel only when no call in it is sequential-mode (`notebook_write`, `handoff`), so a coordinator write mixed into a spawn message serializes the fleet (a live two-worker V2 pass ran back-to-back ≈690 s where spawn-only batches overlapped ≈350 s).
+- **Docs:** `kernel/SKILL.md`, `kernel/references/pipeline-model.md`, `assets/child-pass-prompt-template.md`, `libs/pi-driver/SKILL.md`.
+
 ### 2026-10-04 — verifier follow-up: fail-closed envelope + prep generator
 
 - **Fail-closed pilot policy.** The envelope `pilot` tuple now fails closed: `operator_ref` must be a nonempty string (missing → `join.budget: pilot operator_ref missing`), `output_ceiling_bytes` must be exactly `null` (monitoring only) or a nonnegative integer (enforced) — a wrong-typed value such as `"1"` fails `join.budget: pilot output ceiling invalid` instead of silently disabling enforcement — and the unconditional constants stay `witness_max_chars: 160`, `retry_limit: 1`, `resplit: 'halves'`, `max_resplit_depth: 1`.
