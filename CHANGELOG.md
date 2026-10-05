@@ -2,6 +2,14 @@
 
 ## Unreleased (working tree)
 
+### 2026-10-05 — artifact contracts follow-up: join `boxes[]` + `source_consistency` (S35 repair loop)
+
+- **`boxes[]` entry schema.** The merged join-draft `boxes[]` contract is now field-by-field (`box_id`, `path`, `sha256` output pin, `rows`, `links`), with the pre-recording envelope rules stated separately: a single `join-draft*.json` (two candidates refuse `ambiguous join draft`), `boxes` must be an array, every entry needs nonempty `box_id`+`path` (`malformed join draft: boxes` / `boxes entry`), and the assignment/instructions/P0.5 bindings refuse with their own `REFUSE envelope: <reason>` details. This closes the gap that forced the S35 run's isolated schema-derivation probes.
+- **`source_consistency` rules.** When present it must be an object: `status`/`notes` nonempty-if-present, `records[].id` nonempty and resolving to a recorded `conflicts[].id` (`consistency record not found: "<id>"` otherwise); empty strings fail shape — omit the key instead.
+- **Repair map.** §7 gains rows for the envelope/join `boxes[]` refusals and the `source_consistency` shape/conflict failures observed in S35.
+- **No tool change.** `kernel/tools/verify.mjs` behavior, schemas, exit codes and written bytes are unchanged; the extended docs suite drives the real verifier (join shape mutations, generator refusals, claims mutations).
+- **Docs:** `kernel/references/artifact-contracts.md`, `kernel/tools/verify.docs.test.mjs`.
+
 ### 2026-10-05 — context-token budget: staged loading, artifact contracts, bounded returns (docs)
 
 - **Staged context loading.** `kernel/references/context-loading.md` is the boot set + stage map + read-once rule: only the boot set enters context before intake, each stage loads its required documents completely once when it starts, and compaction/handoff reloads only the active stage's documents from the pinned mirror. The boot/read directives in `BOOTSTRAP.md`, `kernel/SKILL.md`, `libs/pi-driver/SKILL.md` and `templates/KICKOFF.md` now point at it; the full corpus stays on the pinned disk mirror.
