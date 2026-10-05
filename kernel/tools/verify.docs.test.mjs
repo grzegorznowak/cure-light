@@ -1011,7 +1011,7 @@ describe("docs contract — artifact contracts S2 (field contracts + repair prot
     has(ARTIFACT_CONTRACTS, "distinct `fast` artifact-preparation/repair child", "distinct repair child");
     has(ARTIFACT_CONTRACTS, "never the verification child", "repair is not the verifier");
     has(ARTIFACT_CONTRACTS, "never changes captured source meaning, witness bytes, policy or claims semantics just to pass", "no semantics-by-repair");
-    has(ARTIFACT_CONTRACTS, "ambiguity or an identity/refusal case pauses", "pause rule");
+    has(ARTIFACT_CONTRACTS, "Ambiguity or an identity/refusal case pauses", "pause rule");
     has(ARTIFACT_CONTRACTS, "operator escalation", "escalation rule");
     has(ARTIFACT_CONTRACTS, "no coordinator source reading", "coordinator boundary");
 
@@ -1029,7 +1029,7 @@ describe("docs contract — artifact contracts S2 (field contracts + repair prot
 describe("docs contract — context budget S1/S3 (hash-only executables + no coordinator source ingestion)", () => {
   it("BOOTSTRAP fetches executables hash-only and forbids windowed source printing", () => {
     has(BOOTSTRAP, "hash-only", "hash-only fetching");
-    has(BOOTSTRAP, "fetch exact bytes to disk", "bytes-to-disk rule");
+    has(BOOTSTRAP, "as exact bytes to disk", "bytes-to-disk rule");
     has(BOOTSTRAP, "no windowed printing of executable source", "no windowed printing");
     has(BOOTSTRAP, "expected no-command exit 2 is a version smoke/usage refusal, never a verification pass", "exit-2 smoke semantics");
     has(BOOTSTRAP, "{path, sha256, tool_version}", "verifier metadata shape");

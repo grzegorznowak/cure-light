@@ -100,6 +100,8 @@ their absence never gates acceptance.
 
 Run the engine's [chunker](chunker.md), `kernel/tools/chunker.mjs`, over the state's two-dot `base_oid..subject_oid` diff. The compiled frame records its path, exact-byte sha256 and recipe; its identity rides `cure_light_source_head_oid`. The tool is shipped by cure-light, not supplied by the subject tree. It uses fixed windows at logical boundaries: target 4 KiB, ceiling 6 KiB; prefer file-end → hunk-end → block-end → line-end, never mid-line. The manifest and unit payloads are the inventory for the join and V1 accounting. Context and repeated hunk ranges are not unique changed-line counts; see the chunker contract and its explicit limitations. A missing or unrepresentable changed surface cannot quietly disappear into a completeness claim.
 
+The units-manifest identity and payload path bases, the join-side field contracts and the repair map are documented in [artifact-contracts.md](artifact-contracts.md).
+
 **Optional units diagnostic (`verify units`).** The units check is likewise not
 a required stage: the single `verify join` boundary validates the same units
 slice internally as a fatal prerequisite. After the chunker run, a units
@@ -193,6 +195,18 @@ mismatch, or an ok/exit inconsistency fails the mechanical boundary. The tool
 proves recorded artifact mechanics only — materiality, source
 authority/precedence, `repair_required`, `review_basis`, attribution and
 dispositions stay coordinator/V1 semantic work.
+
+**Repair protocol (distinct `fast` child).** A failed check is repaired by a
+distinct `fast` artifact-preparation/repair child spawned with the exact
+verdict/error refs, the pinned docs
+([artifact-contracts.md](artifact-contracts.md)) and the authorized artifact
+paths. The repair child is never the verification child and never the
+coordinator: it restores the recorded field to the recorded meaning, never
+changes captured source meaning, witness bytes, policy or claims semantics
+just to pass, retains the failed attempt and re-freezes only under the
+existing rewrite rules. Ambiguity or an identity/refusal case pauses for the
+operator; the coordinator never reads tool source and never reruns the
+verifier itself — the boundary is re-delegated after repair.
 
 **Check suppression.** Checks run in a fixed order and an earlier failure aborts
 the pipeline; dependent later checks may therefore be absent from `checks[]`.
