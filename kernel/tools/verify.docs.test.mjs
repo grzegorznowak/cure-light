@@ -1026,6 +1026,126 @@ describe("docs contract — artifact contracts S2 (field contracts + repair prot
   });
 });
 
+// ---------------------------------------------------------------------------
+// S2 follow-up — S35 artifact-shape repair loop (2026-10-05):
+// the merged join-draft `boxes[]` entry schema, the pre-recording envelope
+// requirements, the `source_consistency` field rules and their repair-map
+// rows. RED-first: the content assertions were red before the matching
+// artifact-contracts.md edits; the mutation matrix encodes today's real
+// verifier outcomes (probed live before authoring).
+// ---------------------------------------------------------------------------
+
+describe("docs contract — artifact contracts S2 follow-up (boxes[], source_consistency, repair map)", () => {
+  const envelopeArgs = (run, seed) => [
+    "envelope", "--run", run,
+    "--operator-ref", seed.pilot.operator_ref,
+    "--chunker-sha256", sha256(readFileSync(path.join(ROOT, "kernel/tools/chunker.mjs"))),
+    "--input-ceiling-bytes", String(seed.pilot.input_ceiling_bytes),
+  ];
+
+  it("documents the merged join-draft boxes[] entry schema and drives every shape mutation", () => {
+    for (const phrase of [
+      "entries carry five required fields",
+      "box output pin",
+      "must equal the sha256 of the exact",
+      "must equal the actual row count",
+    ]) {
+      has(ARTIFACT_CONTRACTS, phrase, `boxes[] entry contract phrase ${phrase}`);
+    }
+
+    const baseline = materializeRun("s2f-box-baseline");
+    expectVerdict(runVerifier(["join", "--run", baseline], { runRoot: baseline }), 0, "baseline join");
+
+    const mutations = [
+      ["sha256 removed", (j) => { delete j.boxes[0].sha256; }, "invalid field: /boxes/0/sha256 expected nonempty string"],
+      ["path removed", (j) => { delete j.boxes[0].path; }, "invalid field: /boxes/0/path expected nonempty string"],
+      ["box_id removed", (j) => { delete j.boxes[0].box_id; }, "invalid field: /boxes/0/box_id expected nonempty string"],
+      ["rows negative", (j) => { j.boxes[0].rows = -1; }, "invalid field: /boxes/0/rows expected nonnegative integer"],
+      ["links non-integer", (j) => { j.boxes[0].links = "2"; }, "invalid field: /boxes/0/links expected nonnegative integer"],
+    ];
+    for (const [label, mutate, detail] of mutations) {
+      const run = materializeRun(`s2f-box-${label.replace(/\W+/g, "-")}`);
+      editJson(run, JOIN_DRAFT, mutate);
+      resealEnvelope(run);
+      expectFailedCheck(runVerifier(["join", "--run", run], { runRoot: run }), 1, "shape", detail, label);
+    }
+  });
+
+  it("documents the pre-recording join-draft rules and drives the real envelope generator refusals", () => {
+    for (const phrase of [
+      "malformed join draft: boxes entry",
+      "malformed join draft: boxes",
+      "ambiguous join draft",
+    ]) {
+      has(ARTIFACT_CONTRACTS, phrase, `envelope-prep contract phrase ${phrase}`);
+    }
+
+    const baseline = materializeRun("s2f-env-baseline");
+    const baselineSeed = readJson(baseline, RUN_MANIFEST);
+    const gen = runVerifier(envelopeArgs(baseline, baselineSeed), { runRoot: baseline });
+    assert.equal(gen.status, 0, `baseline envelope prep failed\n${report(gen)}`);
+
+    const cases = [
+      ["boxes not an array", (run) => { editJson(run, JOIN_DRAFT, (j) => { j.boxes = {}; }); }, "malformed join draft: boxes"],
+      ["entry without path", (run) => { editJson(run, JOIN_DRAFT, (j) => { delete j.boxes[0].path; }); }, "malformed join draft: boxes entry"],
+      ["entry with empty box_id", (run) => { editJson(run, JOIN_DRAFT, (j) => { j.boxes[0].box_id = ""; }); }, "malformed join draft: boxes entry"],
+      ["two join drafts", (run) => { writeText(run, "join/join-draft.alt.json", readText(run, JOIN_DRAFT)); }, "ambiguous join draft"],
+    ];
+    for (const [label, mutate, detail] of cases) {
+      const run = materializeRun(`s2f-env-${label.replace(/\W+/g, "-")}`);
+      const seed = readJson(run, RUN_MANIFEST);
+      mutate(run);
+      expectFailedCheck(runVerifier(envelopeArgs(run, seed), { runRoot: run }), 2, "envelope", detail, label);
+    }
+  });
+
+  it("documents source_consistency field rules and drives the claims validator", () => {
+    for (const phrase of [
+      "resolves to a recorded `conflicts[].id`",
+      "omit the key rather than record an empty value",
+      "consistency record not found",
+    ]) {
+      has(ARTIFACT_CONTRACTS, phrase, `source_consistency contract phrase ${phrase}`);
+    }
+
+    const valid = materializeRun("s2f-sc-valid");
+    editJson(valid, CLAIMS_DRAFT, (c) => {
+      c.source_consistency = { status: "recorded-inconsistency", records: [], notes: "no recorded items" };
+    });
+    resealEnvelope(valid);
+    expectVerdict(runVerifier(["claims", "--run", valid], { runRoot: valid }), 0, "empty records with notes present");
+
+    const cases = [
+      ["notes empty", (c) => { c.source_consistency.notes = ""; }, "shape", "invalid field: /source_consistency/notes expected nonempty string"],
+      ["record id empty", (c) => { c.source_consistency.records[0].id = ""; }, "shape", "invalid field: /source_consistency/records/0/id expected nonempty string"],
+      ["status wrong type", (c) => { c.source_consistency.status = 42; }, "shape", "invalid field: /source_consistency/status expected nonempty string"],
+      ["records wrong type", (c) => { c.source_consistency.records = {}; }, "shape", "invalid field: /source_consistency/records expected array"],
+      ["record id unresolved", (c) => { c.source_consistency.records[0].id = "X99"; }, "claims.conflicts", 'consistency record not found: "X99"'],
+    ];
+    for (const [label, mutate, check, detail] of cases) {
+      const run = materializeRun(`s2f-sc-${label.replace(/\W+/g, "-")}`);
+      editJson(run, CLAIMS_DRAFT, mutate);
+      resealEnvelope(run);
+      expectFailedCheck(runVerifier(["claims", "--run", run], { runRoot: run }), 1, check, detail, label);
+    }
+  });
+
+  it("extends the repair map with the observed envelope/join/source_consistency refusals", () => {
+    const body = read(ARTIFACT_CONTRACTS);
+    const map = norm(body.slice(body.indexOf("## 7. Error → field → doc anchor")));
+    for (const token of [
+      "malformed join draft: boxes",
+      "malformed join draft: boxes entry",
+      "ambiguous join draft",
+      "/boxes/<i>/",
+      "source_consistency",
+      "consistency record not found",
+    ]) {
+      assert.ok(map.includes(norm(token)), `§7 repair map missing token ${token}`);
+    }
+  });
+});
+
 describe("docs contract — context budget S1/S3 (hash-only executables + no coordinator source ingestion)", () => {
   it("BOOTSTRAP fetches executables hash-only and forbids windowed source printing", () => {
     has(BOOTSTRAP, "hash-only", "hash-only fetching");
