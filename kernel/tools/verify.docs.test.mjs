@@ -11,13 +11,13 @@
 // no operator-facing doc may carry a suite pointer (asserted below).
 import { after, describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  CLAIMS_DRAFT, JOIN_DRAFT, RUN_MANIFEST,
+  CAPTURE_MANIFEST, CLAIMS_DRAFT, JOIN_DRAFT, RUN_MANIFEST,
   cleanupTempDirs, editJson, findCheck, findFailedCheck, materializeRun,
-  readJson, readText, resealEnvelope, resealRun, runVerifier, writeText,
+  readJson, readText, resealEnvelope, resealRun, runVerifier, sha256, writeText,
 } from "./verify-testkit.mjs";
 
 after(cleanupTempDirs);
@@ -37,6 +37,10 @@ const KICKOFF = "templates/KICKOFF.md";
 const BOOTSTRAP = "BOOTSTRAP.md";
 const SKILL = "kernel/SKILL.md";
 const NOTEBOOK_CONTRACT = "libs/pi-driver/references/notebook-plan-contract.md";
+const PI_SKILL = "libs/pi-driver/SKILL.md";
+const ARTIFACT_CONTRACTS = "kernel/references/artifact-contracts.md";
+const CONTEXT_LOADING = "kernel/references/context-loading.md";
+const YAGNI = "kernel/references/yagni-pass.md";
 const README = "README.md";
 const CHANGELOG = "CHANGELOG.md";
 const CHUNKER = "kernel/references/chunker.md";
@@ -773,5 +777,407 @@ describe("docs behavior — envelope prep mode + fail-closed rules (fix 4 docs)"
     has(KICKOFF, "(recording, not verification)", "recording clause");
     has(KICKOFF, "envelope sha256 is frozen in the frame before verification", "frame freeze clause");
     has(KICKOFF, "mechanical verification itself remains delegated `fast`", "delegated verification clause");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Context-token budget engine docs (approved plan 2026-10-05, S1–S7).
+//
+// S2 is behavioral: the documented field contracts/repair map are parsed and
+// the documented capture shape drives the real verifier end-to-end (envelope
+// generation -> rewritten run-manifest.json -> delegated join), including the
+// schema-class, pin and path-base refusal/failure matrix. S1/S3–S7 are
+// mechanical clause/role tests over the docs: they prove the contract text is
+// present and not contradicted, not that a model obeys it at runtime (plan §5).
+// ---------------------------------------------------------------------------
+
+/** Extract the first fenced ```json block after `marker`; doc examples carry no nested fences. */
+function jsonExample(file, marker) {
+  const text = read(file);
+  const at = text.indexOf(marker);
+  assert.ok(at !== -1, `${file}: missing example marker ${JSON.stringify(marker)}`);
+  const fence = text.indexOf("```json", at);
+  assert.ok(fence !== -1, `${file}: missing json fence after ${JSON.stringify(marker)}`);
+  const from = fence + "```json".length;
+  const end = text.indexOf("```", from);
+  assert.ok(end !== -1, `${file}: unterminated json fence after ${JSON.stringify(marker)}`);
+  try {
+    return JSON.parse(text.slice(from, end));
+  } catch (err) {
+    assert.fail(`${file}: invalid JSON example after ${JSON.stringify(marker)}: ${err.message}`);
+  }
+}
+
+describe("docs contract — artifact contracts S2 (field contracts + repair protocol)", () => {
+  it("documents the capture manifest as schema-less with identity, sources, title pins and changed files", () => {
+    has(ARTIFACT_CONTRACTS, "schema-less", "schema-less capture rule");
+    has(ARTIFACT_CONTRACTS, "Omit `schema_version`", "schema omission rule");
+    has(ARTIFACT_CONTRACTS, "any declared value is refused by `verify envelope`", "generator refusal rule");
+    has(ARTIFACT_CONTRACTS, "nonempty unknown or wrong-family declaration refuses exit 2", "unknown refusal class");
+    has(ARTIFACT_CONTRACTS, "empty or wrong-typed declaration fails shape with exit 1", "empty/wrong-typed shape class");
+
+    const example = jsonExample(ARTIFACT_CONTRACTS, "<!-- capture-manifest-example -->");
+    assert.equal(example.schema_version, undefined, "capture example must omit schema_version");
+    for (const field of ["run", "review_state", "subject_oid", "base_oid", "cure_light_source_head_oid", "sources", "changed_files"]) {
+      assert.ok(field in example, `capture example missing ${field}`);
+    }
+    assert.ok(Array.isArray(example.sources) && example.sources.length > 0, "capture example sources nonempty");
+    for (const field of ["locator", "path", "capture_sha256", "capture_byte_length"]) {
+      assert.ok(field in example.sources[0], `capture example source missing ${field}`);
+    }
+    assert.ok("title_path" in example.sources[0], "capture example title pin");
+  });
+
+  it("parses the claims-draft/3 root schema example and the run-envelope example", () => {
+    has(ARTIFACT_CONTRACTS, "`schema_version: \"claims-draft/3\"` is required", "claims root schema rule");
+    const claims = jsonExample(ARTIFACT_CONTRACTS, "<!-- claims-draft-example -->");
+    assert.equal(claims.schema_version, "claims-draft/3", "claims example root schema");
+    for (const field of ["run", "review_state", "subject_oid", "base_oid", "sources", "claims", "nonclaims", "conflicts"]) {
+      assert.ok(field in claims, `claims example missing ${field}`);
+    }
+
+    const envelope = jsonExample(ARTIFACT_CONTRACTS, "<!-- run-envelope-example -->");
+    assert.equal(envelope.schema_version, "run-verification/1", "envelope example schema");
+    assert.deepEqual(Object.keys(envelope.capture_manifest).sort(), ["ref", "sha256"], "capture pin is ref+sha256 only");
+    for (const key of ["claims_draft", "units_manifest", "join_draft"]) {
+      assert.deepEqual(Object.keys(envelope[key]).sort(), ["ref", "schema_version", "sha256"], `${key} primary pin fields`);
+    }
+    assert.equal(envelope.pilot.witness_max_chars, 160, "documented witness constant");
+    assert.equal(envelope.pilot.retry_limit, 1, "documented retry constant");
+    assert.equal(envelope.pilot.resplit, "halves", "documented resplit constant");
+    assert.equal(envelope.pilot.max_resplit_depth, 1, "documented resplit depth");
+  });
+
+  it("documents the two path bases and drives the real claims validator on each", () => {
+    has(ARTIFACT_CONTRACTS, "`path` and `title_path` resolve relative to `claims/`", "capture base rule");
+    has(ARTIFACT_CONTRACTS, "claims-draft `sources[].path` resolves relative to the run root", "claims base rule");
+    has(ARTIFACT_CONTRACTS, "cannot read artifact: claims/claims/", "wrong-base fingerprint");
+
+    const run = materializeRun("s2-path-bases");
+    const capturePristine = readText(run, CAPTURE_MANIFEST);
+    const claimsPristine = readText(run, CLAIMS_DRAFT);
+    const restore = () => {
+      writeText(run, CAPTURE_MANIFEST, capturePristine);
+      writeText(run, CLAIMS_DRAFT, claimsPristine);
+      resealEnvelope(run);
+    };
+    expectVerdict(runVerifier(["claims", "--run", run], { runRoot: run }), 0, "baseline path bases");
+
+    editJson(run, CAPTURE_MANIFEST, (c) => { c.sources[0].path = "claims/sources/pr-body.md"; });
+    resealEnvelope(run);
+    expectFailedCheck(
+      runVerifier(["claims", "--run", run], { runRoot: run }),
+      1, "artifact.read", "cannot read artifact: claims/claims/sources/pr-body.md",
+      "capture path with run-root base",
+    );
+
+    restore();
+    editJson(run, CAPTURE_MANIFEST, (c) => { c.sources[0].title_path = "claims/sources/pr-title.txt"; });
+    resealEnvelope(run);
+    expectFailedCheck(
+      runVerifier(["claims", "--run", run], { runRoot: run }),
+      1, "artifact.read", "cannot read artifact: claims/claims/sources/pr-title.txt",
+      "capture title_path with run-root base",
+    );
+
+    restore();
+    editJson(run, CLAIMS_DRAFT, (c) => { c.sources[0].path = "sources/pr-body.md"; });
+    resealEnvelope(run);
+    expectFailedCheck(
+      runVerifier(["claims", "--run", run], { runRoot: run }),
+      1, "artifact.read", "cannot read artifact: sources/pr-body.md",
+      "claims path with capture base",
+    );
+
+    restore();
+    expectVerdict(runVerifier(["claims", "--run", run], { runRoot: run }), 0, "restored path bases");
+  });
+
+  it("regenerates the documented envelope from the real generator and passes the delegated join boundary", () => {
+    const run = materializeRun("s2-envelope-prep");
+    const seed = readJson(run, RUN_MANIFEST);
+    const chunkerSha = sha256(readFileSync(path.join(ROOT, "kernel/tools/chunker.mjs")));
+    const gen = runVerifier([
+      "envelope", "--run", run,
+      "--operator-ref", seed.pilot.operator_ref,
+      "--chunker-sha256", chunkerSha,
+      "--input-ceiling-bytes", String(seed.pilot.input_ceiling_bytes),
+    ]);
+    assert.equal(gen.status, 0, `envelope generation failed\n${report(gen)}`);
+    const envelope = (() => {
+      try { return JSON.parse(gen.stdout); } catch (err) { assert.fail(`envelope stdout must be one JSON document: ${err.message}\n${report(gen)}`); }
+    })();
+    assert.equal(envelope.schema_version, "run-verification/1", "envelope schema");
+    assert.deepEqual(Object.keys(envelope.capture_manifest).sort(), ["ref", "sha256"], "capture pin carries no schema_version");
+    assert.equal(envelope.capture_manifest.ref, "claims/sources/capture-manifest.json", "capture ref");
+    assert.deepEqual(envelope.verifier, {
+      path: "kernel/tools/verify.mjs",
+      sha256: sha256(readFileSync(path.join(ROOT, "kernel/tools/verify.mjs"))),
+      tool_version: "1.0.0",
+    }, "verifier pin recomputed from actual bytes");
+    assert.equal(envelope.chunker.path, "kernel/tools/chunker.mjs", "chunker path");
+    assert.equal(envelope.chunker.sha256, chunkerSha, "chunker sha recorded");
+    assert.deepEqual(
+      Object.keys(envelope.pilot).sort(),
+      ["input_ceiling_bytes", "max_resplit_depth", "operator_ref", "output_ceiling_bytes", "resplit", "retry_limit", "witness_max_chars"],
+      "pilot field set",
+    );
+    assert.ok(Array.isArray(envelope.unit_payloads) && envelope.unit_payloads.length > 0, "unit payload pins");
+    assert.deepEqual(Object.keys(envelope.unit_payloads[0]).sort(), ["ref", "sha256", "unit_id"], "unit payload pin shape");
+
+    writeText(run, RUN_MANIFEST, gen.stdout);
+    expectVerdict(runVerifier(["join", "--run", run], { runRoot: run }), 0, "regenerated envelope join");
+  });
+
+  it("classifies capture schema declarations per the documented refusal/shape matrix", () => {
+    const chunkerSha = sha256(readFileSync(path.join(ROOT, "kernel/tools/chunker.mjs")));
+    for (const [label, sv] of [["empty", ""], ["unknown", "unknown-family/1"]]) {
+      const run = materializeRun(`s2-capture-file-schema-${label}`);
+      editJson(run, CAPTURE_MANIFEST, (c) => { c.schema_version = sv; });
+      const r = runVerifier(["envelope", "--run", run, "--operator-ref", "s2", "--chunker-sha256", chunkerSha, "--input-ceiling-bytes", "196608"]);
+      const verdict = expectVerdict(r, 2, `capture file schema ${label}`);
+      const failed = findFailedCheck(verdict, "envelope");
+      assert.ok(failed, `capture file schema ${label}: envelope refusal check\n${report(r)}`);
+      assert.match(failed.detail, /unsupported capture schema_version/);
+      assert.ok(verdict.capture_manifest === undefined, "a refusal never emits an envelope");
+    }
+
+    const entryCases = [
+      { sv: "", status: 1, check: "schema", detail: "invalid field: /capture_manifest/schema_version expected nonempty string" },
+      { sv: 42, status: 1, check: "schema", detail: "invalid field: /capture_manifest/schema_version expected nonempty string" },
+      { sv: "unknown-family/1", status: 2, check: "schema", detail: 'unsupported schema_version: "unknown-family/1"' },
+      { sv: "claims-draft/3", status: 2, check: "artifact.discovery", detail: 'wrong schema kind: "claims-draft/3" for capture' },
+    ];
+    for (const probe of entryCases) {
+      const run = materializeRun(`s2-capture-entry-${String(probe.sv).replace(/\W+/g, "-") || "empty"}`);
+      editJson(run, RUN_MANIFEST, (env) => { env.capture_manifest.schema_version = probe.sv; });
+      resealEnvelope(run);
+      expectFailedCheck(
+        runVerifier(["claims", "--run", run], { runRoot: run }),
+        probe.status, probe.check, probe.detail,
+        `capture entry schema ${JSON.stringify(probe.sv)}`,
+      );
+    }
+
+    const run = materializeRun("s2-capture-pin");
+    editJson(run, RUN_MANIFEST, (env) => { env.capture_manifest.sha256 = "0".repeat(64); });
+    expectFailedCheck(
+      runVerifier(["claims", "--run", run], { runRoot: run }),
+      1, "artifact.sha256", 'sha256 mismatch: "claims/sources/capture-manifest.json"',
+      "capture pin mismatch",
+    );
+  });
+
+  it("drives the documented claims root schema matrix through the real claims validator", () => {
+    const run = materializeRun("s2-claims-root-schema");
+    const pristine = readText(run, CLAIMS_DRAFT);
+    const restore = () => { writeText(run, CLAIMS_DRAFT, pristine); resealEnvelope(run); };
+
+    editJson(run, CLAIMS_DRAFT, (d) => { delete d.schema_version; });
+    resealEnvelope(run);
+    expectFailedCheck(
+      runVerifier(["claims", "--run", run], { runRoot: run }),
+      1, "schema", "invalid field: /schema_version expected nonempty string",
+      "deleted claims root schema",
+    );
+
+    restore();
+    editJson(run, CLAIMS_DRAFT, (d) => { d.schema_version = "claims-draft/9"; });
+    resealEnvelope(run);
+    expectFailedCheck(
+      runVerifier(["claims", "--run", run], { runRoot: run }),
+      2, "schema", 'unsupported schema_version: "claims-draft/9"',
+      "unknown claims root schema",
+    );
+
+    restore();
+    editJson(run, CLAIMS_DRAFT, (d) => { d.schema_version = "join-draft/1"; });
+    resealEnvelope(run);
+    expectFailedCheck(
+      runVerifier(["claims", "--run", run], { runRoot: run }),
+      2, "artifact.discovery", 'wrong schema kind: "join-draft/1" for claims',
+      "wrong-family claims root schema",
+    );
+
+    restore();
+    expectVerdict(runVerifier(["claims", "--run", run], { runRoot: run }), 0, "restored claims root schema");
+  });
+
+  it("carries the error-to-field repair map and the distinct repair-child protocol", () => {
+    has(ARTIFACT_CONTRACTS, "Error → field → doc anchor", "repair map heading");
+    for (const token of ["/schema_version", "artifact.read", "artifact.path", "artifact.sha256", "identity mismatch", "join.prerequisites", "wrong schema kind"]) {
+      has(ARTIFACT_CONTRACTS, token, `repair map token ${token}`);
+    }
+    has(ARTIFACT_CONTRACTS, "distinct `fast` artifact-preparation/repair child", "distinct repair child");
+    has(ARTIFACT_CONTRACTS, "never the verification child", "repair is not the verifier");
+    has(ARTIFACT_CONTRACTS, "never changes captured source meaning, witness bytes, policy or claims semantics just to pass", "no semantics-by-repair");
+    has(ARTIFACT_CONTRACTS, "ambiguity or an identity/refusal case pauses", "pause rule");
+    has(ARTIFACT_CONTRACTS, "operator escalation", "escalation rule");
+    has(ARTIFACT_CONTRACTS, "no coordinator source reading", "coordinator boundary");
+
+    has(INTAKE, "distinct `fast` artifact-preparation/repair child", "intake repair child");
+    has(INTAKE, "The repair child is never the verification child", "intake repair role");
+    has(INTAKE, "exact verdict/error refs", "intake verdict refs");
+    has(CHILD_TEMPLATE, "distinct `fast` repair child", "child-template repair child");
+
+    for (const [file, label] of [[INTAKE, "intake"], [CHILD_TEMPLATE, "child template"], [CHUNKER, "chunker"], [BOOTSTRAP, "BOOTSTRAP"], [CONTEXT_LOADING, "stage map"]]) {
+      has(file, "artifact-contracts.md", `${label} link to artifact contracts`);
+    }
+  });
+});
+
+describe("docs contract — context budget S1/S3 (hash-only executables + no coordinator source ingestion)", () => {
+  it("BOOTSTRAP fetches executables hash-only and forbids windowed source printing", () => {
+    has(BOOTSTRAP, "hash-only", "hash-only fetching");
+    has(BOOTSTRAP, "fetch exact bytes to disk", "bytes-to-disk rule");
+    has(BOOTSTRAP, "no windowed printing of executable source", "no windowed printing");
+    has(BOOTSTRAP, "expected no-command exit 2 is a version smoke/usage refusal, never a verification pass", "exit-2 smoke semantics");
+    has(BOOTSTRAP, "{path, sha256, tool_version}", "verifier metadata shape");
+    has(BOOTSTRAP, "{path, sha256, recipe}", "chunker metadata shape");
+  });
+
+  it("requirements-check binds hash-only engine identity in rows 7/10 and the declared requirements", () => {
+    has(REQUIREMENTS, "hash only", "hash-only declared requirement");
+    has(REQUIREMENTS, "never reads or prints executable source into context", "no source ingestion in requirements");
+    const text = read(REQUIREMENTS);
+    assert.match(row(text, "| 10 |"), /hash their bytes/, "row 10 hash instruction");
+    assert.match(row(text, "| 7 |"), /mechanical/i, "row 7 mechanical child");
+  });
+
+  it("KICKOFF §8 states the hash-only executable rule", () => {
+    has(KICKOFF, "hash-only", "kickoff hash-only");
+    has(KICKOFF, "never printed or read into context", "kickoff no-source rule");
+  });
+
+  it("kernel/SKILL forbids coordinator ingestion of engine executable source", () => {
+    has(SKILL, "never read, search, grep or window their source", "coordinator read prohibition");
+    has(SKILL, "Executing the pinned CLI is not source ingestion", "CLI execution exemption");
+    has(SKILL, "when the review subject is cure-light itself", "self-review subject-code exemption");
+    has(SKILL, "assigned reviewer children inspect subject code as evidence", "subject-code evidence rule");
+    has(SKILL, "never substitute a `fast` child", "no coordinator fallback");
+  });
+
+  it("pi driver repeats the executable and repair boundaries", () => {
+    has(PI_SKILL, "never ingests executable source", "pi no-source rule");
+    has(PI_SKILL, "hash-only", "pi hash-only rule");
+  });
+});
+
+describe("docs contract — context budget S4 (minimal boot + stage map + read-once)", () => {
+  it("ships the stage map with the boot set and every stage", () => {
+    for (const stage of ["Boot set", "Stage map", "Read-once rule", "Frame/intake compile", "Phase 0", "V1", "V2", "V3", "Optional yagni", "Closure"]) {
+      has(CONTEXT_LOADING, stage, `stage map ${stage}`);
+    }
+    has(CONTEXT_LOADING, "fetching a document to disk is not loading it into model context", "disk-vs-context rule");
+    has(CONTEXT_LOADING, "in full before any preflight", "mandatory pi preflight docs");
+    has(CONTEXT_LOADING, "no full pipeline/vector/intake/child/lens/example corpus at boot", "no corpus at boot");
+    has(CONTEXT_LOADING, "load `kernel/references/conformance-pass.md` before the capacity-bound V1 split compile at the Phase-0 gate", "early conformance read");
+  });
+
+  it("resolves every document the stage map references", () => {
+    const text = read(CONTEXT_LOADING);
+    const paths = new Set();
+    for (const m of text.matchAll(/`([a-zA-Z0-9_./-]+\.(?:md|json))`/g)) {
+      if (/^(kernel|libs|assets|templates|docs)\//.test(m[1])) paths.add(m[1]);
+    }
+    assert.ok(paths.size >= 15, `expected the stage corpus, found ${paths.size} referenced documents`);
+    for (const rel of paths) assert.ok(existsSync(path.join(ROOT, rel)), `stage map references missing document ${rel}`);
+    for (const required of [
+      "kernel/references/pipeline-model.md", "kernel/references/intake-and-scope.md",
+      "kernel/references/conformance-pass.md", "kernel/references/implementation-pass.md",
+      "kernel/references/debt-pass.md", "kernel/references/closure-verification.md",
+      "kernel/references/evidence-format.md", "kernel/references/hygiene-lens.md",
+      "kernel/references/blast-lens.md", "kernel/references/quality-lens.md",
+      "kernel/references/chhound-driver.md", "kernel/references/chunker.md",
+      "kernel/references/artifact-contracts.md", "kernel/references/yagni-pass.md",
+      "assets/child-pass-prompt-template.md", "assets/finding-schema.json",
+      "templates/KICKOFF.md", "libs/pi-driver/references/notebook-plan-contract.md",
+      "libs/pi-driver/references/requirements-check.md", "libs/pi-driver/SKILL.md",
+      "docs/example-review.md",
+    ]) {
+      assert.ok(paths.has(required), `stage map must cover ${required}`);
+    }
+  });
+
+  it("states the read-once identity and rehydration rules", () => {
+    has(CONTEXT_LOADING, "(engine OID, relative path, section range/hash, context generation)", "identity key");
+    has(CONTEXT_LOADING, "Compaction or handoff loses residency", "residency loss");
+    has(CONTEXT_LOADING, "reloads ONLY its active required stage documents from the pinned mirror", "rehydration rule");
+    has(CONTEXT_LOADING, "An engine OID change invalidates the load cache", "OID invalidation");
+    has(CONTEXT_LOADING, "never pretends page refs or a summary equal the normative text", "no summary substitution");
+  });
+
+  it("removes the full-corpus boot loop from BOOTSTRAP, kernel SKILL and pi driver", () => {
+    lacks(SKILL, /Read these references completely before establishing a process/, "old SKILL boot directive");
+    lacks(PI_SKILL, /read this skill and its two references/, "old pi SKILL boot directive");
+    for (const file of [BOOTSTRAP, SKILL, PI_SKILL]) {
+      lacks(file, /read (all|every) (the )?(listed )?(files|references|documents|docs) (completely|fully|in full)/i, `full-corpus read in ${file}`);
+    }
+    has(BOOTSTRAP, "Fetching to disk is not loading into context", "BOOTSTRAP disk-vs-context");
+    has(BOOTSTRAP, "context-loading.md", "BOOTSTRAP stage-map link");
+    has(SKILL, "context-loading.md", "SKILL stage-map link");
+    has(PI_SKILL, "context-loading.md", "pi SKILL stage-map link");
+    has(KICKOFF, "context-loading.md", "KICKOFF stage-map link");
+  });
+});
+
+describe("docs contract — context budget S5 (bounded child returns)", () => {
+  it("child template declares the 4096-byte receipt, typed bindings and overflow handling", () => {
+    const body = read(CHILD_TEMPLATE);
+    const size = Number(/capped at \*\*(\d+) UTF-8 bytes\*\*/.exec(body)?.[1]);
+    assert.equal(size, 4096, "documented byte cap");
+    const ids = Number(/capped at (\d+) entries inline/.exec(body)?.[1]);
+    assert.equal(ids, 32, "documented inline ID limit");
+    has(CHILD_TEMPLATE, "{status, counts, finding_ids, artifact_ref, sha256}", "receipt shape");
+    has(CHILD_TEMPLATE, "run, review_state, subject_oid, assignment_digest", "typed bindings");
+    has(CHILD_TEMPLATE, "complete | inconclusive | blocked", "status enum");
+    has(CHILD_TEMPLATE, "`complete` means report delivery, not semantic or gate pass", "status semantics");
+    has(CHILD_TEMPLATE, "never silently omitted as \"none\"", "no silent omission");
+    has(CHILD_TEMPLATE, "the wrapper is transport, not a replacement finding schema", "transport-not-schema");
+    has(CHILD_TEMPLATE, "P0 children keep their exact existing output paths and formats", "P0 transport unchanged");
+    has(CHILD_TEMPLATE, "does not apply to the mechanical verification child", "verifier exemption");
+    has(CHILD_TEMPLATE, "no silent truncation", "fail-closed truncation");
+    has(CHILD_TEMPLATE, "never trusting counts or cherry-picking findings", "complete consumption");
+    has(CHILD_TEMPLATE, "Shared-disk availability is a prerequisite", "shared-disk prerequisite");
+  });
+
+  it("every pass reference points at the bounded transport without rewriting its vectors", () => {
+    for (const [file, label] of [[CONFORMANCE, "conformance"], [IMPLEMENTATION, "implementation"], [DEBT, "debt"], [YAGNI, "yagni"]]) {
+      has(file, "bounded return transport", `${label} bounded transport pointer`);
+      has(file, "assets/child-pass-prompt-template.md", `${label} template pointer`);
+    }
+    has(NOTEBOOK_CONTRACT, "all required claim/unit/closure/trace records in bounded artifact slices", "coordinator full consumption");
+    has(EVIDENCE, "artifact_ref, sha256", "evidence receipt addressing");
+    has(KICKOFF, "4096 UTF-8 bytes", "KICKOFF transport cap");
+  });
+});
+
+describe("docs contract — context budget S6 (notebook dedup)", () => {
+  it("writes the contract once per state and references it afterwards", () => {
+    has(NOTEBOOK_CONTRACT, "written once per review state, then referenced", "once-per-state rule");
+    has(NOTEBOOK_CONTRACT, "no prose restatement", "no restatement");
+    has(NOTEBOOK_CONTRACT, "never replaced with a hash-only reference", "literal contract stays");
+    has(NOTEBOOK_CONTRACT, "A distinct new state still writes its own distinct verbatim contract", "new state contract");
+    has(NOTEBOOK_CONTRACT, "never a full claims/join/symbol-map dump", "bounded derived reads");
+    has(PI_SKILL, "Do not restate the contract page's prose in every spawn or notebook update", "pi dedup guidance");
+    has(KICKOFF, "written once", "KICKOFF dedup");
+  });
+});
+
+describe("docs contract — context budget S7 (gate receipts, opt-in)", () => {
+  it("documents frame_sha, decision_ref and fail-closed receipt semantics", () => {
+    has(NOTEBOOK_CONTRACT, "{decision, frame_sha, decision_ref}", "answer shape");
+    has(NOTEBOOK_CONTRACT, "approved-plan SHA", "frame_sha meaning");
+    has(NOTEBOOK_CONTRACT, "never the engine commit or a mirror `frame.json` SHA", "frame_sha exclusions");
+    has(NOTEBOOK_CONTRACT, "trusted host-side immutable decision record", "decision_ref resolution");
+    has(NOTEBOOK_CONTRACT, "no normalized or reserialized hash ambiguity", "exact-bytes hash");
+    has(NOTEBOOK_CONTRACT, "HOLD/error, never the generic auto-approval fallback", "fail-closed receipts");
+    has(NOTEBOOK_CONTRACT, "The container cannot approve itself", "container isolation");
+    has(NOTEBOOK_CONTRACT, "never squeezed into a misleading accept token", "substantive change");
+    has(NOTEBOOK_CONTRACT, "Unknown closure gates need an explicit decision", "no default accept");
+    has(NOTEBOOK_CONTRACT, "never required for interactive engine users", "opt-in boundary");
+    has(KICKOFF, "{decision, frame_sha, decision_ref}", "KICKOFF answer shape");
+    has(KICKOFF, "never the generic auto-approval fallback", "KICKOFF fail-closed");
+    has(KICKOFF, "explicit frame confirmation", "first-frame confirmation preserved");
   });
 });
