@@ -294,10 +294,12 @@ describe("docs contract — child prompt template (verifier block)", () => {
 });
 
 describe("docs contract — intake-and-scope (P0 delegation + pinned verifier)", () => {
-  it("delegates verify claims/units/join at the P0 stages", () => {
-    has(INTAKE, "verify claims", "delegated verify claims");
-    has(INTAKE, "verify units", "delegated verify units");
-    has(INTAKE, "verify join", "delegated verify join");
+  it("makes single `verify join` the delegated boundary; claims/units are optional diagnostics", () => {
+    has(INTAKE, "Delegated mechanical boundary (`verify join`)", "delegated boundary");
+    has(INTAKE, "single invocation is the mechanical acceptance boundary", "single-invocation boundary");
+    has(INTAKE, "Optional claims diagnostic (`verify claims`)", "claims diagnostic");
+    has(INTAKE, "Optional units diagnostic (`verify units`)", "units diagnostic");
+    has(INTAKE, "never gates acceptance", "diagnostics never gate");
   });
 
   it("flows P0.5 as the coordinator semantic gate consuming the fast-child pinned verdict", () => {
@@ -347,28 +349,38 @@ describe("docs contract — intake-and-scope (P0 delegation + pinned verifier)",
     has(INTAKE, "no CLI placeholder", "no-placeholder clause");
   });
 
-  it("requires three current verdict refs/hashes/codes in the gate checklist", () => {
-    has(INTAKE, "current delegated `verify claims|units|join` verdicts", "current delegated verdicts");
+  it("requires the single join verdict ref/hash/code in the gate checklist", () => {
+    has(INTAKE, "current delegated `verify join` verdict", "current delegated verdict");
     has(INTAKE, "(ref, sha256, exit code)", "verdict ref/hash/code shape");
+  });
+
+  it("keeps a join-only manifest healthy (diagnostics optional) and fails closed on join (R1/R2/R4)", () => {
+    has(INTAKE, "verification: {join: {ref, sha256, exit_code}}", "join-only manifest record");
+    has(INTAKE, "Optional `claims`/`units` diagnostic verdicts", "diagnostics recorded optionally");
+    has(INTAKE, "a stale, missing or nonzero join verdict stops the mechanical boundary", "fail-closed join verdict");
+    lacks(INTAKE, /verification: \{claims: \{ref, sha256, exit_code\}, units: \{ref, sha256, exit_code\}, join: \{ref, sha256, exit_code\}\}/, "three-verdict manifest record");
   });
 
   it("adds the verifier pin, verdict records, envelope ref/hash and approved policy to the output manifest", () => {
     has(INTAKE, "verifier: {path: kernel/tools/verify.mjs, sha256, tool_version: 1.0.0}", "verifier pin line");
-    has(INTAKE, "verification: {claims: {ref, sha256, exit_code}", "verification record line");
+    has(INTAKE, "verification: {join: {ref, sha256, exit_code}}", "join verdict record line");
     has(INTAKE, "run_envelope: {ref: run-manifest.json, sha256, schema_version: run-verification/1}", "envelope line");
     has(INTAKE, "pilot: {operator_ref, input_ceiling_bytes, witness_max_chars: 160", "pilot policy line");
   });
 });
 
 describe("docs contract — conformance-pass (V1 mechanical boundary)", () => {
-  it("requires current delegated verdicts pinned to exact inputs; stale/nonzero stops the boundary", () => {
-    has(CONFORMANCE, "current delegated `fast`-child verdicts", "current delegated verdicts");
+  it("requires the single join verdict pinned to exact inputs; stale/nonzero stops the boundary", () => {
+    has(CONFORMANCE, "current delegated `fast`-child `verify join` verdict", "current delegated verdict");
+    has(CONFORMANCE, "the manifest `verification.join` ref/hash/exit code", "manifest join record");
     has(CONFORMANCE, "verdict stops the mechanical boundary", "stale/nonzero stop");
     has(CONFORMANCE, "never re-implements or reruns the tool's checks in its own context", "no-reimplementation clause");
+    has(CONFORMANCE, "optional diagnostics", "diagnostics optional");
   });
 
-  it("reuses Phase-0 verify commands against preserved refs, not claims-frozen under draft schema", () => {
-    has(CONFORMANCE, "reuse the Phase-0 `verify claims|units|join` surface", "phase-0 reuse");
+  it("reuses the Phase-0 `verify join` surface against preserved refs, not claims-frozen under draft schema", () => {
+    has(CONFORMANCE, "reuses the Phase-0 `verify join` surface", "phase-0 reuse");
+    has(CONFORMANCE, "internal claims/units prerequisites validate those schemas", "internal prereq validation");
     has(CONFORMANCE, "never fed to the draft-schema validator", "frozen-directory separation");
   });
 
@@ -427,6 +439,8 @@ describe("docs contract — KICKOFF / BOOTSTRAP / SKILL / notebook contract", ()
     has(SKILL, "delegated verify claims", "phase-order claims");
     has(SKILL, "delegated verify units", "phase-order units");
     has(SKILL, "delegated verify join", "phase-order join");
+    has(SKILL, "single mechanical boundary", "phase-order boundary");
+    has(SKILL, "optional diagnostics", "phase-order diagnostics");
     has(SKILL, "never re-implements or reruns the verifier's checks", "no-override rule");
     has(SKILL, "no subject read", "no subject read");
   });
@@ -434,7 +448,7 @@ describe("docs contract — KICKOFF / BOOTSTRAP / SKILL / notebook contract", ()
   it("notebook-plan-contract freezes the pin + literal contract and stores verdict bytes/code", () => {
     has(NOTEBOOK_CONTRACT, "verifier path/sha256/tool_version", "frame verifier pin");
     has(NOTEBOOK_CONTRACT, "literal delegated verification-child contract", "literal delegation contract");
-    has(NOTEBOOK_CONTRACT, "current per-command fast-child verdict refs/hashes/exit codes", "verdict evidence bind");
+    has(NOTEBOOK_CONTRACT, "current fast-child `verify join` verdict ref/hash/exit code", "verdict evidence bind");
     has(NOTEBOOK_CONTRACT, "freezes the verifier pin", "seal freeze");
   });
 });
@@ -469,9 +483,11 @@ describe("docs contract — README / CHANGELOG / consistency", () => {
   });
 
   it("chunker.md and evidence-format.md note verifier consumption without changing chunker schema", () => {
-    has(CHUNKER, "consumed mechanically by the delegated `verify units` command", "chunker verify consumption");
+    has(CHUNKER, "consumed mechanically by the pinned verifier", "chunker verify consumption");
+    has(CHUNKER, "internal units prerequisite", "chunker internal prerequisite");
     has(CHUNKER, "chunker schema/output is unchanged", "chunker schema unchanged");
-    has(EVIDENCE, "delegated `verify claims|units|join` verdict refs/hashes/exit codes", "evidence verdict refs");
+    has(EVIDENCE, "delegated `verify join` verdict", "evidence verdict ref");
+    has(EVIDENCE, "diagnostic verdicts use the same shape when run and never gate", "evidence diagnostics non-gating");
   });
 
   it("no stale chunker-only / no-gate exclusivity remains in current operator docs", () => {

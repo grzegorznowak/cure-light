@@ -2,6 +2,13 @@
 
 ## Unreleased (working tree)
 
+### 2026-10-05 — single `verify join` boundary (claims/units diagnostics)
+
+- **One delegated boundary.** The per-state mechanical acceptance predicate is now the single delegated `verify join` verdict (envelope + one invocation), pinned to the exact input refs/hashes; a missing, stale or nonzero verdict stops the boundary exactly as before. `verify join` already re-runs the claims and units validators internally as fatal prerequisites (`join.prerequisites: prerequisite failed: <class>`, exit 1; unknown/wrong-kind prerequisite schemas keep the exit-2 refusal), so the separate mandatory invocations added per-class receipts and earlier-stage labels only, never coverage.
+- **Optional diagnostics.** `verify claims` and `verify units` remain available and recordable through the same read-only `fast`-child delegation, required only to localize a failure or produce per-class receipts during repair loops. Their absence never gates acceptance; when recorded, they use the same `{ref, sha256, exit_code}` shape. The manifest `verification` object requires `join` and carries `claims`/`units` only when those diagnostics ran.
+- **No tool change.** `kernel/tools/verify.mjs` behavior, schemas, exit codes and the envelope (`verify envelope` remains a document, never a verdict) are unchanged; no `tool_version` bump. Evidence: a 10-snapshot replay (9 single-defect corruptions + clean control) where a single `verify join` matched the three-invocation process on every variant (9/9 rejected, control accepted).
+- **Docs:** `kernel/references/{intake-and-scope,conformance-pass,evidence-format,chunker}.md`, `kernel/SKILL.md`, `templates/KICKOFF.md`, `libs/pi-driver/references/notebook-plan-contract.md`.
+
 ### 2026-10-05 — vector children spawn as one parallel batch
 
 - **Parallel spawn batches.** A split's compiled children spawn concurrently as one batch — the coordinator never awaits one child before spawning the next — and no coordinator write shares the spawn batch. On pi a tool batch runs in parallel only when no call in it is sequential-mode (`notebook_write`, `handoff`), so a coordinator write mixed into a spawn message serializes the fleet (a live two-worker V2 pass ran back-to-back ≈690 s where spawn-only batches overlapped ≈350 s).

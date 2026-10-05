@@ -90,7 +90,9 @@ hunks count 1; split logical blocks increment), not an AST count.
 The script emits no SHA fields, engine OID or self-verification; the coordinator
 wrapper records path + sha256 + recipe at `cure_light_source_head_oid` and binds
 manifest/payload bytes to retained run evidence. Those recorded wrapper pins and
-payload bytes are consumed mechanically by the delegated `verify units` command
+payload bytes are consumed mechanically by the pinned verifier — the delegated
+`verify join` boundary validates them through its internal units prerequisite,
+and `verify units` remains available as an optional diagnostic command
 (`kernel/tools/verify.mjs`); the chunker schema/output is unchanged — this script
 still emits no payload SHA or engine OID.
 
