@@ -1146,6 +1146,75 @@ describe("docs contract — artifact contracts S2 follow-up (boxes[], source_con
   });
 });
 
+// ---------------------------------------------------------------------------
+// S36 follow-up: the conflicts[] vocabulary the verifier enforces (kind,
+// materiality, precedence) was documented as a field list only; S36 Phase 0
+// invented kind subtypes ("retry-semantics") and a graded materiality
+// ("medium"), failing `claims.conflicts` and cascading into the join
+// prerequisite. The content assertions were RED before the matching
+// artifact-contracts.md and child-template edits; the mutation matrix encodes
+// today's real verifier outcomes (probed live before authoring).
+// ---------------------------------------------------------------------------
+
+describe("docs contract — conflicts[] vocabulary (S36 follow-up)", () => {
+  it("documents the conflicts[] kind/materiality enums and precedence rule", () => {
+    for (const phrase of [
+      "kind` is one of `within-source` or `cross-source`",
+      "materiality` is one of `material` or `non-material`",
+      "structural enums only",
+      "precedence` is a required nonempty string",
+      "invalid conflict kind",
+      "invalid conflict materiality",
+    ]) {
+      has(ARTIFACT_CONTRACTS, phrase, `conflicts[] contract phrase ${phrase}`);
+    }
+    has(CHILD_TEMPLATE, "kind is `within-source` or `cross-source`", "P0.2 conflicts kind enum");
+    has(CHILD_TEMPLATE, "materiality is `material` or `non-material`", "P0.2 conflicts materiality enum");
+    has(CHILD_TEMPLATE, "precedence is a required nonempty string", "P0.2 precedence requirement");
+  });
+
+  it("parses the valid conflicts[] vocabulary example", () => {
+    const example = jsonExample(ARTIFACT_CONTRACTS, "<!-- conflicts-example -->");
+    assert.equal(example.kind, "cross-source", "example kind enum");
+    assert.equal(example.materiality, "material", "example materiality enum");
+    assert.equal(example.precedence, "none", "example precedence convention");
+    assert.ok(Array.isArray(example.quotes) && example.quotes.length > 0, "example quotes present");
+    assert.ok(Array.isArray(example.affected_claim_ids) && example.affected_claim_ids.length > 0, "example affected ids present");
+  });
+
+  it("drives the real claims validator on the documented vocabulary", () => {
+    const baseline = materializeRun("s36-cf-baseline");
+    expectVerdict(runVerifier(["claims", "--run", baseline], { runRoot: baseline }), 0, "baseline claims");
+
+    const cases = [
+      ["invented kind subtype", (c) => { c.conflicts[0].kind = "retry-semantics"; }, "claims.conflicts",
+        'invalid conflict kind: "X01": "retry-semantics"'],
+      ["invented graded materiality", (c) => { c.conflicts[0].materiality = "medium"; }, "claims.conflicts",
+        'invalid conflict materiality: "X01": "medium"'],
+      ["precedence null", (c) => { c.conflicts[0].precedence = null; }, "shape",
+        "invalid field: /conflicts/0/precedence expected nonempty string"],
+    ];
+    for (const [label, mutate, check, detail] of cases) {
+      const run = materializeRun(`s36-cf-${label.replace(/\W+/g, "-")}`);
+      editJson(run, CLAIMS_DRAFT, mutate);
+      resealEnvelope(run);
+      expectFailedCheck(runVerifier(["claims", "--run", run], { runRoot: run }), 1, check, detail, label);
+    }
+  });
+
+  it("extends the repair map with the conflicts[] vocabulary refusals", () => {
+    const body = read(ARTIFACT_CONTRACTS);
+    const map = norm(body.slice(body.indexOf("## 7. Error → field → doc anchor")));
+    for (const token of [
+      "invalid conflict kind",
+      "invalid conflict materiality",
+      "/conflicts/<i>/precedence",
+    ]) {
+      assert.ok(map.includes(norm(token)), `§7 repair map missing token ${token}`);
+    }
+  });
+});
+
 describe("docs contract — context budget S1/S3 (hash-only executables + no coordinator source ingestion)", () => {
   it("BOOTSTRAP fetches executables hash-only and forbids windowed source printing", () => {
     has(BOOTSTRAP, "hash-only", "hash-only fetching");
