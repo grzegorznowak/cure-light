@@ -85,7 +85,7 @@ P0.1 source capture (verbatim bytes + sha256 refs)
   → P0.4 join pass (#fast; compact per-box join JSONL attempt — row shape P0.4)
     → delegated `verify join` (#fast child) after the merged candidate is prepared
   → P0.5 coordinator semantic gate (consumes the fast-child pinned mechanical verdict; counts, types, witnesses, budgets, complete sweep)
-  → join-draft/1 + candidate-unclaimed[]
+  → join-draft/1 + candidate_unclaimed[]
   → capacity-bounded V1 split → operator Phase-0 gate
 ```
 
@@ -134,6 +134,41 @@ usage-or-unknown-schema refusal. Nonzero is mechanically binding. Unknown
 schema anywhere in the required graph refuses with 2 before ordinary failures;
 otherwise any failed check is 1; `ok` is true only when every check passed.
 Unhandled runtime errors are one failed diagnostic, never a partial pass.
+
+**Envelope prep (`verify envelope`).** Before delegating the mechanical checks,
+the coordinator generates the candidate `run-manifest.json` with the same
+pinned tool:
+
+`node <pinned-engine>/kernel/tools/verify.mjs envelope --run <run-root> --operator-ref <string> --chunker-sha256 <64-lowercase-hex> --input-ceiling-bytes <decimal nonneg int> [--output-ceiling-bytes <decimal nonneg int|none>] [--attempts <run-root-relative-ref>]`
+
+This is prep/recording, not a verdict or a gate: the printed document is one
+`run-verification/1` JSON object on stdout only, it never writes files
+(redirect explicitly), and it never reads an existing run-manifest.json. The
+frame binds the envelope sha256 before the delegated
+`verify claims|units|join` commands run; regeneration after that freeze is not
+verification — a changed envelope needs a fresh frame pin and fresh delegated
+verdicts. A refusal exits 2 with summary `REFUSE envelope: <reason>` and no
+document. Stage slices appear only when their artifacts exist (`claims_draft`;
+`chunker`/`units_manifest`/`unit_payloads`;
+`join_draft`/`join_boxes`/`join_attempts`); every pin is recomputed from
+recorded bytes except the non-derivable policy inputs (`--operator-ref`,
+`--chunker-sha256`, `--input-ceiling-bytes`, optional
+`--output-ceiling-bytes`/`--attempts`). Without `--attempts` the generator
+records first-attempt acceptance per current box — the tree cannot prove a
+retry did not happen — so runs with retries or splits must supply the recorded
+history; recovery semantics are validated by the delegated `verify join`, not
+by the generator.
+
+**Fail-closed envelope identity.** Every command also enforces the recorded
+pin: `verifier.path` is exactly `kernel/tools/verify.mjs` (absent or non-string
+fails shape; a different path fails `verifier.identity`); envelope `run` and
+`review_state` are nonempty strings; `base_oid`, `subject_oid` and
+`cure_light_source_head_oid` are 40-char lowercase hex; `pilot.operator_ref` is
+a required nonempty string; `pilot.output_ceiling_bytes` is exactly `null`
+(monitoring only) or a nonnegative integer; and every present primary pin entry
+(`claims_draft`, `units_manifest`, `join_draft`) must carry a nonempty
+`schema_version` string. Violations fail closed (exit 1) instead of silently
+skipping a check.
 
 **Fail-closed delegation.** The coordinator spawns a `fast` child to execute the
 pinned command (child-pass-prompt-template.md); the child returns the verdict
@@ -218,13 +253,13 @@ larger for odd n), both nonempty, manifest order preserved, no unit split. A
 passing verdict proves artifact mechanics only — never claim correctness,
 complete source interpretation or review readiness.
 
-Merge validated records into `join-draft/1`; zero-link, decidable units are only `candidate-unclaimed[]`. P0.5 validates mechanics and sweep completeness, not claim correctness, complete source interpretation or final negative attribution. V1 validates/freezes claims, judges delivery and alone finalizes UNCLAIMED. Suite-level claims without a single-unit witness and the real missing-source/designation cases remain explicit hard cases, never guessed links or invented claims.
+Merge validated records into `join-draft/1`; zero-link, decidable units are only `candidate_unclaimed[]`. P0.5 validates mechanics and sweep completeness, not claim correctness, complete source interpretation or final negative attribution. V1 validates/freezes claims, judges delivery and alone finalizes UNCLAIMED. Suite-level claims without a single-unit witness and the real missing-source/designation cases remain explicit hard cases, never guessed links or invented claims.
 
 ### Capacity-bounded vector split compile
 
 Each vector's fleet splits the contract surface, capacity-bounded within the approved budget. Example split for a model-group/spawn PR:
 
-- conformance: contract surfaces (derivation core · persistence/schema guard · spawn/router gate · main-session+TUI · tests), each compiled into bounded claim/range shards — one verdict owner per claim, one accounting owner per unit — plus residual attribution shards for changed units with no candidate claim — candidate-unclaimed entries are leads for V1, never final negatives (work packaging only, never invented contracts)
+- conformance: contract surfaces (derivation core · persistence/schema guard · spawn/router gate · main-session+TUI · tests), each compiled into bounded claim/range shards — one verdict owner per claim, one accounting owner per unit — plus residual attribution shards for changed units with no candidate claim — candidate_unclaimed entries are leads for V1, never final negatives (work packaging only, never invented contracts)
 - implementation: sealed concepts the review already established (never open-ended), + **`read` lens and the `blast` judgment rows** (the once-per-state sweep runs in the deterministic preflight)
 - debt: pluggability · boundary ownership · versioning/migrations · projections · perf/operability, + **`dead`/`read`/`name`/`quality` lens ownership**
 
@@ -237,7 +272,7 @@ The split compile asserts **Vector 1 coverage** — a verdict owner for every ca
 - **Plan gate (pre-pull).** Before Phase 0 mutates anything external, surface the compiled plan for confirmation: subject mechanism (chhound sandbox | plain worktree) and planned location, vectors, splits, groups, gates, output policy. The planned research mode (chhound-rail when the sandbox rail is planned, else direct-tree — pipeline-model.md) is part of the plan. The frame carries **no tree fields yet** — `subject_path` / `subject_oid` cannot exist before the pull (subject-first, §0.1).
 - **Phase 0 gate (post-pull).** One gate with three sub-checklists:
       - **Artifact validity** — the written verbatim `contract-<owner>-<pr>-s<n>` page (or the prescribed `CONTRACT.md` disk fallback) exists at `contract_ref`, is readable and matches it; the source capture identities; the shipped chunker path/sha256/recipe bound to `cure_light_source_head_oid`; the state's claims-draft, units-manifest and join-draft refs/hashes, and the current delegated `verify claims|units|join` verdicts (ref, sha256, exit code) pinned to those exact input refs/hashes with the frame-recorded verifier pin; stale, missing or nonzero verdicts stop the mechanical boundary. These verdicts prove recorded artifact mechanics, not claim semantics or review readiness. Check P0.5 evidence against expected assignments and disclose retry/resplit failures, incomplete sources and hard cases. Missing or stale artifacts never authorize complete coverage; pause or record the operator-approved limited scope. No installed claim plugin, canonical claim-ID permission or census gate is required. The gate does not finalize UNCLAIMED or establish `review_basis: ready`; those remain V1 responsibilities.
-      - **Plan reality** — surface the manifest with the recorded reality: actual `subject_path` / `subject_oid`, `base_oid`, changed-file list from the pulled tree, unit/file/line-split counts, P0.5 expected/received rows and link counts, zero-link claims, candidate-unclaimed units and unresolved hard cases and the exclusion policy (evidence-linked classes — a path suffix alone is never sufficient), coverage-page location and budgets it approves, deferred requirements-row outcomes, fallback notes — a chhound-rail fallback (rail confirmed but sandbox pull/connect failed) also flips `research.mode` to `direct-tree` and `ch_prefix` to `none` (pipeline-model.md), so children render Variant B, never a rail variant whose tools are not connected.
+      - **Plan reality** — surface the manifest with the recorded reality: actual `subject_path` / `subject_oid`, `base_oid`, changed-file list from the pulled tree, unit/file/line-split counts, P0.5 expected/received rows and link counts, zero-link claims, candidate_unclaimed units and unresolved hard cases and the exclusion policy (evidence-linked classes — a path suffix alone is never sufficient), coverage-page location and budgets it approves, deferred requirements-row outcomes, fallback notes — a chhound-rail fallback (rail confirmed but sandbox pull/connect failed) also flips `research.mode` to `direct-tree` and `ch_prefix` to `none` (pipeline-model.md), so children render Variant B, never a rail variant whose tools are not connected.
       - **Repair + continuation** — the P0.2 `source_consistency` outcome (clean or recorded non-material inconsistency) and the independent `repair_required` record (`required`, `records`, `continuation`); missing designation/orientation is a clean-consistency + `required: true` case. A `required: true` record defaults the run to **pause before Vector 1**: the operator requests author clarification/repair, or records an explicit disposition in `repair_required.continuation` — a named, bounded `evidence-only-v1` or `limited-v1-only` mode with scope and operator ref (recorded scope/rationale/state) — that does not clear the defect or authorize ordinary downstream work. Thinness is judged across all explicitly designated, capturable sources — not PR-body length: a terse body with an accurate pointer to a complete designated package can pass; reviewer-invented claims are never an option. The repair-pause default applies to any `repair_required` defect (missing designation/orientation included), not just contradictions: the operator requests author repair, runs an explicitly limited V1-only review, or stops. Both pre-V1 continuations (the evidence-only run and the limited V1-only review) are named, bounded and recorded, and neither clears the defect nor authorizes ordinary downstream work. Contract-only repair is a new review state even when no code work is pulled (subject rule above; closure-verification.md). The run proceeds to Vector 1 only after this gate.
 
 ## Output
@@ -257,7 +292,7 @@ contract_sources: [{class, pointer, path/section, role, blob_subject, blob_base,
 chunker: {path: kernel/tools/chunker.mjs, sha256, recipe: {target_bytes: 4096, ceiling_bytes: 6144, context: 3, block_preference: true}}   # shipped engine tool; path + exact-byte sha256 + recipe bound to cure_light_source_head_oid
 claims_draft: {ref, sha256, schema_version: claims-draft/3}   # run-scoped proposal; V1 validates/freezes against captured sources
 units_manifest: {ref, sha256, schema_version: code-units-sim/2}   # current emitted schema; inventory order + payload refs, not unique changed-line counts
-join_draft: {ref, sha256, schema_version: join-draft/1}   # P0.4 leads merged only after P0.5; candidate-unclaimed is not a final accounting state
+join_draft: {ref, sha256, schema_version: join-draft/1}   # P0.4 leads merged only after P0.5; candidate_unclaimed is not a final accounting state
 verifier: {path: kernel/tools/verify.mjs, sha256, tool_version: 1.0.0}   # pinned mechanical verifier; same cure_light_source_head_oid engine source as the chunker
 verification: {claims: {ref, sha256, exit_code}, units: {ref, sha256, exit_code}, join: {ref, sha256, exit_code}}   # current delegated fast-child verdicts bound to the exact input refs/hashes above; stale/missing/nonzero stops the mechanical boundary
 run_envelope: {ref: run-manifest.json, sha256, schema_version: run-verification/1}   # recorded-input projection (verifier/capture/claims/units/join pins + pilot policy); never a gate engine
@@ -274,7 +309,7 @@ research: {mode: chhound-rail | direct-tree, ch_prefix: <registered chh_* prefix
 cure_light_source_head_oid: <cure-light source HEAD at intake>   # review provenance, frozen once (see evidence-format.md)
 ```
 
-**Pilot checkpoints.** The operator-approved `input_ceiling_bytes` (recorded in the run envelope; a missing approved ceiling fails closed) and suite-level claim handling, possible tightening of `medium`, and the detailed V1 freeze/return contract still require operator review. The populated `claims-draft/3` conflict-record profile and the `candidate-unclaimed[]` element encoding are frozen (S28 structural profile; unique unit-ID strings in manifest order — see the pinned-verifier subsection); the output byte ceiling is monitoring-only unless declared, and bytes never prove a token ceiling. A referenced but uncaptured defining source requires an explicit capture-or-limitation decision.
+**Pilot checkpoints.** The operator-approved `input_ceiling_bytes` (recorded in the run envelope; a missing approved ceiling fails closed) and suite-level claim handling, possible tightening of `medium`, and the detailed V1 freeze/return contract still require operator review. The populated `claims-draft/3` conflict-record profile and the `candidate_unclaimed[]` element encoding are frozen (S28 structural profile; unique unit-ID strings in manifest order — see the pinned-verifier subsection); the output byte ceiling is monitoring-only unless declared, and bytes never prove a token ceiling. A referenced but uncaptured defining source requires an explicit capture-or-limitation decision.
 
 The provenance field `cure_light_source_head_oid` is captured **once, at intake**, from the cure-light source checkout (`git -C <cure-light clone> rev-parse HEAD`). It is the "version at the time of reviewing": the single review comment composes its attribution footer from this manifest value alone, never re-derived per vector (see evidence-format.md, External routing).
 

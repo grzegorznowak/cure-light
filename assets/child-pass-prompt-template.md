@@ -201,7 +201,7 @@ once, valid IDs/enums and unique pairs, witness bounds and exact-byte containmen
 and the recorded budgets. Retain the original worker attempts plus failed
 attempts and retry/re-split records under the approved policy; do not invent
 links or turn missing rows into candidates.
-The merged join-draft carries candidate-unclaimed only; V1 finalizes negatives.
+The merged join-draft carries candidate_unclaimed only; V1 finalizes negatives.
 
 The 160-character witness cap and the retry/re-split constants are recorded
 pilot policy (the run envelope pins `witness_max_chars: 160`, one retry, halves,
@@ -256,7 +256,7 @@ The captured contract is verbatim at {contract_ref}; the complete claim
 directory is paged at {claim_directory_ref} — read the pages you need; your
 local contract slice is never the whole universe. Claim IDs refer to the state's
 V1-validated/frozen directory and source evidence ({claim_basis_ref}); never
-silently reinterpret or invent one. P0 links and candidate-unclaimed entries
+silently reinterpret or invent one. P0 links and candidate_unclaimed entries
 are leads only. Insufficient validation or claim access → UNRESOLVED.
 Designated in-diff clauses are ordinary claim sources with recorded
 provenance — never evidence that their own deliverable exists. Before returning

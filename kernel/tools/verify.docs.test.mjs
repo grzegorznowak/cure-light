@@ -9,11 +9,18 @@
 //
 // The tool invocation pointer lives ONLY in kernel/tools/verify.mjs's header;
 // no operator-facing doc may carry a suite pointer (asserted below).
-import { describe, it } from "node:test";
+import { after, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  CLAIMS_DRAFT, JOIN_DRAFT, RUN_MANIFEST,
+  cleanupTempDirs, editJson, findCheck, findFailedCheck, materializeRun,
+  readJson, readText, resealEnvelope, resealRun, runVerifier, writeText,
+} from "./verify-testkit.mjs";
+
+after(cleanupTempDirs);
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const read = (rel) => readFileSync(path.join(ROOT, rel), "utf8");
@@ -51,6 +58,179 @@ function row(text, prefix) {
   const line = text.split("\n").find((l) => l.startsWith(prefix));
   assert.ok(line, `missing table row ${prefix}`);
   return line;
+}
+
+// ---------------------------------------------------------------------------
+// Behavioral doc-profile tests (fix 4 + envelope-prep docs).
+//
+// The docs duplicate load-bearing profiles and constants, so these tests parse
+// the documented `claims-draft/3` profile, the pilot policy, the verifier pin
+// and the `verify envelope` flags OUT of the docs and drive the real verifier
+// over materialized fixture copies. A future doc/tool drift fails here. The
+// mutation matrix encodes today's tool behavior; the doc-content assertions
+// (envelope prep mode, fail-closed rules, CHANGELOG, KICKOFF, the enforced
+// `candidate_unclaimed` token) were red before the matching docs edits.
+// ---------------------------------------------------------------------------
+
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+function report(r) {
+  return [
+    `command: ${r.command}`,
+    `status: ${r.status} signal: ${r.signal} error: ${r.error?.message ?? "none"}`,
+    `parseError: ${r.parseError}`,
+    `stdout: ${JSON.stringify(r.stdout)}`,
+    `stderr: ${JSON.stringify(r.stderr)}`,
+  ].join("\n");
+}
+
+function expectVerdict(r, status, label = "") {
+  assert.equal(r.status, status, `${label}: expected exit ${status}\n${report(r)}`);
+  assert.ok(r.verdict, `${label}: expected exactly one JSON verdict on stdout\n${report(r)}`);
+  assert.equal(r.verdict.ok, status === 0, `${label}: ok must be ${status === 0}\n${report(r)}`);
+  return r.verdict;
+}
+
+function expectFailedCheck(r, status, check, detail, label = "") {
+  const verdict = expectVerdict(r, status, label);
+  const failed = findFailedCheck(verdict, check);
+  assert.ok(failed, `${label}: missing failed check "${check}"\n${JSON.stringify(verdict.checks)}\n${report(r)}`);
+  if (detail !== undefined) {
+    if (detail instanceof RegExp) assert.match(failed.detail, detail, `${label}\n${report(r)}`);
+    else assert.equal(failed.detail, detail, `${label}\n${report(r)}`);
+  }
+  return { verdict, failed };
+}
+
+/**
+ * The documented profiles are written in two grammars: the child template uses
+ * `name[{field,...}]` / `name[{...,[opt]}]`, intake restates `name `{field,...}``
+ * with the doc alias `candidates` (= JSON `missing_source_candidates`). This
+ * parser reads either grammar (bracketed notation only; a parenthetical prose
+ * clause is not part of the parsed field set) and returns per record:
+ * `{required:[{name,nested}], optional:[names]}`.
+ */
+function parseProfileBlock(raw) {
+  const s = raw.replace(/\s+/g, " ").trim();
+  const alias = { candidates: "missing_source_candidates" };
+  const records = {};
+  let i = 0;
+  const fail = (message) => {
+    throw new Error(`profile parse at ${i}: ${message}; near ${JSON.stringify(s.slice(Math.max(0, i - 30), i + 30))}`);
+  };
+  const readName = () => {
+    let out = "";
+    while (i < s.length && /[A-Za-z0-9_]/.test(s[i])) out += s[i++];
+    return out;
+  };
+  const skipSeparators = () => {
+    while (i < s.length && ",;. ".includes(s[i])) i++;
+  };
+  const parseFields = () => {
+    if (s[i] !== "{") fail("expected {");
+    i++;
+    const required = [];
+    const optional = [];
+    for (;;) {
+      while (s[i] === " ") i++;
+      if (s[i] === "}") { i++; break; }
+      const name = readName();
+      if (!name) fail("expected field name");
+      while (s[i] === " ") i++;
+      let nested = null;
+      if (s[i] === "[") {
+        if (s[i + 1] === "{") {
+          i++;
+          nested = parseFields();
+          if (s[i] !== "]") fail("expected ] after nested field list");
+          i++;
+        } else {
+          i++;
+          for (;;) {
+            while (s[i] === " ") i++;
+            if (s[i] === "]") { i++; break; }
+            if (s[i] === ",") { i++; continue; }
+            const opt = readName();
+            if (!opt) fail("expected optional field name");
+            optional.push(opt);
+          }
+        }
+      }
+      required.push({ name, nested });
+      while (s[i] === " ") i++;
+      if (s[i] === ",") { i++; continue; }
+      if (s[i] === "}") { i++; break; }
+      fail(`unexpected ${JSON.stringify(s[i])}`);
+    }
+    return { required, optional };
+  };
+  while (i < s.length) {
+    skipSeparators();
+    if (i >= s.length) break;
+    const name = readName();
+    if (!name) fail("expected record name");
+    while (s[i] === " ") i++;
+    if (s[i] === "`") i++;
+    if (s[i] === "[") i++;
+    const parsed = parseFields();
+    if (s[i] === "]") i++;
+    if (s[i] === "`") i++;
+    records[alias[name] ?? name] = parsed;
+    // The child template carries one parenthetical prose clause after the notes
+    // record; it is not part of the bracketed field notation (asserted prose is
+    // handled separately in the behavioral items below).
+    while (s[i] === " ") i++;
+    if (s[i] === "(") {
+      while (i < s.length && s[i] !== ")") i++;
+      if (s[i] === ")") i++;
+    }
+  }
+  return records;
+}
+
+const canonFields = (list) => ({
+  required: list.required.map((f) => ({ name: f.name, nested: f.nested ? canonFields(f.nested) : null })),
+  optional: [...list.optional].sort(),
+});
+
+function canonProfile(profile) {
+  const out = {};
+  for (const key of Object.keys(profile).sort()) out[key] = canonFields(profile[key]);
+  return out;
+}
+
+/** Slice one profile block out of a doc between its opening marker and terminal. */
+function profileBlock(file, startMarker, terminal) {
+  const text = read(file);
+  const start = text.indexOf(startMarker);
+  assert.ok(start !== -1, `${file}: missing profile start marker ${JSON.stringify(startMarker)}`);
+  const from = start + startMarker.length;
+  const end = text.indexOf(terminal, from);
+  assert.ok(end !== -1, `${file}: missing profile terminal ${JSON.stringify(terminal)}`);
+  return text.slice(from, end);
+}
+
+/** Every documented required field as a deletable JSON-pointer probe. */
+function requiredProbes(profile) {
+  const probes = [];
+  for (const record of ["sources", "claims", "nonclaims", "conflicts", "notes", "missing_source_candidates"]) {
+    for (const field of profile[record].required) {
+      probes.push({ pointer: `/${record}/0/${field.name}`, path: [record, 0, field.name] });
+      for (const nested of field.nested?.required ?? []) {
+        probes.push({
+          pointer: `/${record}/0/${field.name}/0/${nested.name}`,
+          path: [record, 0, field.name, 0, nested.name],
+        });
+      }
+    }
+  }
+  return probes;
+}
+
+function deleteAtPath(obj, parts) {
+  let cursor = obj;
+  for (let k = 0; k < parts.length - 1; k++) cursor = cursor[parts[k]];
+  delete cursor[parts[parts.length - 1]];
 }
 
 describe("docs contract — child prompt template (verifier block)", () => {
@@ -318,5 +498,228 @@ describe("docs contract — README / CHANGELOG / consistency", () => {
     for (const file of files) {
       lacks(file, /node --test|verify\.test\.mjs|verify-fixtures/, `suite pointer in ${file}`);
     }
+  });
+});
+
+describe("docs behavior — claims-draft/3 profile drives the verifier", () => {
+  it("parses the profile from both docs and the parsed field sets agree", () => {
+    const child = parseProfileBlock(profileBlock(CHILD_TEMPLATE, "Write claims-draft/3 at {claims_draft_path}:", "."));
+    const intake = parseProfileBlock(profileBlock(INTAKE, "frozen S28 structural profile:", ". No magic"));
+    assert.deepEqual(canonProfile(intake), canonProfile(child), "child-template and intake claims profiles must agree");
+    assert.deepEqual(
+      child.sources.required.map((f) => f.name),
+      ["source_ref", "locator", "path", "role", "sha256", "byte_length"],
+      "documented sources profile",
+    );
+    assert.deepEqual(child.sources.optional, ["blob_subject"], "documented sources optional");
+    assert.deepEqual(
+      child.conflicts.required.find((f) => f.name === "quotes").nested.required.map((f) => f.name),
+      ["source_ref", "quote", "offset_bytes"],
+      "documented conflict-quote profile",
+    );
+    assert.equal(requiredProbes(child).length, 32, "documented required-field matrix size");
+  });
+
+  it("every documented required field fails removal with shape + its own pointer", () => {
+    const profile = parseProfileBlock(profileBlock(CHILD_TEMPLATE, "Write claims-draft/3 at {claims_draft_path}:", "."));
+    const probes = requiredProbes(profile);
+    const run = materializeRun("docs-claims-removal");
+    const pristine = readText(run, CLAIMS_DRAFT);
+    for (const probe of probes) {
+      editJson(run, CLAIMS_DRAFT, (draft) => deleteAtPath(draft, probe.path));
+      resealEnvelope(run);
+      const { failed } = expectFailedCheck(
+        runVerifier(["claims", "--run", run], { runRoot: run }),
+        1, "shape", undefined, `delete ${probe.pointer}`,
+      );
+      assert.match(
+        failed.detail,
+        new RegExp(`^invalid field: ${escapeRe(probe.pointer)} expected `),
+        `delete ${probe.pointer}: shape pointer mismatch (got ${JSON.stringify(failed.detail)})`,
+      );
+      writeText(run, CLAIMS_DRAFT, pristine);
+      resealEnvelope(run);
+    }
+  });
+
+  it("documented optional blob_subject stays optional; representative wrong types fail", () => {
+    const run = materializeRun("docs-claims-types");
+    const pristine = readText(run, CLAIMS_DRAFT);
+    const restore = () => { writeText(run, CLAIMS_DRAFT, pristine); resealEnvelope(run); };
+    const mutate = (fn, detail, label) => {
+      editJson(run, CLAIMS_DRAFT, fn);
+      resealEnvelope(run);
+      expectFailedCheck(runVerifier(["claims", "--run", run], { runRoot: run }), 1, "shape", detail, label);
+      restore();
+    };
+
+    editJson(run, CLAIMS_DRAFT, (draft) => { draft.sources[0].blob_subject = "deadbeef"; });
+    resealEnvelope(run);
+    expectVerdict(runVerifier(["claims", "--run", run], { runRoot: run }), 0, "blob_subject present");
+    restore();
+    expectVerdict(runVerifier(["claims", "--run", run], { runRoot: run }), 0, "blob_subject absent");
+
+    mutate((draft) => { draft.sources[0].byte_length = "123"; }, "invalid field: /sources/0/byte_length expected nonnegative integer", "byte_length string");
+    mutate((draft) => { draft.claims[0].also_in = "x"; }, "invalid field: /claims/0/also_in expected array", "also_in string");
+    mutate((draft) => { draft.conflicts[0].quotes[0].offset_bytes = "0"; }, "invalid field: /conflicts/0/quotes/0/offset_bytes expected null or nonnegative integer", "offset_bytes string");
+  });
+});
+
+describe("docs behavior — pilot policy, verifier pin, pin schema, candidate token", () => {
+  it("documented pilot constants are the enforced join policy", () => {
+    const pilotLine = read(INTAKE).split("\n").find((line) => line.startsWith("pilot: {"));
+    assert.ok(pilotLine, "intake must carry the pilot policy line");
+    const docWitness = Number(/witness_max_chars:\s*(\d+)/.exec(pilotLine)?.[1]);
+    const docRetry = Number(/retry_limit:\s*(\d+)/.exec(pilotLine)?.[1]);
+    const docResplit = /resplit:\s*([a-z]+)/.exec(pilotLine)?.[1];
+    const docDepth = Number(/max_resplit_depth:\s*(\d+)/.exec(pilotLine)?.[1]);
+    assert.equal(docWitness, 160, "documented witness bound");
+    assert.equal(docRetry, 1, "documented retry limit");
+    assert.equal(docResplit, "halves", "documented resplit policy");
+    assert.equal(docDepth, 1, "documented resplit depth");
+    assert.match(pilotLine, /operator_ref/, "documented operator ref");
+    assert.match(pilotLine, /output_ceiling_bytes:\s*null/, "documented default output ceiling");
+    has(CHILD_TEMPLATE, "witness_max_chars: 160", "child-template witness constant");
+    has(CHILD_TEMPLATE, "one retry, halves, depth ≤ 1", "child-template recovery constants");
+
+    const run = materializeRun("docs-pilot");
+    const pristinePilot = readJson(run, RUN_MANIFEST).pilot;
+    const withPilot = (mutate) => {
+      editJson(run, RUN_MANIFEST, (env) => {
+        env.pilot = structuredClone(pristinePilot);
+        mutate(env.pilot);
+      });
+    };
+    const probes = [
+      { label: "witness_max_chars ≠ documented", mutate: (p) => { p.witness_max_chars = docWitness + 1; }, check: "join.budget", detail: "pilot witness_max_chars mismatch" },
+      { label: "retry_limit ≠ documented", mutate: (p) => { p.retry_limit = docRetry + 1; }, check: "join.recovery", detail: "retry policy mismatch" },
+      { label: "resplit ≠ documented", mutate: (p) => { p.resplit = "thirds"; }, check: "join.recovery", detail: "retry policy mismatch" },
+      { label: "max_resplit_depth ≠ documented", mutate: (p) => { p.max_resplit_depth = docDepth + 1; }, check: "join.recovery", detail: "retry policy mismatch" },
+      { label: "operator_ref missing", mutate: (p) => { delete p.operator_ref; }, check: "join.budget", detail: "pilot operator_ref missing" },
+      { label: "output_ceiling_bytes wrong type", mutate: (p) => { p.output_ceiling_bytes = "1"; }, check: "join.budget", detail: "pilot output ceiling invalid" },
+    ];
+    for (const probe of probes) {
+      withPilot(probe.mutate);
+      expectFailedCheck(runVerifier(["join", "--run", run], { runRoot: run }), 1, probe.check, probe.detail, probe.label);
+    }
+    withPilot((p) => { p.output_ceiling_bytes = null; });
+    const pass = expectVerdict(runVerifier(["join", "--run", run], { runRoot: run }), 0, "monitoring-only output ceiling");
+    assert.match(findCheck(pass, "join.budget")?.detail ?? "", /monitoring only/, "null ceiling must stay monitoring-only");
+  });
+
+  it("documented verifier pin fields are enforced (path, identity, tool_version)", () => {
+    const line = read(INTAKE).split("\n").find((l) => l.startsWith("verifier: {"));
+    assert.ok(line, "intake must carry the verifier pin line");
+    assert.equal(/path:\s*(\S+?)[,\s]/.exec(line)?.[1], "kernel/tools/verify.mjs", "documented verifier path");
+    assert.match(line, /tool_version:\s*1\.0\.0/, "documented verifier tool_version");
+
+    const run = materializeRun("docs-verifier-pin");
+    const pristine = readJson(run, RUN_MANIFEST).verifier;
+    const reset = () => editJson(run, RUN_MANIFEST, (env) => { env.verifier = structuredClone(pristine); });
+
+    reset();
+    editJson(run, RUN_MANIFEST, (env) => { delete env.verifier.path; });
+    expectFailedCheck(runVerifier(["claims", "--run", run], { runRoot: run }), 1, "shape", "invalid field: /verifier/path expected nonempty string", "deleted verifier.path");
+
+    reset();
+    editJson(run, RUN_MANIFEST, (env) => { env.verifier.path = "kernel/tools/other.mjs"; });
+    expectFailedCheck(runVerifier(["claims", "--run", run], { runRoot: run }), 1, "verifier.identity", "verifier path mismatch", "other verifier.path");
+
+    reset();
+    editJson(run, RUN_MANIFEST, (env) => { delete env.verifier.tool_version; });
+    expectFailedCheck(runVerifier(["claims", "--run", run], { runRoot: run }), 1, "verifier.version", "verifier tool_version mismatch", "deleted verifier.tool_version");
+  });
+
+  it("envelope primary pin entries require a nonempty schema_version string", () => {
+    const run = materializeRun("docs-pin-schema");
+    editJson(run, RUN_MANIFEST, (env) => { delete env.claims_draft.schema_version; });
+    expectFailedCheck(
+      runVerifier(["claims", "--run", run], { runRoot: run }),
+      1, "schema", "invalid field: /claims_draft/schema_version expected nonempty string",
+      "claims_draft pin schema_version",
+    );
+  });
+
+  it("documented primary pin lines carry exactly ref + sha256 + schema_version", () => {
+    // Parse-couple the intake output-manifest pin examples so removing a field
+    // from the doc (not just from the envelope) fails this suite: the tool
+    // enforces a recorded ref pair and schema per primary artifact.
+    for (const key of ["claims_draft", "units_manifest", "join_draft"]) {
+      const line = read(INTAKE).split("\n").find((l) => l.startsWith(`${key}: {`));
+      assert.ok(line, `intake must document the ${key} pin entry`);
+      const names = line
+        .slice(line.indexOf("{") + 1, line.indexOf("}"))
+        .split(",")
+        .map((part) => part.trim().split(":")[0].trim());
+      assert.deepEqual(names, ["ref", "sha256", "schema_version"], `documented ${key} pin fields`);
+    }
+  });
+
+  it("the enforced join candidate field is `candidate_unclaimed` end-to-end", () => {
+    lacks(INTAKE, /candidate-unclaimed/, "hyphenated candidate-unclaimed");
+    lacks(CHILD_TEMPLATE, /candidate-unclaimed/, "hyphenated candidate-unclaimed");
+    has(INTAKE, "candidate_unclaimed[]", "enforced candidate_unclaimed token");
+    has(CHILD_TEMPLATE, "candidate_unclaimed", "enforced candidate_unclaimed token");
+
+    const run = materializeRun("docs-candidates");
+    editJson(run, JOIN_DRAFT, (join) => { delete join.candidate_unclaimed; });
+    resealRun(run);
+    expectFailedCheck(
+      runVerifier(["join", "--run", run], { runRoot: run }),
+      1, "join.candidates", "invalid field: /candidate_unclaimed expected array",
+      "candidate_unclaimed removal",
+    );
+  });
+});
+
+describe("docs behavior — envelope prep mode + fail-closed rules (fix 4 docs)", () => {
+  it("intake documents `verify envelope` and every flag the tool's usage advertises", () => {
+    has(INTAKE, "verify envelope", "envelope prep mode");
+    has(INTAKE, "stdout only", "stdout-only rule");
+    has(INTAKE, "never writes files", "no-write rule");
+    has(INTAKE, "binds the envelope sha256 before the delegated", "frame-bind-before-verify rule");
+    has(INTAKE, "regeneration after that freeze is not verification", "regeneration rule");
+    has(INTAKE, "REFUSE envelope:", "envelope refusal summary");
+    has(INTAKE, "Without `--attempts` the generator records first-attempt acceptance", "recovery-history boundary");
+    has(INTAKE, "recovery semantics are validated by the delegated `verify join`", "verifier owns recovery semantics");
+
+    const refusal = expectVerdict(runVerifier(["envelope"]), 2, "envelope usage refusal");
+    const usage = findFailedCheck(refusal, "cli")?.detail ?? "";
+    const flags = [...new Set(usage.match(/--[a-z-]+/g) ?? [])].sort();
+    assert.ok(flags.length >= 6, `expected the tool's envelope flags, got: ${flags.join(", ")}`);
+    for (const flag of flags) has(INTAKE, flag, `documented envelope flag ${flag}`);
+  });
+
+  it("intake documents the fail-closed envelope identity rules", () => {
+    has(INTAKE, "`verifier.path` is exactly `kernel/tools/verify.mjs`", "verifier path rule");
+    has(INTAKE, "absent or non-string fails shape", "verifier path shape rule");
+    has(INTAKE, "a different path fails `verifier.identity`", "verifier path identity rule");
+    has(INTAKE, "40-char lowercase hex", "oid shape rule");
+    has(INTAKE, "`pilot.operator_ref` is a required nonempty string", "operator_ref rule");
+    has(INTAKE, "`pilot.output_ceiling_bytes` is exactly `null`", "output ceiling rule");
+    has(INTAKE, "nonnegative integer", "output ceiling int rule");
+    has(INTAKE, "nonempty `schema_version` string", "pin schema_version rule");
+  });
+
+  it("CHANGELOG adds the verifier follow-up above the pinned-verifier history", () => {
+    const body = read(CHANGELOG);
+    const followupAt = body.indexOf("### 2026-10-04 — verifier follow-up: fail-closed envelope + prep generator");
+    const pinnedAt = body.indexOf("### 2026-10-04 — pinned mechanical verifier (claims | units | join)");
+    assert.ok(followupAt !== -1, "missing verifier follow-up subsection");
+    assert.ok(pinnedAt !== -1 && followupAt < pinnedAt, "follow-up subsection must sit above the pinned-verifier section");
+    has(CHANGELOG, "operator_ref", "pilot operator_ref");
+    has(CHANGELOG, "output_ceiling_bytes", "pilot output ceiling");
+    has(CHANGELOG, "verifier.path", "verifier path");
+    has(CHANGELOG, "nonempty `schema_version`", "pin schema_version");
+    has(CHANGELOG, "verify envelope", "envelope prep generator");
+    has(CHANGELOG, "frame", "frame-bind rule");
+    assert.match(body, /The coordinator gate is not a shipped tool\./, "historical 2026-10-02 sentence must remain");
+  });
+
+  it("KICKOFF §8 records envelope generation as coordinator prep before delegated verification", () => {
+    has(KICKOFF, "`run-manifest.json` generation is coordinator prep via `verify envelope`", "envelope prep clause");
+    has(KICKOFF, "(recording, not verification)", "recording clause");
+    has(KICKOFF, "envelope sha256 is frozen in the frame before verification", "frame freeze clause");
+    has(KICKOFF, "mechanical verification itself remains delegated `fast`", "delegated verification clause");
   });
 });
