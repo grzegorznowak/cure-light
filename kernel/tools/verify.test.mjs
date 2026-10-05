@@ -623,6 +623,78 @@ describe("P10 regressions — falsy JSON top levels fail shape (F14)", () => {
   });
 });
 
+// P12 fail-closed fixes (post-push review, fix 2): verifier.path is a required
+// canonical identity, the envelope identity tuple is shape-checked for every
+// command (deleted/typed holes used to slip through to the equality checks),
+// and primary pin entries must declare a nonempty schema_version string.
+describe("P12 regressions — fail-closed envelope identity, verifier path, pin schema (fix 2)", () => {
+  const OID_FIELDS = ["base_oid", "subject_oid", "cure_light_source_head_oid"];
+
+  it("verifier.path absent fails shape (exit 1, path is required)", () => {
+    const runRoot = materializeRun("p12-verifier-path-absent");
+    editJson(runRoot, RUN_MANIFEST, (env) => { delete env.verifier.path; });
+    const r = runVerifier(["claims", "--run", runRoot], { runRoot });
+    expectFailure(r, "shape", "invalid field: /verifier/path expected nonempty string");
+  });
+
+  it("verifier.path naming another tool fails verifier.identity path mismatch (exit 1)", () => {
+    const runRoot = materializeRun("p12-verifier-path-wrong");
+    editJson(runRoot, RUN_MANIFEST, (env) => { env.verifier.path = "kernel/tools/chunker.mjs"; });
+    const r = runVerifier(["claims", "--run", runRoot], { runRoot });
+    const v = expectFailure(r, "verifier.identity", "verifier path mismatch");
+    const version = v.checks.find((c) => c.name === "verifier.version");
+    assert.ok(version && version.ok === true, `tool_version check must still run\n${report(r)}`);
+  });
+
+  it("envelope run/review_state must be nonempty strings (deleted or numeric)", () => {
+    for (const field of ["run", "review_state"]) {
+      for (const [label, value] of [["deleted", undefined], ["numeric", 42]]) {
+        const runRoot = materializeRun(`p12-identity-${field}-${label}`);
+        editJson(runRoot, RUN_MANIFEST, (env) => {
+          if (value === undefined) delete env[field];
+          else env[field] = value;
+        });
+        const r = runVerifier(["claims", "--run", runRoot], { runRoot });
+        expectFailure(r, "shape", `invalid field: /${field} expected nonempty string`);
+      }
+    }
+  });
+
+  it("envelope OID fields require 40-char lowercase hex (deleted/numeric/uppercase/39-hex)", () => {
+    const badValues = [
+      ["deleted", undefined],
+      ["numeric", 42],
+      ["uppercase", "C79A54C57322B45498FFD01DB45A876A4712E138"],
+      ["39-hex", "c79a54c57322b45498ffd01db45a876a4712e13"],
+    ];
+    for (const field of OID_FIELDS) {
+      for (const [label, value] of badValues) {
+        const runRoot = materializeRun(`p12-oid-${field}-${label}`);
+        editJson(runRoot, RUN_MANIFEST, (env) => {
+          if (value === undefined) delete env[field];
+          else env[field] = value;
+        });
+        const r = runVerifier(["claims", "--run", runRoot], { runRoot });
+        expectFailure(r, "shape", `invalid field: /${field} expected 40-char lowercase hex oid`);
+      }
+    }
+  });
+
+  it("primary pin entries require a nonempty schema_version (deleted or numeric)", () => {
+    for (const [command, field] of [["claims", "claims_draft"], ["units", "units_manifest"], ["join", "join_draft"]]) {
+      for (const [label, value] of [["deleted", undefined], ["numeric", 42]]) {
+        const runRoot = materializeRun(`p12-pin-${field}-${label}`);
+        editJson(runRoot, RUN_MANIFEST, (env) => {
+          if (value === undefined) delete env[field].schema_version;
+          else env[field].schema_version = value;
+        });
+        const r = runVerifier([command, "--run", runRoot], { runRoot });
+        expectFailure(r, "schema", `invalid field: /${field}/schema_version expected nonempty string`);
+      }
+    }
+  });
+});
+
 // Fixture provenance guard: the committed seed must stay self-contained and the
 // raw markerless witnesses must stay available for the P4 join regression suite.
 describe("fixture seed provenance", () => {

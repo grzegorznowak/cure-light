@@ -10,7 +10,23 @@
 //
 // USAGE
 //   verify <claims|units|join> --run <run-root>
-//   (actual invocation: node <pinned-engine>/kernel/tools/verify.mjs <claims|units|join> --run <run-root>)
+//   verify envelope --run <run-root> --operator-ref <string> --chunker-sha256 <64-lowercase-hex>
+//     --input-ceiling-bytes <decimal nonneg int> [--output-ceiling-bytes <decimal nonneg int|none>]
+//     [--attempts <run-root-relative-ref>]
+//   (actual invocation: node <pinned-engine>/kernel/tools/verify.mjs ...)
+//
+// PREP MODE (`envelope`) — A DOCUMENT, NOT A VERDICT
+//   Reads the recorded stage artifacts (capture / claims / units / join) and
+//   prints a candidate run-manifest.json document as compact JSON + one LF on
+//   stdout, exit 0, silent stderr. Every pin is recomputed from artifact bytes.
+//   It NEVER writes files or repairs artifacts (persisting the document is an
+//   explicit operator shell redirect), it never reads an existing
+//   run-manifest.json, and it is not verification: regeneration after the
+//   envelope is frame-bound is not verification. Without --attempts it records
+//   first-attempt acceptance per box; recovered runs must pass the recorded
+//   history. It records a candidate: `verify join` remains the authority on
+//   recovery semantics. Failures exit 2 with summary
+//   "REFUSE envelope: <reason>".
 //
 // EXIT CODES
 //   0  every check passed
@@ -36,8 +52,18 @@ import { fileURLToPath } from "node:url";
 
 const TOOL_VERSION = "1.0.0";
 const VERIFY_PATH = fileURLToPath(import.meta.url);
+// Canonical recorded location of this tool (envelope verifier pin); recorded
+// paths are always run-root-relative, so the runtime absolute path must never
+// be compared against the envelope.
+const VERIFIER_REL_PATH = "kernel/tools/verify.mjs";
 const USAGE = "usage: verify <claims|units|join> --run <run-root>";
+const ENVELOPE_USAGE = "usage: verify envelope --run <run-root> --operator-ref <string> --chunker-sha256 <64-lowercase-hex> --input-ceiling-bytes <decimal nonneg int> [--output-ceiling-bytes <decimal nonneg int|none>] [--attempts <run-root-relative-ref>]";
+const CHUNKER_REL_PATH = "kernel/tools/chunker.mjs";
+const CAPTURE_MANIFEST_REF = "claims/sources/capture-manifest.json";
+const SHA256_HEX_RE = /^[0-9a-f]{64}$/;
+const DECIMAL_INT_RE = /^[0-9]+$/;
 const ENVELOPE_REF = "run-manifest.json";
+const OID_RE = /^[0-9a-f]{40}$/;
 const COMMANDS = new Set(["claims", "units", "join"]);
 
 // Registry is keyed by schema_version; `family` is the command that owns it.
@@ -83,6 +109,7 @@ const sha256 = (buf) => createHash("sha256").update(buf).digest("hex");
 const isPlainObject = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
 const isNonEmptyString = (v) => typeof v === "string" && v.length > 0;
 const isNonNegInt = (v) => typeof v === "number" && Number.isSafeInteger(v) && v >= 0;
+const isOid = (v) => typeof v === "string" && OID_RE.test(v);
 const toPosix = (p) => (path.sep === "/" ? p : p.split(path.sep).join("/"));
 const firstLine = (text) => String(text).split("\n", 1)[0];
 const sameArray = (a, b) => Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((v, i) => v === b[i]);
@@ -248,6 +275,11 @@ function finish(command, schema, checks, exitCode, reason) {
 // ---------------------------------------------------------------------------
 
 function parseCli(argv) {
+  if (argv[0] === "envelope") {
+    const parsed = parseEnvelopeCli(argv.slice(1));
+    if (!parsed.ok) parsed.command = "envelope";
+    return parsed;
+  }
   if (argv.length !== 3) return { ok: false, reason: argv.length === 0 ? "missing command" : "unexpected arguments" };
   const [command, flag, value] = argv;
   if (!COMMANDS.has(command)) return { ok: false, reason: `unknown command: ${command}` };
@@ -439,6 +471,21 @@ function loadEnvelope(ctx) {
     return null;
   }
   ctx.ok("schema", sv);
+  // Common identity tuple shape (fix pass 2): every command needs it, and a
+  // deleted/wrong-typed field must fail shape instead of silently skipping the
+  // later equality checks.
+  for (const field of ["run", "review_state"]) {
+    if (!isNonEmptyString(env[field])) {
+      ctx.stop("shape", `invalid field: /${field} expected nonempty string`);
+      return null;
+    }
+  }
+  for (const field of ["base_oid", "subject_oid", "cure_light_source_head_oid"]) {
+    if (!isOid(env[field])) {
+      ctx.stop("shape", `invalid field: /${field} expected 40-char lowercase hex oid`);
+      return null;
+    }
+  }
   if (!isPlainObject(env.verifier)) {
     ctx.stop("shape", "invalid field: /verifier expected object");
     return null;
@@ -449,11 +496,15 @@ function loadEnvelope(ctx) {
 
 function checkVerifier(ctx, env) {
   const verifier = env.verifier;
-  if (verifier.path !== undefined && !isNonEmptyString(verifier.path)) {
+  if (!isNonEmptyString(verifier.path)) {
     ctx.stop("shape", "invalid field: /verifier/path expected nonempty string");
     return false;
   }
   let ok = true;
+  if (verifier.path !== VERIFIER_REL_PATH) {
+    ctx.fail("verifier.identity", "verifier path mismatch");
+    ok = false;
+  }
   let ownSha = null;
   try {
     ownSha = sha256(readFileSync(VERIFY_PATH));
@@ -463,7 +514,7 @@ function checkVerifier(ctx, env) {
   if (verifier.sha256 !== ownSha) {
     ctx.fail("verifier.identity", "verifier sha256 mismatch");
     ok = false;
-  } else {
+  } else if (ok) {
     ctx.ok("verifier.identity", "ok");
   }
   if (verifier.tool_version !== TOOL_VERSION) {
@@ -582,9 +633,15 @@ function loadPrimary(ctx, command, ref) {
     ctx.refuse("artifact.discovery", `wrong schema kind: ${q(sv)} for ${command}`);
     return null;
   }
-  if (isPlainObject(pinEntry) && isNonEmptyString(pinEntry.schema_version) && pinEntry.schema_version !== sv) {
-    ctx.stop("schema", `schema_version mismatch: ${q(pinEntry.schema_version)} != ${q(sv)}`);
-    return null;
+  if (isPlainObject(pinEntry)) {
+    if (!isNonEmptyString(pinEntry.schema_version)) {
+      ctx.stop("schema", `invalid field: /${PRIMARY_PIN_FIELD[command]}/schema_version expected nonempty string`);
+      return null;
+    }
+    if (pinEntry.schema_version !== sv) {
+      ctx.stop("schema", `schema_version mismatch: ${q(pinEntry.schema_version)} != ${q(sv)}`);
+      return null;
+    }
   }
   ctx.primarySchema = sv;
   ctx.ok("schema", sv);
@@ -1914,14 +1971,24 @@ function checkJoinClaimList(ctx, env, join, assignments, claims) {
  * assignment/p05 metrics must equal the recomputed values, both recorded
  * ceilings must equal the independent approved pilot ceiling, and the
  * recomputed input must fit it. Output bytes are always measured against the
- * accepted box file; a numeric pilot output ceiling is enforced, null/absent
- * yields the monitoring-only pass detail. Accepted non-recovery boxes must be
- * greedily packed (recovery halves exempt).
+ * accepted box file; pilot.operator_ref must be a nonempty string and the
+ * output ceiling must be exactly null (monitoring-only) or a nonnegative
+ * integer (enforced) — every other value fails closed. Accepted non-recovery
+ * boxes must be greedily packed (recovery halves exempt).
  */
 function checkJoinBudget(ctx, env, boxes, assignments, payloads) {
   const pilot = isPlainObject(env.pilot) ? env.pilot : null;
   if (!pilot || !isNonNegInt(pilot.input_ceiling_bytes)) {
     ctx.fail("join.budget", "pilot input ceiling missing");
+    return false;
+  }
+  if (!isNonEmptyString(pilot.operator_ref)) {
+    ctx.fail("join.budget", "pilot operator_ref missing");
+    return false;
+  }
+  const outputCeiling = pilot.output_ceiling_bytes;
+  if (!(outputCeiling === null || isNonNegInt(outputCeiling))) {
+    ctx.fail("join.budget", "pilot output ceiling invalid");
     return false;
   }
   if (pilot.witness_max_chars !== 160) {
@@ -1976,7 +2043,7 @@ function checkJoinBudget(ctx, env, boxes, assignments, payloads) {
     const links = rows.reduce((n, row) => n + row.links.length, 0);
     if (budget.output_bytes !== outputBytes) return fail(`budget metric mismatch: ${q(box.box_id)}:output_bytes`);
     if (budget.output_links !== links) return fail(`budget metric mismatch: ${q(box.box_id)}:output_links`);
-    if (typeof pilot.output_ceiling_bytes === "number" && outputBytes > pilot.output_ceiling_bytes) {
+    if (outputCeiling !== null && outputBytes > outputCeiling) {
       return fail(`output budget exceeded: ${q(box.box_id)}`);
     }
     inputs.push(boxInput);
@@ -1991,8 +2058,8 @@ function checkJoinBudget(ctx, env, boxes, assignments, payloads) {
       return fail(`non-greedy box packing: ${q(boxId)}`);
     }
   }
-  if (typeof pilot.output_ceiling_bytes === "number") {
-    ctx.ok("join.budget", `output_bytes=${totalOutputBytes}; output ceiling=${pilot.output_ceiling_bytes}`);
+  if (outputCeiling !== null) {
+    ctx.ok("join.budget", `output_bytes=${totalOutputBytes}; output ceiling=${outputCeiling}`);
   } else {
     ctx.ok("join.budget", `output_bytes=${totalOutputBytes}; output ceiling not declared (monitoring only)`);
   }
@@ -2316,6 +2383,496 @@ function runJoin(ctx) {
 }
 
 // ---------------------------------------------------------------------------
+// envelope — prep-mode run-manifest.json generator
+//
+// `verify envelope` PRINTS a candidate run-manifest.json document; it is a
+// document, not a verdict. It never writes files and never reads an existing
+// run-manifest.json (regeneration is allowed and does not verify anything).
+// ---------------------------------------------------------------------------
+
+/** Thrown for every generator refusal; main turns it into a 2 verdict. */
+class EnvelopeRefusal extends Error {}
+
+function refuseEnvelope(reason) {
+  throw new EnvelopeRefusal(reason);
+}
+
+function isEnvelopeFlagName(value) {
+  return typeof value === "string" && value.startsWith("--");
+}
+
+/** Strict flag parser for the prep subcommand; any violation is a refusal. */
+function parseEnvelopeCli(args) {
+  const slots = new Map([
+    ["--run", "run"],
+    ["--operator-ref", "operatorRef"],
+    ["--chunker-sha256", "chunkerSha256"],
+    ["--input-ceiling-bytes", "inputCeilingBytes"],
+    ["--output-ceiling-bytes", "outputCeilingBytes"],
+    ["--attempts", "attempts"],
+  ]);
+  const values = {
+    run: null, operatorRef: null, chunkerSha256: null,
+    inputCeilingBytes: null, outputCeilingBytes: null, attempts: null,
+  };
+  const seen = new Set();
+  for (let i = 0; i < args.length; i++) {
+    const flag = args[i];
+    const slot = slots.get(flag);
+    if (!slot) {
+      return { ok: false, reason: isEnvelopeFlagName(flag) ? `unknown flag: ${flag}` : `unexpected argument: ${flag}` };
+    }
+    if (seen.has(slot)) return { ok: false, reason: `duplicate flag: ${flag}` };
+    seen.add(slot);
+    if (i + 1 >= args.length) return { ok: false, reason: `missing value for ${flag}` };
+    values[slot] = args[++i];
+  }
+  if (values.run === null) return { ok: false, reason: "missing --run" };
+  if (!isNonEmptyString(values.run)) return { ok: false, reason: "invalid --run" };
+  if (values.operatorRef === null) return { ok: false, reason: "missing --operator-ref" };
+  if (!isNonEmptyString(values.operatorRef)) return { ok: false, reason: "invalid --operator-ref" };
+  if (values.chunkerSha256 === null) return { ok: false, reason: "missing --chunker-sha256" };
+  if (!SHA256_HEX_RE.test(values.chunkerSha256)) return { ok: false, reason: "invalid --chunker-sha256" };
+  if (values.inputCeilingBytes === null) return { ok: false, reason: "missing --input-ceiling-bytes" };
+  if (!DECIMAL_INT_RE.test(values.inputCeilingBytes)) return { ok: false, reason: "invalid --input-ceiling-bytes" };
+  const inputCeilingBytes = Number(values.inputCeilingBytes);
+  if (!Number.isSafeInteger(inputCeilingBytes)) return { ok: false, reason: "invalid --input-ceiling-bytes" };
+  let outputCeilingBytes = null;
+  if (values.outputCeilingBytes !== null && values.outputCeilingBytes !== "none") {
+    if (!DECIMAL_INT_RE.test(values.outputCeilingBytes)) return { ok: false, reason: "invalid --output-ceiling-bytes" };
+    outputCeilingBytes = Number(values.outputCeilingBytes);
+    if (!Number.isSafeInteger(outputCeilingBytes)) return { ok: false, reason: "invalid --output-ceiling-bytes" };
+  }
+  if (values.attempts !== null && !isNonEmptyString(values.attempts)) return { ok: false, reason: "invalid --attempts" };
+  return {
+    ok: true,
+    command: "envelope",
+    runRoot: values.run,
+    options: {
+      operatorRef: values.operatorRef,
+      chunkerSha256: values.chunkerSha256,
+      inputCeilingBytes,
+      outputCeilingBytes,
+      attempts: values.attempts,
+    },
+  };
+}
+
+/** Read one generator artifact; containment mirrors the verifier's resolver. */
+function envelopeRead(ctx, ref, baseRel = "") {
+  const resolved = resolveRef(ctx, ref, baseRel);
+  if (resolved.bad) refuseEnvelope(`invalid artifact ref: ${q(ref)}`);
+  if (resolved.escape) refuseEnvelope(`artifact path escapes run root: ${resolved.ref}`);
+  if (resolved.nonregular) refuseEnvelope(`artifact is not a regular file: ${resolved.ref}`);
+  if (resolved.missing || resolved.unreadable) refuseEnvelope(`cannot read artifact: ${resolved.ref}`);
+  try {
+    return { buf: readFileSync(resolved.abs), ref: resolved.ref };
+  } catch {
+    refuseEnvelope(`cannot read artifact: ${resolved.ref}`);
+  }
+}
+
+/** Strict JSON decode: BOM/invalid UTF-8/bad JSON refuse, never guess. */
+function envelopeJson(ctx, ref, baseRel = "") {
+  const read = envelopeRead(ctx, ref, baseRel);
+  if (hasUtf8Bom(read.buf)) refuseEnvelope(`invalid JSON: ${q(read.ref)}`);
+  const text = decodeUtf8(read.buf);
+  if (text === null) refuseEnvelope(`invalid UTF-8: ${q(read.ref)}`);
+  let value;
+  try {
+    value = JSON.parse(text);
+  } catch {
+    refuseEnvelope(`invalid JSON: ${q(read.ref)}`);
+  }
+  return { value, buf: read.buf, ref: read.ref };
+}
+
+function envelopeJsonObject(ctx, ref, kind, baseRel = "") {
+  const parsed = envelopeJson(ctx, ref, baseRel);
+  if (!isPlainObject(parsed.value)) refuseEnvelope(`malformed ${kind}: ${q(parsed.ref)}`);
+  return parsed;
+}
+
+function envelopeJsonArray(ctx, ref, kind) {
+  const parsed = envelopeJson(ctx, ref);
+  if (!Array.isArray(parsed.value)) refuseEnvelope(`malformed ${kind}: ${q(parsed.ref)}`);
+  return parsed;
+}
+
+function envelopeFileExists(runRoot, ref) {
+  try {
+    return statSync(path.join(runRoot, ref)).isFile();
+  } catch {
+    return false;
+  }
+}
+
+function envelopeClaimsSlice(ctx, identity) {
+  const candidates = listDirCandidates(ctx, "claims", /^claims-draft.*\.json$/);
+  if (candidates.length === 0) return null;
+  if (candidates.length > 1) refuseEnvelope("ambiguous claims draft");
+  const ref = candidates[0];
+  const parsed = envelopeJsonObject(ctx, ref, "claims draft");
+  const claims = parsed.value;
+  if (!isNonEmptyString(claims.schema_version)) refuseEnvelope("malformed claims draft: schema_version");
+  if (claims.schema_version !== "claims-draft/3") refuseEnvelope(`unsupported schema_version: ${q(claims.schema_version)}`);
+  for (const field of ["run", "review_state", "base_oid", "subject_oid"]) {
+    if (!isNonEmptyString(claims[field])) refuseEnvelope(`malformed claims draft: /${field}`);
+    if (claims[field] !== identity[field]) refuseEnvelope(`identity mismatch: ${field}`);
+  }
+  return { ref, sha256: sha256(parsed.buf), schema_version: "claims-draft/3" };
+}
+
+function envelopeUnitsSlice(ctx, identity, options) {
+  const candidates = [];
+  for (const ref of ["units/units2/manifest.json", "units2/manifest.json"]) {
+    if (envelopeFileExists(ctx.runRoot, ref)) candidates.push(ref);
+  }
+  if (candidates.length === 0) return null;
+  if (candidates.length > 1) refuseEnvelope("ambiguous units manifest");
+  const ref = candidates[0];
+  const parsed = envelopeJsonObject(ctx, ref, "units manifest");
+  const manifest = parsed.value;
+  if (!isNonEmptyString(manifest.schema_version)) refuseEnvelope("malformed units manifest: schema_version");
+  if (manifest.schema_version !== "code-units-sim/2") refuseEnvelope(`unsupported schema_version: ${q(manifest.schema_version)}`);
+  if (!isPlainObject(manifest.identity)) refuseEnvelope("malformed units manifest: identity");
+  for (const field of ["base_oid", "subject_oid"]) {
+    if (!isNonEmptyString(manifest.identity[field])) refuseEnvelope(`malformed units manifest: /identity/${field}`);
+    if (manifest.identity[field] !== identity[field]) refuseEnvelope(`identity mismatch: ${field}`);
+  }
+  if (!isPlainObject(manifest.recipe)) refuseEnvelope("malformed units manifest: recipe");
+  if (!Array.isArray(manifest.units)) refuseEnvelope("malformed units manifest: units");
+
+  // Payload refs are the manifest's own `file` values, resolved under the
+  // chunker OUTDIR (parent of the units2 directory), exactly as the verifier
+  // resolves them; committed payload bytes are hashed at generation time.
+  const outDirRaw = path.posix.dirname(path.posix.dirname(ref));
+  const outDir = outDirRaw === "." ? "" : outDirRaw;
+  const unitPayloads = [];
+  for (const unit of manifest.units) {
+    if (!isPlainObject(unit) || !isNonEmptyString(unit.unit_id) || !isNonEmptyString(unit.file)) {
+      refuseEnvelope("malformed units manifest: units entry");
+    }
+    const read = envelopeRead(ctx, unit.file, outDir);
+    unitPayloads.push({ unit_id: unit.unit_id, ref: unit.file, sha256: sha256(read.buf) });
+  }
+  return {
+    units_manifest: { ref, sha256: sha256(parsed.buf), schema_version: "code-units-sim/2" },
+    chunker: {
+      path: CHUNKER_REL_PATH,
+      sha256: options.chunkerSha256,
+      recipe: manifest.recipe,
+      cure_light_source_head_oid: identity.cure_light_source_head_oid,
+    },
+    unit_payloads: unitPayloads,
+    unitsRef: ref,
+    unitsBuf: parsed.buf,
+  };
+}
+
+function envelopeJoinSlice(ctx, identity, options, units, attemptsOverride = null) {
+  const candidates = listDirCandidates(ctx, "join", /^join-draft.*\.json$/);
+  if (candidates.length === 0) return null;
+  if (candidates.length > 1) refuseEnvelope("ambiguous join draft");
+  if (!units) refuseEnvelope("join draft requires units manifest");
+  const ref = candidates[0];
+  const parsed = envelopeJsonObject(ctx, ref, "join draft");
+  const join = parsed.value;
+  if (!isNonEmptyString(join.schema_version)) refuseEnvelope("malformed join draft: schema_version");
+  if (join.schema_version !== "join-draft/1") refuseEnvelope(`unsupported schema_version: ${q(join.schema_version)}`);
+  for (const field of ["run", "review_state", "base_oid", "subject_oid"]) {
+    if (!isNonEmptyString(join[field])) refuseEnvelope(`malformed join draft: /${field}`);
+    if (join[field] !== identity[field]) refuseEnvelope(`identity mismatch: ${field}`);
+  }
+  if (!Array.isArray(join.boxes)) refuseEnvelope("malformed join draft: boxes");
+
+  const unitsSha = sha256(units.unitsBuf);
+  const instructionFiles = listDirCandidates(ctx, "join", /\.instructions\.md$/);
+  // Recovered children may legitimately share the failed parent's instructions
+  // file; the explicit attempt history carries the parent_box_id needed to find
+  // it (fixpass follow-up).
+  const parentByBox = new Map();
+  for (const entry of attemptsOverride ?? []) {
+    if (!parentByBox.has(entry.box_id) && isNonEmptyString(entry.parent_box_id)) {
+      parentByBox.set(entry.box_id, entry.parent_box_id);
+    }
+  }
+  const joinBoxes = [];
+  const attempts = [];
+  const boxFacts = new Map();
+  // A single per-box instructions file may be shared across boxes only when no
+  // current box owns one: otherwise an unmatched box would silently borrow a
+  // sibling's file and misrecord which instructions it used.
+  const ownInstructionFiles = new Set(
+    join.boxes
+      .filter((box) => isPlainObject(box) && isNonEmptyString(box.box_id))
+      .map((box) => `join/${box.box_id}.instructions.md`)
+      .filter((ref) => envelopeFileExists(ctx.runRoot, ref)),
+  );
+  for (const box of join.boxes) {
+    if (!isPlainObject(box) || !isNonEmptyString(box.box_id) || !isNonEmptyString(box.path)) {
+      refuseEnvelope("malformed join draft: boxes entry");
+    }
+    const boxId = box.box_id;
+    const assignmentRef = `join/${boxId}.assignment.json`;
+    const assignmentRead = envelopeJsonObject(ctx, assignmentRef, "assignment");
+    const assignment = assignmentRead.value;
+    if (assignment.box_id !== boxId) refuseEnvelope(`assignment box mismatch: ${q(boxId)}`);
+    if (assignment.output_path !== box.path) refuseEnvelope(`assignment output mismatch: ${q(boxId)}`);
+    if (assignment.manifest_ref !== units.unitsRef || assignment.manifest_sha256 !== unitsSha) {
+      refuseEnvelope(`assignment manifest mismatch: ${q(boxId)}`);
+    }
+    if (!isNonEmptyString(assignment.claims_list_path)) refuseEnvelope(`malformed assignment: ${q(assignmentRead.ref)}`);
+    if (!Array.isArray(assignment.units)) refuseEnvelope(`malformed assignment: ${q(assignmentRead.ref)}`);
+    if (assignment.input_ceiling_bytes !== options.inputCeilingBytes) {
+      refuseEnvelope(`input ceiling mismatch: ${q(boxId)}`);
+    }
+
+    // Instructions discovery, first match wins: the per-box file, then the
+    // parent's file recorded in the attempts history, then a single candidate
+    // file in the run; anything else refuses instead of guessing.
+    let instructionsRef = `join/${boxId}.instructions.md`;
+    if (!envelopeFileExists(ctx.runRoot, instructionsRef)) {
+      const parentBoxId = parentByBox.get(boxId);
+      const parentRef = isNonEmptyString(parentBoxId) ? `join/${parentBoxId}.instructions.md` : null;
+      if (parentRef && envelopeFileExists(ctx.runRoot, parentRef)) {
+        instructionsRef = parentRef;
+      } else if (instructionFiles.length === 1 && ownInstructionFiles.size === 0) {
+        instructionsRef = instructionFiles[0];
+      } else if (instructionFiles.length > 1) {
+        refuseEnvelope(`ambiguous instructions: ${q(boxId)}`);
+      } else {
+        refuseEnvelope(`missing instructions: ${q(boxId)}`);
+      }
+    }
+    const instructionsRead = envelopeRead(ctx, instructionsRef);
+    const claimsListRead = envelopeRead(ctx, assignment.claims_list_path);
+
+    // p05 refs are discovered per box: a box-scoped file always wins over the
+    // global pair, which is only a single-box-run fallback (seed convention).
+    const perCheckRef = `join/${boxId}.p05-check.json`;
+    const perEvidenceRef = `join/${boxId}.p05-evidence.json`;
+    const singleBoxRun = join.boxes.length === 1;
+    let p05CheckRef = perCheckRef;
+    if (!envelopeFileExists(ctx.runRoot, p05CheckRef)) {
+      if (!singleBoxRun || !envelopeFileExists(ctx.runRoot, "join/p05-check.json")) {
+        refuseEnvelope(`missing p05 check: ${q(boxId)}`);
+      }
+      p05CheckRef = "join/p05-check.json";
+    }
+    let p05EvidenceRef = perEvidenceRef;
+    if (!envelopeFileExists(ctx.runRoot, p05EvidenceRef)) {
+      if (!singleBoxRun || !envelopeFileExists(ctx.runRoot, "join/p05-evidence.json")) {
+        refuseEnvelope(`missing p05 evidence: ${q(boxId)}`);
+      }
+      p05EvidenceRef = "join/p05-evidence.json";
+    }
+    const p05CheckRead = envelopeJsonObject(ctx, p05CheckRef, "p05 check");
+    const p05EvidenceRead = envelopeJsonObject(ctx, p05EvidenceRef, "p05 evidence");
+    const budget = isPlainObject(p05EvidenceRead.value.budget) ? p05EvidenceRead.value.budget : null;
+    if (!budget || !isNonNegInt(budget.input_ceiling_bytes)) {
+      refuseEnvelope(`malformed p05 evidence: ${q(p05EvidenceRead.ref)}`);
+    }
+    if (budget.input_ceiling_bytes !== options.inputCeilingBytes) {
+      refuseEnvelope(`input ceiling mismatch: ${q(boxId)}`);
+    }
+
+    const outputRead = envelopeRead(ctx, box.path);
+    joinBoxes.push({
+      box_id: boxId,
+      assignment: { ref: assignmentRef, sha256: sha256(assignmentRead.buf) },
+      instructions: { ref: instructionsRef, sha256: sha256(instructionsRead.buf) },
+      claims_list: { ref: assignment.claims_list_path, sha256: sha256(claimsListRead.buf) },
+      p05_check: { ref: p05CheckRef, sha256: sha256(p05CheckRead.buf) },
+      p05_evidence: { ref: p05EvidenceRef, sha256: sha256(p05EvidenceRead.buf) },
+    });
+    attempts.push({
+      attempt_id: `${boxId}-a1`,
+      box_id: boxId,
+      parent_box_id: null,
+      attempt: 1,
+      units: assignment.units,
+      output: { ref: box.path, sha256: sha256(outputRead.buf) },
+      status: "accepted",
+    });
+    boxFacts.set(boxId, { units: assignment.units, path: box.path });
+  }
+  return {
+    join_draft: { ref, sha256: sha256(parsed.buf), schema_version: "join-draft/1" },
+    join_boxes: joinBoxes,
+    attempts,
+    boxFacts,
+  };
+}
+
+/**
+ * `--attempts` history: entries are validated and kept, every output sha256 is
+ * recomputed. Coherence that does not need the join box list (duplicate
+ * attempt_id, more than one accepted attempt per box) refuses here, before the
+ * join slice is assembled.
+ */
+function envelopeAttemptsOverride(ctx, ref) {
+  const parsed = envelopeJsonArray(ctx, ref, "attempts");
+  const attempts = [];
+  for (let i = 0; i < parsed.value.length; i++) {
+    const entry = parsed.value[i];
+    if (!isPlainObject(entry)) refuseEnvelope(`malformed attempts entry: ${i}`);
+    if (!isNonEmptyString(entry.attempt_id)) refuseEnvelope(`malformed attempts entry: ${i}`);
+    if (!isNonEmptyString(entry.box_id)) refuseEnvelope(`malformed attempts entry: ${i}`);
+    if (entry.parent_box_id !== null && !isNonEmptyString(entry.parent_box_id)) {
+      refuseEnvelope(`malformed attempts entry: ${i}`);
+    }
+    if (!isNonNegInt(entry.attempt) || entry.attempt < 1) refuseEnvelope(`malformed attempts entry: ${i}`);
+    if (!Array.isArray(entry.units) || !entry.units.every((unit) => isNonEmptyString(unit))) {
+      refuseEnvelope(`malformed attempts entry: ${i}`);
+    }
+    if (!isPlainObject(entry.output) || !isNonEmptyString(entry.output.ref)) {
+      refuseEnvelope(`malformed attempts entry: ${i}`);
+    }
+    if (entry.status !== "failed" && entry.status !== "accepted") refuseEnvelope(`malformed attempts entry: ${i}`);
+    const outputRead = envelopeRead(ctx, entry.output.ref);
+    entry.output.sha256 = sha256(outputRead.buf);
+    attempts.push(entry);
+  }
+  const acceptedByBox = new Set();
+  for (const entry of attempts) {
+    if (entry.status !== "accepted") continue;
+    if (acceptedByBox.has(entry.box_id)) refuseEnvelope(`duplicate accepted attempt: ${q(entry.box_id)}`);
+    acceptedByBox.add(entry.box_id);
+  }
+  const seenIds = new Set();
+  for (const entry of attempts) {
+    if (seenIds.has(entry.attempt_id)) refuseEnvelope(`duplicate attempt_id: ${q(entry.attempt_id)}`);
+    seenIds.add(entry.attempt_id);
+  }
+  // Attempt ordinals must form an unbroken 1..n sequence per box in recorded
+  // order; a gap, a duplicate or an out-of-order entry is a recording error the
+  // verifier would later reject.
+  const ordinalsByBox = new Map();
+  for (const entry of attempts) {
+    if (!ordinalsByBox.has(entry.box_id)) ordinalsByBox.set(entry.box_id, []);
+    ordinalsByBox.get(entry.box_id).push(entry.attempt);
+  }
+  for (const [boxId, ordinals] of ordinalsByBox) {
+    if (ordinals.some((ordinal, index) => ordinal !== index + 1)) {
+      refuseEnvelope(`attempt sequence mismatch: ${q(boxId)}`);
+    }
+  }
+  return attempts;
+}
+
+/**
+ * Join-dependent `--attempts` coherence: accepted entries must mirror their
+ * current box exactly (assignment units and output path), parents must resolve
+ * to a known box, and every current box needs exactly one accepted attempt.
+ */
+function checkAttemptsJoinBoxes(attempts, joinBoxes, boxFacts) {
+  const boxIds = new Set(joinBoxes.map((box) => box.box_id));
+  const attemptedBoxIds = new Set(attempts.map((entry) => entry.box_id));
+  const accepted = new Set();
+  for (const entry of attempts) {
+    if (entry.status !== "accepted") continue;
+    if (!boxIds.has(entry.box_id)) refuseEnvelope(`unknown accepted attempt box: ${q(entry.box_id)}`);
+    const facts = boxFacts.get(entry.box_id);
+    if (!facts) refuseEnvelope(`unknown accepted attempt box: ${q(entry.box_id)}`);
+    if (!sameArray(entry.units, facts.units)) refuseEnvelope(`accepted units mismatch: ${q(entry.box_id)}`);
+    if (entry.output.ref !== facts.path) refuseEnvelope(`accepted output mismatch: ${q(entry.box_id)}`);
+    accepted.add(entry.box_id);
+  }
+  for (const entry of attempts) {
+    if (entry.parent_box_id === null) continue;
+    if (!boxIds.has(entry.parent_box_id) && !attemptedBoxIds.has(entry.parent_box_id)) {
+      refuseEnvelope(`unknown parent box: ${q(entry.parent_box_id)}`);
+    }
+  }
+  for (const box of joinBoxes) {
+    if (!accepted.has(box.box_id)) refuseEnvelope(`missing accepted attempt: ${q(box.box_id)}`);
+  }
+}
+
+/**
+ * Derive a candidate run-manifest.json document from the recorded stage
+ * artifacts. Every pin is recomputed from artifact bytes; a stage slice is
+ * included only when its artifact exists, and missing/ambiguous/malformed/
+ * disagreeing inputs refuse instead of being guessed. Never writes.
+ */
+function generateEnvelope(runRoot, options) {
+  const ctx = new Ctx(runRoot);
+
+  // Always-required common: capture identity + the verifier's own pin.
+  const captureRead = envelopeJsonObject(ctx, CAPTURE_MANIFEST_REF, "capture manifest");
+  const capture = captureRead.value;
+  if (capture.schema_version !== undefined) {
+    refuseEnvelope(`unsupported capture schema_version: ${q(capture.schema_version)}`);
+  }
+  for (const field of ["run", "review_state"]) {
+    if (!isNonEmptyString(capture[field])) refuseEnvelope(`malformed capture manifest: /${field}`);
+  }
+  for (const field of ["base_oid", "subject_oid", "cure_light_source_head_oid"]) {
+    if (!isOid(capture[field])) refuseEnvelope(`malformed capture manifest: /${field}`);
+  }
+  const identity = {
+    run: capture.run,
+    review_state: capture.review_state,
+    base_oid: capture.base_oid,
+    subject_oid: capture.subject_oid,
+    cure_light_source_head_oid: capture.cure_light_source_head_oid,
+  };
+
+  let verifier;
+  try {
+    verifier = { path: VERIFIER_REL_PATH, sha256: sha256(readFileSync(VERIFY_PATH)), tool_version: TOOL_VERSION };
+  } catch {
+    refuseEnvelope("cannot hash verifier");
+  }
+
+  const claims = envelopeClaimsSlice(ctx, identity);
+  const units = envelopeUnitsSlice(ctx, identity, options);
+  // The explicit attempt history is validated before the join slice because its
+  // parent_box_id records drive instructions discovery for recovered boxes.
+  const attemptsOverride = options.attempts === null ? null : envelopeAttemptsOverride(ctx, options.attempts);
+  const join = envelopeJoinSlice(ctx, identity, options, units, attemptsOverride);
+  let joinAttempts = join ? join.attempts : null;
+  if (attemptsOverride !== null) {
+    if (!join) refuseEnvelope("--attempts requires a join draft");
+    checkAttemptsJoinBoxes(attemptsOverride, join.join_boxes, join.boxFacts);
+    joinAttempts = attemptsOverride;
+  }
+
+  const envelope = {
+    schema_version: "run-verification/1",
+    run: identity.run,
+    review_state: identity.review_state,
+    base_oid: identity.base_oid,
+    subject_oid: identity.subject_oid,
+    cure_light_source_head_oid: identity.cure_light_source_head_oid,
+    verifier,
+    capture_manifest: { ref: CAPTURE_MANIFEST_REF, sha256: sha256(captureRead.buf) },
+  };
+  if (claims) envelope.claims_draft = claims;
+  if (units) {
+    envelope.chunker = units.chunker;
+    envelope.units_manifest = units.units_manifest;
+    envelope.unit_payloads = units.unit_payloads;
+  }
+  if (join) envelope.join_draft = join.join_draft;
+  envelope.pilot = {
+    operator_ref: options.operatorRef,
+    input_ceiling_bytes: options.inputCeilingBytes,
+    witness_max_chars: 160,
+    retry_limit: 1,
+    resplit: "halves",
+    max_resplit_depth: 1,
+    output_ceiling_bytes: options.outputCeilingBytes,
+  };
+  if (join) {
+    envelope.join_boxes = join.join_boxes;
+    envelope.join_attempts = joinAttempts;
+  }
+  return envelope;
+}
+
+// ---------------------------------------------------------------------------
 // entry point
 // ---------------------------------------------------------------------------
 
@@ -2323,7 +2880,28 @@ function main() {
   const argv = process.argv.slice(2);
   const parsed = parseCli(argv);
   if (!parsed.ok) {
-    finish("usage", null, [{ name: "cli", ok: false, detail: USAGE, code: 2 }], 2, parsed.reason);
+    const envelopeUsage = parsed.command === "envelope";
+    finish(
+      envelopeUsage ? "envelope" : "usage",
+      null,
+      [{ name: "cli", ok: false, detail: envelopeUsage ? ENVELOPE_USAGE : USAGE, code: 2 }],
+      2,
+      parsed.reason,
+    );
+    return;
+  }
+  if (parsed.command === "envelope") {
+    let document;
+    try {
+      document = generateEnvelope(path.resolve(parsed.runRoot), parsed.options);
+    } catch (err) {
+      const reason = err instanceof EnvelopeRefusal
+        ? err.message
+        : `internal error: ${firstLine(err?.message ?? String(err))}`;
+      finish("envelope", null, [{ name: "envelope", ok: false, detail: reason, code: 2 }], 2, reason);
+      return;
+    }
+    process.stdout.write(`${JSON.stringify(document)}\n`);
     return;
   }
   const ctx = new Ctx(path.resolve(parsed.runRoot));

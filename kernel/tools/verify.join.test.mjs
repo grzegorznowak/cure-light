@@ -878,6 +878,68 @@ describe("join.budget — input/output ceilings (J8, RED until P4b)", () => {
   });
 });
 
+// P12 fail-closed pilot fields (post-push review, fix 1): pilot.operator_ref is
+// a required nonempty string, and pilot.output_ceiling_bytes must be exactly
+// null or a nonnegative integer. Wrong types used to silently disable output
+// enforcement (non-number) or go unread (operator_ref); both now fail closed.
+describe("join.budget — fail-closed pilot fields (P12, fix 1)", () => {
+  for (const [label, value] of [
+    ["string", "1"], ["boolean", true], ["array", []], ["object", {}],
+    ["negative", -1], ["fractional", 1.5], ["absent", undefined],
+  ]) {
+    it(`output_ceiling_bytes ${label} fails pilot output ceiling invalid (exit 1)`, () => {
+      const runRoot = materializeRun(`p12-ceiling-${label}`);
+      editJson(runRoot, RUN_MANIFEST, (env) => {
+        if (value === undefined) delete env.pilot.output_ceiling_bytes;
+        else env.pilot.output_ceiling_bytes = value;
+      });
+      const r = runVerifier(["join", "--run", runRoot], { runRoot });
+      expectFailure(r, "join.budget", "pilot output ceiling invalid");
+    });
+  }
+
+  it("output_ceiling_bytes null passes monitoring-only with the measured bytes", () => {
+    const { r } = joinRun("p12-ceiling-null");
+    const v = expectVerdict(r, 0);
+    expectCheckOk(v, "join.budget", `output_bytes=${SEED_OUTPUT_BYTES}; output ceiling not declared (monitoring only)`);
+  });
+
+  it("output_ceiling_bytes equal to the measured output passes with the declared ceiling", () => {
+    const runRoot = materializeRun("p12-ceiling-equal");
+    mutatePilot(runRoot, (pilot) => { pilot.output_ceiling_bytes = SEED_OUTPUT_BYTES; });
+    const r = runVerifier(["join", "--run", runRoot], { runRoot });
+    const v = expectVerdict(r, 0);
+    expectCheckOk(v, "join.budget", `output_bytes=${SEED_OUTPUT_BYTES}; output ceiling=${SEED_OUTPUT_BYTES}`);
+  });
+
+  it("output_ceiling_bytes above the measured output passes with the declared ceiling", () => {
+    const runRoot = materializeRun("p12-ceiling-above");
+    mutatePilot(runRoot, (pilot) => { pilot.output_ceiling_bytes = SEED_OUTPUT_BYTES + 1; });
+    const r = runVerifier(["join", "--run", runRoot], { runRoot });
+    const v = expectVerdict(r, 0);
+    expectCheckOk(v, "join.budget", `output_bytes=${SEED_OUTPUT_BYTES}; output ceiling=${SEED_OUTPUT_BYTES + 1}`);
+  });
+
+  it("output_ceiling_bytes one below the measured output fails output budget exceeded", () => {
+    const runRoot = materializeRun("p12-ceiling-below");
+    mutatePilot(runRoot, (pilot) => { pilot.output_ceiling_bytes = SEED_OUTPUT_BYTES - 1; });
+    const r = runVerifier(["join", "--run", runRoot], { runRoot });
+    expectFailure(r, "join.budget", 'output budget exceeded: "box-0000"');
+  });
+
+  for (const [label, value] of [["absent", undefined], ["empty", ""], ["numeric", 42]]) {
+    it(`operator_ref ${label} fails pilot operator_ref missing (exit 1)`, () => {
+      const runRoot = materializeRun(`p12-operator-${label}`);
+      editJson(runRoot, RUN_MANIFEST, (env) => {
+        if (value === undefined) delete env.pilot.operator_ref;
+        else env.pilot.operator_ref = value;
+      });
+      const r = runVerifier(["join", "--run", runRoot], { runRoot });
+      expectFailure(r, "join.budget", "pilot operator_ref missing");
+    });
+  }
+});
+
 describe("join.recovery — structured retry/split history (J9, RED until P4b)", () => {
   const allUnitIds = (runRoot) => readBoxRows(runRoot).map((r) => r.unit_id);
 
