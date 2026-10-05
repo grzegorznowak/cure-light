@@ -1,0 +1,48 @@
++### Vector 1 — assignment + accounting
++
++```text
++COVERAGE ASSIGNMENT (required — Vector 1)
++You own claims {claim_ids} and changed-unit ranges {unit_ids} from the state's
++coverage page {coverage_ref}; one accounting owner per unit, one verdict owner
++per claim. Input digest: {assignment_digest}.
++The captured contract is verbatim at {contract_ref}; the complete claim
++directory is paged at {claim_directory_ref} — read the pages you need; your
++local contract slice is never the whole universe. Claim IDs are the canonical tool IDs ({claim_gate_ref}: pinned `gate_check` report, both coverage
++booleans true, projected `registry_hash`) — never renumber, paraphrase or invent one;
++a directory without that permission is unusable for negative attribution.
++Designated in-diff clauses are ordinary claim sources with recorded
++provenance — never evidence that their own deliverable exists. Before returning
++UNCLAIMED_CANDIDATE for a unit, check the candidate scope {candidate_scope}
++(alternate claims / attribution surfaces, including qualifying designated
++in-diff clauses); insufficient access → UNRESOLVED.
++Return per conformance-pass.md: claim block (VERIFIED / GAP / INCONCLUSIVE)
++plus unit block (ATTRIBUTED / UNCLAIMED_CANDIDATE / EXCLUSION_REQUEST /
++UNRESOLVED), closed by CLOSE <digest> — processed n/total, returned, remaining.
++A unit state is an accounting record, not a finding; NONE is never used in
++place of a record.
++```
++
++### Yagni — scoring inputs
++
++```text
++COVERAGE INPUTS (yagni)
++Read your unit's EXPLAINED range groups from {coverage_ref} — which behavior
++each range was accepted to deliver — and the claim-matrix rows for {claim_ids}.
++Leads only: re-read the code in the subject tree; do not re-adjudicate
++attribution or coverage ownership, and do not treat a claim GAP as excluding
++its explained ranges. The full contract is at {contract_ref}. Return per
++yagni-pass.md: ENGINEERING JUSTIFIED/CHALLENGED, Y rows, NOT-YAGNI, NONE.
++```
++
+ ## Research protocol variants (filler for {research_protocol})
+ 
+ Vector 2 always fills the slot with Variant A; Vector 3 always fills it with Variant C (search-extensive); Vector 1 omits the slot. In `direct-tree` runs (no rail) the coordinator fills Variant B for both vectors. The coordinator resolves every placeholder (exact prefixed tool names, subject path, prefix, excluded namespaces, HEAD/base OID) before spawning — children see exact registered names, never generic aliases.
+@@ -210,6 +291,8 @@ header (selected / dropped / operator-added symbols, census scope + command,
+ completion, rail triage marked discovery-only) + the heat table `symbol | change |
+ total | in-diff | outside | outside locations (capped) | note` — chunk dumps and
+ pagination stay inside the child; the coordinator writes the map to `{symbol_map_ref}`.
++It may reuse the state's changed-range inventory (hash/recipe identity) but still
++runs its own census; symbol coverage never clears V1 attribution or vice versa.
+ 
+ ### Shadow control (only when the operator opts in)
+ 

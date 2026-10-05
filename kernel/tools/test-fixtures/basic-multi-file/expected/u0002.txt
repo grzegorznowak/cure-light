@@ -1,0 +1,13 @@
+new file mode 100644
+index 0000000..ca2b25c
+--- /dev/null
++++ b/gamma/new.txt
+@@ -0,0 +1,8 @@
++gamma line 01 [gamma-marker]
++gamma line 02 [gamma-marker]
++gamma line 03 [gamma-marker]
++gamma line 04 [gamma-marker]
++gamma line 05 [gamma-marker]
++gamma line 06 [gamma-marker]
++gamma line 07 [gamma-marker]
++gamma line 08 [gamma-marker]

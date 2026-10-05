@@ -1,0 +1,23 @@
++```text
++claims_prepare  {run_dir, sources[]} | {review_target, run_dir, resources[]}
++    → captures/manifest.json (capture-manifest/1) + slices/manifest.json + payloads
++claims_finalize {run_dir, slice_proposals[{slice_id, path}]}
++    → registry.json (claim-registry/1) + run-manifest.json (claim-run-manifest/2)
++gate_check      {run_manifest_path, require_sliced:true}
++    → gate-report.json (gate-check-report/1)
++census_run      {repo, base_ref, subject_ref, run_dir} | {review_target, run_dir}
++    → census.json (changed-range-census/1) + census-check.json
++census_check    {repo, census_path}
++    → independent offline recompute (permission = null)
++```
++
++The early source-consistency pass (§Early source-consistency pass) runs after this sequence and before any V1 spend. Any pin mismatch (`PIN_MISMATCH`), missing/wrong pinned dependency (`DEPENDENCY_UNAVAILABLE`), failed prepare/finalize/gate step, or projection hash mismatch **stops Phase 0**: no hand-written fallback registry, no hand-added claim ID, no relaxed gate, no silent substitution of an older head.
++
++The capture also compiles the **claim registry** — the state's complete claim universe — through the installed `cure_light_census` plugin (§Compile the claim registry above), never through run-authored IDs or scripts. Each claim ID and span comes from the plugin's canonical `claim-registry/1` registry, computed from the captured source bytes (block + exact byte `[start,end)` offsets + quote hash), with context/nonclaim labels, so section extraction cannot silently drop whole blocks (claims are unit-aligned; overlapping-clause parent refs and grouping/precedence links are added by the coordinator projection — this plugin v1 leaves them empty). Each source block carries its class, designating pointer and interpretation rule (§Designated in-diff sources). Long contracts use the plugin's bounded sliced path with overlap reconciliation; an incomplete source inventory means the claim universe is incomplete, and negative attribution cannot finalize from it. The complete claim directory is a **projection of the canonical registry** (identical claim IDs, counts and `registry_hash`) paged as the state's claim-registry page(s) (`claims-<owner>-<pr>-s<n>`, notebook-plan-contract.md), and the manifest records its `coverage.claims_ref`/hash plus the gate report/permission (Output below).
++
++**Labeling provenance and comparability.** A verified registry is complete **under one review state's captured sources, bundled instructions, labels and tool pins** — it is not a canonical semantic interpretation reproducible across runs. V1 attribution queries that state's registry only. Differences in claim counts or verdicts between runs are **diagnostic only** until source identity, the instruction protocol and the recorded labels are reconciled, and are never by themselves evidence of a defect. Record the labeling provenance with the run (recipe/instruction hash, labeler identity, observed drift); pinning a fixed model/temperature or operator-approved gold labels is **not required for V1** and is deferred to a post-merge repeatability pilot.
++
++### Early source-consistency pass (before Vector 1)
++
++After the registry is compiled from all designated, pinned sources and before any Vector 1 spend, run a **bounded within-source and cross-source consistency pass**: compare material purpose/scope/behavior-level declarations, not every phrasing difference. A **material unresolved contradiction** — within one source or between any pointed resources — without explicit/locked precedence is a description defect and is never reviewer-reconciled: record the exact conflicting quotes, offsets, source hashes and affected claim IDs, mark the state provisionally `repair_required`, and **default the run to pause before Vector 1**. Only an operator-recorded, named, bounded **evidence-only Vector 1 run** (scope/rationale/state) may proceed through that pause; the authorization gathers evidence and never clears the defect or authorizes ordinary downstream work. A **non-material wording inconsistency** is recorded as a defect without pausing. Author clarification or a repaired contract opens a new review state — not an in-place reconciliation. The pass settles source coherence only: the final `review_basis` is computed after Vector 1 (conformance-pass.md). Because the material/non-material call is itself an agentic judgment (`pipeline-model.md`), record its witness evidence (conflicting quotes/offsets/hashes plus the materiality reasoning) with the run; a changed claim universe does not, by itself, explain or validate a cross-run difference in that call.
+ 

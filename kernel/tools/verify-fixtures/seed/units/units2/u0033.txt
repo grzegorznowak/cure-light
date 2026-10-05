@@ -1,0 +1,32 @@
+ ## 0.3 Split vectors into pass slices
+ 
+-Each vector's fleet splits the contract surface. Example split for a model-group/spawn PR:
++### 0.3a Mechanical changed-range census
++
++After the `claims_prepare`/`claims_finalize` run and before any split or the Phase-0 gate, the coordinator produces the **changed-range census** with the engine's installed `cure_light_census` plugin:
++
++```text
++census_run   {repo: <subject_path>, base_ref: <base_oid>, subject_ref: <subject_oid>, run_dir: <run_dir>}
++             # local; remote: {review_target, run_dir}; run_dir outside the subject repo, fresh
++             → census.json (changed-range-census/1: census_hash, recipe_hash, parents, events, partition) + census-check.json
++census_check {repo: <subject_path>, census_path: <run_dir>/census.json}
++             # independent offline recompute; permission = null
++```
++
++Census and claim runs use **separate, fresh roots**; a reused/non-fresh root is refused, and the run dir must not be inside the subject repo. **A census grants nothing and is not fed into the claim run.** Two-dot `base..subject` semantics only (never a merge-base substitution); `--stat` is orientation only, never the denominator. Parent units are the `git diff -U0` edit blocks; deletions, renames, mode/binary/submodule changes and other no-text edits are explicit metadata events with old/new path/blob or OID evidence. The artifact records parents/events counts, unique changed lines by side, the recipe + git version, `recipe_hash` and the canonical `census_hash`; `census_check` independently recomputes it under the pinned recipe. A `partition.ok:false` result (with `partition.errors`) is a partition/extraction failure; `BAD_INPUT`/`UNSUPPORTED_RUNTIME` cover usage/environment errors (git missing, bad refs, run dir inside the repo). No agent ingests the whole diff; contract-token ↔ path/symbol overlap may optionally yield candidate claim links (cheap, discovery-only); a missing candidate link never removes a unit from the denominator. Never hand-edit a census artifact, and never reuse one across review states — a re-pull has new OIDs and recomputes. Note: `cure_light_census` gates **claim-registry** completeness only (`complete_registry_claims`, `finalized_unclaimed`); changed-unit coverage is `census.partition.ok`. The plugin provides **no join** between the two — the coordinator joins census parents/events with registry claims/units to build the state's coverage ledger (notebook-plan-contract.md, Coverage pages).
++
++### 0.3b Capacity-bounded split compile
++
++Each vector's fleet splits the contract surface, capacity-bounded within the approved budget. Example split for a model-group/spawn PR:
+ 
+-- conformance: derivation core · persistence/schema guard · spawn/router gate · main-session+TUI · tests
++- conformance: contract surfaces (derivation core · persistence/schema guard · spawn/router gate · main-session+TUI · tests), each compiled into bounded claim/range shards — one verdict owner per claim, one accounting owner per unit — plus residual attribution shards for changed units with no candidate claim (work packaging only, never invented contracts)
+ - implementation: sealed concepts the review already established (never open-ended), + **`read` lens and the `blast` judgment rows** (the once-per-state sweep runs in the deterministic preflight)
+ - debt: pluggability · boundary ownership · versioning/migrations · projections · perf/operability, + **`dead`/`name`/`quality` lens ownership**
+ 
+-Slice granularity is chosen so each child reads a bounded file set + the relevant CONTRACT slice, and returns under a defined evidence budget.
++Slice granularity is chosen so each child reads a bounded file set + the relevant contract slice + only its ledger shard pages, and returns under a defined evidence budget.
+ 
+-The lens matrix (hygiene-lens.md) is compiled here and validated: every active lens must map to ≥1 owner. Deterministic preflight (strict tsc / lint) is the `type` sweep and `dead` accelerant; it also produces the state's once-per-state `symbol_sweep` symbol map (recipe: chhound-driver.md, Symbol sweep) — consumed by the V2 splits for the `sweep` row, seeded into V3 debt and the yagni pass, and rendered as the comment's `Symbol impact`.
++The split compile asserts **Vector 1 coverage** — a verdict owner for every captured claim, an accounting owner for every eligible (non-excluded) changed unit — distinct from the lens assertion below. The lens matrix (hygiene-lens.md) is compiled here and validated: every active lens must map to ≥1 owner. Deterministic preflight (strict tsc / lint) is the `type` sweep and `dead` accelerant; it also produces the state's once-per-state `symbol_sweep` symbol map (recipe: chhound-driver.md, Symbol sweep) — consumed by the V2 splits for the `sweep` row, seeded into V3 debt and the yagni pass, and rendered as the comment's `Symbol impact`.
+ 

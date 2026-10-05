@@ -1,0 +1,95 @@
+index 2efbee1..ba7a1cc 100644
+--- a/defs.py
++++ b/defs.py
+@@ -1,3 +1,163 @@
+ # defs base 1
+ # defs base 2
+ # defs base 3
++def fn_00():
++    body 0 of def 00 dddddddddddddddddddd [defs-marker]
++    body 1 of def 00 dddddddddddddddddddd [defs-marker]
++    body 2 of def 00 dddddddddddddddddddd [defs-marker]
++def fn_01():
++    body 0 of def 01 dddddddddddddddddddd [defs-marker]
++    body 1 of def 01 dddddddddddddddddddd [defs-marker]
++    body 2 of def 01 dddddddddddddddddddd [defs-marker]
++def fn_02():
++    body 0 of def 02 dddddddddddddddddddd [defs-marker]
++    body 1 of def 02 dddddddddddddddddddd [defs-marker]
++    body 2 of def 02 dddddddddddddddddddd [defs-marker]
++def fn_03():
++    body 0 of def 03 dddddddddddddddddddd [defs-marker]
++    body 1 of def 03 dddddddddddddddddddd [defs-marker]
++    body 2 of def 03 dddddddddddddddddddd [defs-marker]
++def fn_04():
++    body 0 of def 04 dddddddddddddddddddd [defs-marker]
++    body 1 of def 04 dddddddddddddddddddd [defs-marker]
++    body 2 of def 04 dddddddddddddddddddd [defs-marker]
++def fn_05():
++    body 0 of def 05 dddddddddddddddddddd [defs-marker]
++    body 1 of def 05 dddddddddddddddddddd [defs-marker]
++    body 2 of def 05 dddddddddddddddddddd [defs-marker]
++def fn_06():
++    body 0 of def 06 dddddddddddddddddddd [defs-marker]
++    body 1 of def 06 dddddddddddddddddddd [defs-marker]
++    body 2 of def 06 dddddddddddddddddddd [defs-marker]
++def fn_07():
++    body 0 of def 07 dddddddddddddddddddd [defs-marker]
++    body 1 of def 07 dddddddddddddddddddd [defs-marker]
++    body 2 of def 07 dddddddddddddddddddd [defs-marker]
++def fn_08():
++    body 0 of def 08 dddddddddddddddddddd [defs-marker]
++    body 1 of def 08 dddddddddddddddddddd [defs-marker]
++    body 2 of def 08 dddddddddddddddddddd [defs-marker]
++def fn_09():
++    body 0 of def 09 dddddddddddddddddddd [defs-marker]
++    body 1 of def 09 dddddddddddddddddddd [defs-marker]
++    body 2 of def 09 dddddddddddddddddddd [defs-marker]
++def fn_10():
++    body 0 of def 10 dddddddddddddddddddd [defs-marker]
++    body 1 of def 10 dddddddddddddddddddd [defs-marker]
++    body 2 of def 10 dddddddddddddddddddd [defs-marker]
++def fn_11():
++    body 0 of def 11 dddddddddddddddddddd [defs-marker]
++    body 1 of def 11 dddddddddddddddddddd [defs-marker]
++    body 2 of def 11 dddddddddddddddddddd [defs-marker]
++def fn_12():
++    body 0 of def 12 dddddddddddddddddddd [defs-marker]
++    body 1 of def 12 dddddddddddddddddddd [defs-marker]
++    body 2 of def 12 dddddddddddddddddddd [defs-marker]
++def fn_13():
++    body 0 of def 13 dddddddddddddddddddd [defs-marker]
++    body 1 of def 13 dddddddddddddddddddd [defs-marker]
++    body 2 of def 13 dddddddddddddddddddd [defs-marker]
++def fn_14():
++    body 0 of def 14 dddddddddddddddddddd [defs-marker]
++    body 1 of def 14 dddddddddddddddddddd [defs-marker]
++    body 2 of def 14 dddddddddddddddddddd [defs-marker]
++def fn_15():
++    body 0 of def 15 dddddddddddddddddddd [defs-marker]
++    body 1 of def 15 dddddddddddddddddddd [defs-marker]
++    body 2 of def 15 dddddddddddddddddddd [defs-marker]
++def fn_16():
++    body 0 of def 16 dddddddddddddddddddd [defs-marker]
++    body 1 of def 16 dddddddddddddddddddd [defs-marker]
++    body 2 of def 16 dddddddddddddddddddd [defs-marker]
++def fn_17():
++    body 0 of def 17 dddddddddddddddddddd [defs-marker]
++    body 1 of def 17 dddddddddddddddddddd [defs-marker]
++    body 2 of def 17 dddddddddddddddddddd [defs-marker]
++def fn_18():
++    body 0 of def 18 dddddddddddddddddddd [defs-marker]
++    body 1 of def 18 dddddddddddddddddddd [defs-marker]
++    body 2 of def 18 dddddddddddddddddddd [defs-marker]
++def fn_19():
++    body 0 of def 19 dddddddddddddddddddd [defs-marker]
++    body 1 of def 19 dddddddddddddddddddd [defs-marker]
++    body 2 of def 19 dddddddddddddddddddd [defs-marker]
++def fn_20():
++    body 0 of def 20 dddddddddddddddddddd [defs-marker]
++    body 1 of def 20 dddddddddddddddddddd [defs-marker]
++    body 2 of def 20 dddddddddddddddddddd [defs-marker]
++def fn_21():
++    body 0 of def 21 dddddddddddddddddddd [defs-marker]
++    body 1 of def 21 dddddddddddddddddddd [defs-marker]
++    body 2 of def 21 dddddddddddddddddddd [defs-marker]

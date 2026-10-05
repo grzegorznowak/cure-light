@@ -13,8 +13,10 @@ The prototype Python `tools/` units are retired, and the former standalone
 `cure_light_census` dependency is demoted. Phase 0 now captures sources, drafts
 claims with `#fast` (including source consistency), runs the shipped
 [`kernel/tools/chunker.mjs`](../kernel/tools/chunker.mjs), proposes witnessed
-JSONL links with `#fast`, and checks the sweep in the coordinator. Only the
-chunker ships as a tool; no gate/campaign harness is implied. F1–F10 remain a
+JSONL links with `#fast`, and checks the sweep in the coordinator. The chunker
+and the pinned mechanical verifier
+([`kernel/tools/verify.mjs`](../kernel/tools/verify.mjs)) ship as engine tools;
+no F1–F10 gate/campaign harness is implied. F1–F10 remain a
 validation plan until an executable contract-adequacy campaign is built.
 
 **Phase boundaries under test.** The P0.5 fixture checks the coordinator's
@@ -51,8 +53,8 @@ checkpoints; this plan does not settle them.
 - **Setup (material)**: the PR body says "removes X" while a designated, pinned spec says "requires X"; no explicit/locked precedence anywhere.
 - **Assert (material)**: the P0.2 pass records the contradiction with exact conflicting quotes, byte offsets, source hashes (blob OIDs / version pins) and affected claim IDs, plus a materiality witness; provisional `repair_required` is set and **no Vector 1 child is spawned**; no reviewer-resolved precedence is written.
 - **Control (non-material)**: an equivalent wording-only difference ("must" vs "shall") is recorded as a defect **without** pausing.
-- **Evidence-only exception**: same as material, but the operator records a named, bounded evidence-only V1 run (scope, rationale, state identity); it runs without clearing provisional `repair_required` or authorizing ordinary downstream work.
-- **Expected**: `source_consistency: provisional-repair-required` with the record ref; `evidence_only_v1: none` or the operator ref + scope; author clarification or a repaired contract opens a new state.
+- **Evidence-only exception**: same as material, but the operator records a named, bounded evidence-only V1 disposition in `repair_required.continuation` (`mode: evidence-only-v1` + scope + operator ref); it runs without clearing provisional `repair_required` or authorizing ordinary downstream work.
+- **Expected**: `source_consistency: {status: recorded-inconsistency, records_ref}` with a provisional `repair_required` record (`required: true`; `continuation.mode: pause` unless an explicit operator disposition sets `evidence-only-v1` with scope + operator ref); author clarification or a repaired contract opens a new state.
 - **Guards against**: spending V1 on an incoherent contract; reviewer-chosen winners ("spec wins"/"body wins"); a blanket override disguising a contradiction as clean.
 
 ### F4 — Repair lifecycle: body-only vs in-diff (new state)

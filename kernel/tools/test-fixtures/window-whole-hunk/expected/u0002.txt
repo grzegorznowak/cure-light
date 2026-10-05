@@ -1,0 +1,12 @@
+index 56583e2..662a6f5 100644
+--- a/two.txt
++++ b/two.txt
+@@ -4,7 +4,7 @@ two line 03 [two-marker]
+ two line 04 [two-marker]
+ two line 05 [two-marker]
+ two line 06 [two-marker]
+-two line 07 [two-marker]
++two line 07 changed [two-marker]
+ two line 08 [two-marker]
+ two line 09 [two-marker]
+ two line 10 [two-marker]

@@ -1,0 +1,20 @@
+@@ -24,7 +28,8 @@ Row 4 semantics: the `ch-chhound` probe and the fallback ladder are defined in c
+ 
+ - Research tools missing → git diff, `rg`, `grep`, direct `read`. Evidence quality stays the same; cost rises a little.
+ - Fleet groups missing → single-agent review with inherit-parent spawning; the pipeline still runs, each "child" is a serialized pass. Note the downgrade in the frame.
+-- Notebook missing → scratch dir with the same page layout; findings survive until context compaction (warning given).
++- Notebook missing → scratch dir for frame/findings (same layout minus the authoritative coverage store); findings survive until context compaction (warning given). Vector 1 accounting has no authoritative ledger and the run must not assert complete coverage; the source-designation/consistency and `review_basis` records also lack an authoritative store — record the limitation and never assert `ready` (conformance-pass.md; notebook-plan-contract.md).
++- `cure_light_census` absent/unverifiable or its credentials missing → STOP the Phase-0 toolchain path. Without the installed tool there is no census and no claim registry: there is no hand-built registry fallback, and the run cannot assert a complete claim universe or `review_basis: ready`. The operator may authorize an explicitly limited diagnostic that discloses Phase 0 ran without the pinned tool.
+ 
+ ## Stop conditions
+ 
+@@ -32,7 +37,8 @@ Row 4 semantics: the `ch-chhound` probe and the fallback ladder are defined in c
+ - (Phase 0) the subject tree cannot be pulled at all → stop; no evidence base (intake-and-scope.md §0.1). Pre-pull there is deliberately no subject tree — a missing tree stops the run only when the Phase-0 pull itself fails.
+ - (Phase 0, row 8) the pulled tree still cannot diff base..subject after a fetch retry → stop; origin classification needs the base diff, and `gh pr diff` never substitutes it.
+ - (chhound rail) rail confirmed but sandbox/connect/index broken → recorded fallback (plain worktree + git/rg), never a stop by itself.
++- (pre-pull, rows 10–11) `cure_light_census` fails its installed-pin verify (`PIN_MISMATCH`), or the package install/credentials are missing → stop; re-install by pin / provision the classic PAT with `read:packages`. Never relax the pin, never install a different version, and never substitute the subject tree's `tools/`.
+ 
+ ## Output of the check
+ 
+-A short table written into the run frame: `requirement (ok | fallback | deferred-to-Phase-0) | evidence`. The frame's **planned subject mechanism** line gives the operator boot-time visibility of how the subject will be pulled — presence, not a guarantee. Rows never mix pre/post-pull results; the check is marked complete only after the deferred rows ran at the Phase 0 gate. If anything fell back, the frame says so — the closure loop and any later context must know the evidence base was narrower.
++A short table written into the run frame: `requirement (ok | fallback | deferred-to-Phase-0) | evidence`. The frame's **planned subject mechanism** line gives the operator boot-time visibility of how the subject will be pulled — presence, not a guarantee. The toolchain rows record the package pin, its `describe_sha256`/`artifact.sha256`, and the verify result. Rows never mix pre/post-pull results; the check is marked complete only after the deferred rows ran at the Phase 0 gate. If anything fell back, the frame says so — the closure loop and any later context must know the evidence base was narrower. The check records requirement rows only: contract-adequacy dispositions are separate, later records — the provisional source-consistency/`repair_required` outcome at the Phase-0 gate and the `review_basis` at the V1 gate (intake-and-scope.md §0.2/§0.4; conformance-pass.md) — never folded into this table or the boot-time frame seal.

@@ -1,0 +1,26 @@
+index 3e1e7e0..2241291 100644
+--- a/libs/pi-driver/references/requirements-check.md
++++ b/libs/pi-driver/references/requirements-check.md
+@@ -4,6 +4,8 @@ Run BEFORE the fleet spends anything. Each line is a hard gate with a fallback o
+ 
+ Two groups: **pre-pull rows** run at boot and feed the frame gate (they need only gh + the runtime, never a local tree); **deferred rows** (5/8/9) need the pulled subject and run at the **Phase 0 gate** — the check is marked complete only after they have run. Nothing in the target repo is cloned, checked out, or read locally before the subject pull (subject-first, kernel/SKILL.md §2).
+ 
++**Declared environment + toolchain rows (10–11).** The initial environment description declares Node ≥22.19 + Pi with the installed single tool `cure_light_census` (`@grzegorznowak/pi-cure-light-census@1.0.2`) and the credentials to install it; rows 10–11 verify that declaration before Phase 0. The tool is engine-side, so provisioning it is not target-repo access. A missing/wrong install or an unverifiable pin fails loud (`PIN_MISMATCH`) — there is no hand-built registry fallback.
++
+ ## Hard requirements
+ 
+ | # | Runs | Check | Command(s) | Fail → |
+@@ -13,10 +15,12 @@ Two groups: **pre-pull rows** run at boot and feed the frame gate (they need onl
+ | 3 | pre-pull | PR exists, OPEN; base OID + remote head OID captured (informational) | `gh pr view <pr> --json headRefOid,baseRefOid,state,title` | STOP or ask |
+ | 4 | pre-pull | subject mechanism planned: rail live via the `ch-chhound status` model probe → chunkhound PR sandbox; where the probe is blocked (`modelTools=off`) or absent (older build) install detected (pi settings `packages` / extension dirs + `chunkhound` CLI on PATH) → sandbox **pending the operator's `/ch-status` confirmation at the frame gate**; neither → plain detached worktree | `ch-chhound {action: "status"}`; inspect pi settings / extension dirs; `chunkhound` on PATH | record the fallback mechanism in the frame; never a stop by itself |
+ | 5 | Phase 0 | (chhound rail) sandbox/bridge ready; prefixed tool responds (an in-place re-pull retains the bridge) | first pull: `ch-chhound {action: "worktree.create", pr: "<PR-URL>", connect: true}` (fallback `/ch-mcp … --prefix chh_pr<n>`); re-pull: `git -C <subject_path> fetch/checkout`; then `{ch_prefix}_daemon_status` | reconnect once (`ch-chhound {action: "mcp.connect", target: "…"}` or operator `/ch-mcp`); else record fallback (plain worktree + git/rg), never stop |
+-| 6 | pre-pull | notebook writable (pi) | `notebook_index` returns pages | fallback: session-scratch dir (frame/findings) + contract on disk; note durability loss |
++| 6 | pre-pull | notebook writable (pi) | `notebook_index` returns pages | fallback: session-scratch dir (frame/findings) + contract on disk; **no authoritative coverage ledger, claim registry, source pins or gate-disposition store** — Vector 1's completeness flags cannot all clear and `review_basis` cannot be asserted `ready`; note durability loss |
+ | 7 | pre-pull | fleet groups present (pi + model-groups) | inspect group list (flash/code-review/…) | fallback: inherit-parent spawn, note in frame |
+ | 8 | Phase 0 | git diff base..subject works on the **pulled** tree | `git -C <subject-path> diff <base_oid>..<subject_oid> --stat` | fetch the base ref into the tree's repo and retry; if still failing → STOP |
+ | 9 | Phase 0 | (chhound rail) index health | `{ch_prefix}_daemon_status` | use bash/rg/grep; never block |
++| 10 | pre-pull | installed single Pi tool `cure_light_census` verified: `@grzegorznowak/pi-cure-light-census@1.0.2` on Node ≥22.19, in-process — `dist/TOOL.json` `version` equals the declared pin and `describe_sha256`/`artifact.sha256` match the installed package's own manifest (asset inventory) | Pi tool registry exposes `cure_light_census`; verify the installed package against `dist/TOOL.json` `version` + `describe_sha256`/`artifact.sha256` | STOP: `PIN_MISMATCH` is never relaxed — re-install by pin; never substitute the subject tree's `tools/` copy |
++| 11 | pre-pull | plugin provisioning + credentials: the private package is installed from GitHub Packages (classic PAT with `read:packages`); remote intake (`review_target`) uses the caller's existing `gh`/`git` credentials | install/verify `@grzegorznowak/pi-cure-light-census@1.0.2` from GitHub Packages; `gh auth status` (row 1) covers remote intake | fail-loud → STOP: a missing install/credential cannot run any census action (no fallback registry; a degraded Phase 0 needs explicit operator authorization and can never claim a complete claim universe) |
+ 
+ Row 4 semantics: the `ch-chhound` probe and the fallback ladder are defined in chhound-driver.md §Presence. The frame's planned mechanism is a **plan**, never a sandbox guarantee — a sandbox failure at Phase 0 falls back per chhound-driver.md (plain worktree + git/rg). Row 8 is a post-pull check on the pulled tree only: `gh pr diff` NEVER substitutes the subject diff — the remote head may differ from the pulled subject, and diffing the wrong tree would corrupt scope and origin classification.
+ 

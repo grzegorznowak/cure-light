@@ -1,0 +1,31 @@
++| State | Meaning |
++|---|---|
++| `EXPLAINED` | at least one validated attribution edge to a captured claim (many edges allowed) — roles `implements` / `tests` / `necessary-support` / `removes/changes` / `documents/specifies`; source provenance (`declares`) is not an edge |
++| `UNCLAIMED` | inspected delivered change with no defensible clause in the *captured contract*, after the documented claim-directory check: the child returns `UNCLAIMED_CANDIDATE`, the coordinator finalizes after an alternate-surface check |
++| `EXCLUDED` | explicit approved waiver of attribution (generated/vendor/whitespace bulk, …), recorded with class, exact units, evidence, generator/source linkage, rationale and policy — a path suffix alone is never sufficient |
++| `UNRESOLVED` | initial / unread / truncated / disputed / failed — never quietly relabeled |
++
++Unclaimed is **not** "no lexical match", "no owner assigned", or child silence: if contract-search breadth is inadequate, the unit stays `UNRESOLVED`. Exclusions are waivers of attribution, never assertions of correctness — lock/dependency/security changes and hand-authored behavioral fixtures stay reviewable. Unknown formats and parser errors stay `UNRESOLVED`.
++
++## Coordinator reconciliation
++
++1. Initialize all census units `UNRESOLVED` from the pinned census artifact; load the canonical registry projection (claim IDs/counts/`registry_hash`) **only when the state's `gate_check` report is verified with both coverage booleans**, plus assignments and approved exclusions.
++2. Validate each return: output OID, assignment digest, claim/unit references, range containment, a partition with no overlap/hole in the returned set, required rationale/evidence, no self-ratifying or cyclic source→deliverable edge, budget/completion. Conflicts become `UNRESOLVED`; an unrelated claim ID cannot clear a unit.
++3. Merge interval edges and claim verdicts separately; route cross-surface contributions to the verdict owner; finalize `UNCLAIMED` only after the alternate attribution check — including every qualifying designated in-diff source clause; keep contradictory claim evidence visible.
++4. Compute `D = EXPLAINED ⊎ UNCLAIMED ⊎ EXCLUDED ⊎ UNRESOLVED`; report counts and changed lines/events per state, exclusion classes, claim totals, noncompliant children. Claim totals compare against the canonical registry's IDs/counts/`registry_hash`, never against a locally recomputed set. Enumeration, accounting, attribution and claim conformance are four distinct flags.
++5. Retry/reslice bounded failures within budget; otherwise the gate offers the operator: extend budget, accept explicitly partial review, request richer contract / smaller PR, or stop.
++6. Ledger detail is validated and materialized by coordinator scripts into the coverage pages; the gate shows the compact claim matrix plus coverage summary and exception groups — not full hunk returns.
++
++## Artifacts
++
++- **Claim × implementation/test matrix** — the semantic product: every claim marked `backed` / `unbacked` / `contradicted` with evidence, claim IDs and small coverage refs/counts.
++- **Coverage ledger** — per-unit states, attribution edges, ranges, exclusions, recipe: coordinator-owned notebook coverage pages (notebook-plan-contract.md) — never scratch files, never rendered whole at the gate.
++- **V2 projection** — Vector 2 consumes a paged, bounded **matrix projection**: adjudicated claims/invariants with anchors and the relevant coverage refs and uncertainty — not the ledger bulk.
++
++A thin or empty contract stops deeper planning at the gate: request author scope, or run an explicitly limited V1-only review; never fabricate a claim or silently launch an open-ended file sweep. Unclaimed units are disclosed as accounting, not automatically bug-reviewed or declared wrong.
+ 
+ ## Aggregation
+ 
+-The coordinator deduplicates findings into a **claim × implementation/test matrix**: every contract claim listed, marked `backed` / `unbacked` / `contradicted`, with evidence. Unresolved claims become findings rather than assumptions.
++Claims deduplicate into the matrix. Confirmed unclaimed delivery is **V1 in-scope conformance** and **blocking** — grouped into one bounded finding per coherent missing scope declaration (representative subject/base anchors, exact group counts, unit selector/hash) with `conformance_kind: unclaimed-delivery`. Remedy: the owner declares/justifies the delivered behavior in the PR description or removes it — a declaration changes the captured contract, so it lands as a closed/new state (closure-verification.md), never silent rewriting. An operator-approved waiver stays `UNCLAIMED` with its resolution recorded, never fake claim coverage.
++

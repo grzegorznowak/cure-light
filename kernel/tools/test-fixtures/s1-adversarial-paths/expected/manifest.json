@@ -1,0 +1,127 @@
+{
+ "schema_version": "code-units-sim/2",
+ "recipe": {
+  "chunker": "chunker.mjs",
+  "target_bytes": 4096,
+  "ceiling_bytes": 6144,
+  "context": 3,
+  "block_preference": true
+ },
+ "identity": {
+  "repo": "<REPO>",
+  "base_ref": "main",
+  "subject_ref": "subject",
+  "base_oid": "73def98bc657d5f65787795231fe40d1fde4f812",
+  "subject_oid": "f18771f61b439a2fc03250ce70909e24d4296db2"
+ },
+ "counts": {
+  "units": 6,
+  "files": 6,
+  "line_split_units": 0,
+  "total_bytes": 904
+ },
+ "units": [
+  {
+   "unit_id": "u0000",
+   "file": "units2/u0000.txt",
+   "path": "a",
+   "ranges": [
+    {
+     "old_start": 1,
+     "old_count": 2,
+     "new_start": 1,
+     "new_count": 2
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 120,
+   "blocks": 1,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0001",
+   "file": "units2/u0001.txt",
+   "path": "a b/a b/c.txt",
+   "ranges": [
+    {
+     "old_start": 1,
+     "old_count": 2,
+     "new_start": 1,
+     "new_count": 2
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 170,
+   "blocks": 1,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0002",
+   "file": "units2/u0002.txt",
+   "path": "a b/c b/d.txt",
+   "ranges": [
+    {
+     "old_start": 1,
+     "old_count": 2,
+     "new_start": 1,
+     "new_count": 2
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 170,
+   "blocks": 1,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0003",
+   "file": "units2/u0003.txt",
+   "path": "b",
+   "ranges": [
+    {
+     "old_start": 1,
+     "old_count": 2,
+     "new_start": 1,
+     "new_count": 2
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 120,
+   "blocks": 1,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0004",
+   "file": "units2/u0004.txt",
+   "path": "x b/x b/y.txt",
+   "ranges": [
+    {
+     "old_start": 1,
+     "old_count": 2,
+     "new_start": 1,
+     "new_count": 2
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 170,
+   "blocks": 1,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0005",
+   "file": "units2/u0005.txt",
+   "path": "x b/y.txt",
+   "ranges": [
+    {
+     "old_start": 1,
+     "old_count": 2,
+     "new_start": 1,
+     "new_count": 2
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 154,
+   "blocks": 1,
+   "boundary_kind": "block"
+  }
+ ]
+}

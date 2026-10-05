@@ -1,0 +1,33 @@
+@@ -16,10 +19,32 @@ A re-pull starts the next review state and writes **distinct** frame + contract
+ 
+ Reference pages by name. Children `notebook_read` on demand; they do not preload bodies. The coordinator serializes writes with a process-local ordering so same-name writes don't race.
+ 
++### Canonical artifact store (D2)
++
++The run's canonical bytes — `census.json` (`census_hash`), the capture manifest + raw sources, the frame/slice manifests + payloads, every child proposal, the merged proposals, the reconciliation report, `registry.json` (`registry_hash`), the validation report, `run-manifest.json`, and the gate report — are **content-addressed and verifiable**: each is stored with its sha256 (`sha256:<hex>` object content IDs, lowercase hex file digests) and each notebook projection is reassembled and hash-equality checked against those bytes before use. Two stores are allowed, and either (or a documented mix) may be used:
++
++- **paginated content-addressed notebook artifact pages** (the `claims-`/`coverage-` pages plus bounded `-p<k>`/artifact shards), or
++- a **durable run-artifact store** mounted outside the subject (surviving sandbox teardown), with the notebook page carrying refs + hashes and the reassembly rule.
++
++Whichever store holds the canonical bytes — notebook artifact pages or a durable run store — it is content-addressed and verifiable: run-store files used only as execution cache are not authoritative; notebook pages may hold the canonical bytes directly (paginated, content-addressed) under the same reassembly/hash-equality rule, and when the durable store is canonical the notebook pages are projections of it. **No pretty-JSON substitute:** a re-rendered summary, a pretty-printed copy or a partial excerpt never replaces the canonical bytes, and a projection whose reassembled bytes/hash differ from the canonical artifact is invalid. **Lifecycle:** canonical artifacts and their projections are kept through the state's closure/finalization window and retired only after a durable snapshot with matching hash lands (claims/coverage pages per their table rows); a retirement never leaves a live state page referencing unreachable bytes. A new review state gets a new `-s<n>` set and never overwrites or reuses the previous state's artifacts.
++
++### Coverage pages
++
++`coverage-<owner>-<pr>-s<n>` is the summary/index for a state's Vector 1
++changed-unit accounting; `coverage-<owner>-<pr>-s<n>-p<k>` are its ledger
++shards, paged by surface/shard/claim group so a mega-diff ledger stays inside
++a notebook page (50 KB / 2000 lines). The index carries the denominator,
++counts, exclusion policy and completion flags plus exact shard refs, so
++closure and finalization can cite the accounting without loading every shard.
++
+ ## Content rules
+ 
+ - **Findings are recoverable facts** — keep the evidence-format rows; discard tender re-derivable code trivia freely at handoff.
+ - **The symbol map is a bounded state cache.** Structured artifact data (symbols, counts, capped locations) that survives the state's handoffs because V3 and the post-handoff yagni pass consume it — never raw search logs. A re-pull is a new state: a new `-s<n>` page, never an overwrite or silent reuse.
++- **Coverage records are structured machine records, not findings.** Vector 1's changed-unit accounting (unit/range, accounting state, attribution edges, evidence refs — conformance-pass.md) lives in the `coverage-<owner>-<pr>-s<n>` summary/index and its bounded `-p<k>` shards; these in-notebook pages are the authoritative store — never findings rows, raw logs, or scratch files. Workers read only their assigned pages/slices. A re-pull is a new state with its own `-s<n>` coverage pages, never an overwrite. The summary page carries the denominator + counts + completion flags + per-shard assignment refs/digests so closure/finalization can cite the accounting without the shards; coverage pages stay through the closure/finalization window and retire after durable snapshots land — a closure run never depends on a dead link.
++- **The claim registry is the complete claim universe — as a verified projection.** `claims-<owner>-<pr>-s<n>` renders the canonical `cure_light_census` registry (`registry.json`/`registry_hash`) compiled at Phase 0 (intake-and-scope.md §0.2): identical claim IDs, counts and `registry_hash`, reassembly/hash-equality checked against the canonical bytes, and behind the state's `gate_check` permission. A summary, a window/slice, a hand-renumbered set or a page without its backing canonical bytes is never a substitute; negative attribution that cannot query it returns `UNRESOLVED` (conformance-pass.md).
++- **Sources enter the contract only by explicit designation.** In-diff spec/design material is a claim source only when the PR body, linked issue or a locked decision points at it; repo convention interprets a designated package (normative vs advisory, delta vs baseline), never authorizes one (intake-and-scope.md §0.2). Non-capturable pointed material is context with a stated limitation. Source/consistency/`review_basis` records are coordinator process records, not findings.
++- **Contract repair is a new state, not an overwrite.** A changed PR body/issue or in-diff source — even with an unchanged subject OID when no code changed — writes a new `-s<n>` contract/claims set; prior states stay addressable at their own pins (closure-verification.md).
+ - **Decisions are non-recoverable** — always persist: operator deferrals, closed-by-operator records, locked decisions from the issue. Never let them go stale or vanish on compaction.
+ - **The contract page is verbatim, bounded.** The Phase-0 contract is the one long-form page: PR claims + locked decisions preserved byte-exact (intake-and-scope.md §0.2). Never paste raw diffs, logs, or kernel text into it.
+ - **No raw transcripts/logs.** A vector's dead ends and working notes do not belong in the notebook; the closure table's `re-opened` row records the reason concisely.

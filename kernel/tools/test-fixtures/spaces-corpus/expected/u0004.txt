@@ -1,0 +1,7 @@
+index 0a24241..8ed68a8 100644
+--- a/two  spaces.txt	
++++ b/two  spaces.txt	
+@@ -1,2 +1,2 @@
+-base content of two  spaces.txt
++subject content of two  spaces.txt
+ second base line

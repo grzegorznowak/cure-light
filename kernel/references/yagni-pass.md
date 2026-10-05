@@ -61,7 +61,7 @@ it (the lens matrix shows `off`, exempt from the coverage assertion).
 ```text
 ENGINEERING: JUSTIFIED — <unit → served claim, file:line per mechanism, why required>
    | CHALLENGED — <unit → unnecessary mechanism, file:line>
-Y[<id>] file:line — served claim: <claim_id / locked decision> — unnecessary mechanism:
+[Y-<n>] file:line — served claim: <claim_id / locked decision> — unnecessary mechanism:
    <what> — present justification missing: <why the requirement does not need it>
    — severity (LOW/MED) — origin: PR-introduced | pre-existing (base: <base>:<path>:<line>)
 NOT-YAGNI: <surface checked and defended by a locked decision>

@@ -5,6 +5,7 @@
 //     → <outDir>/units2/manifest.json + units2/uNNNN.txt payloads
 //
 // Contract: kernel/references/chunker.md. Zero dependencies beyond Node + git.
+// Tests: node --test "kernel/tools/*.test.mjs" (chunker.test.mjs + chunker.paths.test.mjs).
 // Fail-fast: usage errors, git/IO errors and lines that cannot fit the ceiling
 // are hard errors; the runner never splits mid-line and never writes a manifest
 // for a failed run.
@@ -20,6 +21,7 @@ if (!repo || !base || !subject || !outDir) {
 
 const TARGET = 4096; // preferred window size in bytes
 const CEIL = 6144;   // hard ceiling for code windows
+const CONTEXT = 3;    // unified diff context lines
 const DEF_START = /^(?:async\s+def|def|class|function|export|const|let|var|public|private|protected|static|interface|type|enum|func|package|module|impl|struct|fn)\b/;
 const strip = (l) => (l[0] === "+" || l[0] === "-" || l[0] === " " ? l.slice(1) : l);
 const isBlank = (l) => /^\s*$/.test(strip(l)) || l.startsWith("\\ No newline");
@@ -29,38 +31,50 @@ const fail = (msg) => { console.error(`chunker: ${msg}`); process.exit(1); };
 
 // Two-dot diff, no renames, no external diffs/textconv (subject-configured
 // filters are subject-tree executables and are never run), stable paths.
+// The recipe is pinned against subject/runner git config: explicit prefixes
+// defeat diff.noprefix/srcPrefix/dstPrefix, GIT_DIFF_OPTS is cleared (it
+// overrides -U), submodules are always rendered so a committed ignore=all
+// cannot hide a pointer change, and blank-empty/hunk-context config cannot
+// move payload bytes or hunk boundaries.
 let diff;
 try {
   diff = execFileSync("git", [
     "-C", repo, "-c", "core.quotepath=false",
-    "diff", "-U3", "--no-ext-diff", "--no-color", "--no-renames",
+    "-c", "diff.suppressBlankEmpty=false",
+    "diff", `-U${CONTEXT}`, "--src-prefix=a/", "--dst-prefix=b/",
+    "--inter-hunk-context=0", "--submodule=short", "--ignore-submodules=none",
+    "--no-ext-diff", "--no-color", "--no-renames",
     "--no-textconv", "--diff-algorithm=myers", `${base}..${subject}`,
-  ], { maxBuffer: 1 << 28 }).toString("utf8");
+  ], { maxBuffer: 1 << 28, env: { ...process.env, GIT_DIFF_OPTS: "" } }).toString("utf8");
 } catch (err) {
   fail(`git diff failed: ${err.message}`);
 }
 
+const diffLines = diff.split("\n");
+if (diffLines[diffLines.length - 1] === "") diffLines.pop(); // single terminal "" from git's final newline
 const blocks = []; let cur = null;
-for (const line of diff.split("\n")) {
+for (const line of diffLines) {
   if (line.startsWith("diff --git ")) { if (cur) blocks.push(cur); cur = { header: line, lines: [] }; }
   else if (cur) cur.lines.push(line);
 }
 if (cur) blocks.push(cur);
 
 // --no-renames means both sides name the same path. The text header is
-// ambiguous when the path itself contains " b/"; recover it by matching
-// a-side and b-side spans of equal content (longest match wins).
+// ambiguous when the path itself contains " b/"; recover it by comparing
+// the a-side and b-side spans after the full `diff --git a/` prefix and
+// keeping the longest equal match. Fall back to the raw header when no
+// split makes both sides equal (e.g. a C-quoted path).
+const DIFF_PREFIX = "diff --git a/";
 const parseDiffPath = (header) => {
-  const m = header.match(/^diff --git a\/(.*) b\/(.*)$/);
-  if (!m) return header;
-  if (m[1] === m[2]) return m[2];
-  let best = m[2], p = header.indexOf(" b/", 4);
+  if (!header.startsWith(DIFF_PREFIX)) return header;
+  const rest = header.slice(DIFF_PREFIX.length);
+  let best = null, p = rest.indexOf(" b/");
   while (p !== -1) {
-    const left = header.slice(4, p), right = header.slice(p + 3);
-    if (left.length > 0 && left === right) best = left;
-    p = header.indexOf(" b/", p + 1);
+    const left = rest.slice(0, p), right = rest.slice(p + 3);
+    if (left.length > 0 && left === right && (best === null || left.length > best.length)) best = left;
+    p = rest.indexOf(" b/", p + 1);
   }
-  return best;
+  return best === null ? header : best;
 };
 
 // Exact stored payload size: a unit is written as lines.join("\n") with no
@@ -68,7 +82,8 @@ const parseDiffPath = (header) => {
 const bytes = (arr) => Buffer.byteLength(arr.join("\n"), "utf8");
 
 const units = []; let uid = 0;
-mkdirSync(join(outDir, "units2"), { recursive: true });
+try { mkdirSync(join(outDir, "units2"), { recursive: true }); }
+catch (err) { fail(`cannot create output directory: ${err.message}`); }
 
 const flush = (filePath, buf, ranges, boundary) => {
   if (!buf.length) return;
@@ -76,7 +91,8 @@ const flush = (filePath, buf, ranges, boundary) => {
     fail(`internal window overflow (${bytes(buf)} bytes > ${CEIL}) in ${filePath}`);
   }
   const id = `u${String(uid).padStart(4, "0")}`;
-  writeFileSync(join(outDir, "units2", `${id}.txt`), buf.join("\n"), "utf8");
+  try { writeFileSync(join(outDir, "units2", `${id}.txt`), buf.join("\n"), "utf8"); }
+  catch (err) { fail(`cannot write unit payload ${id}.txt: ${err.message}`); }
   units.push({
     unit_id: id, file: `units2/${id}.txt`, path: filePath,
     ranges, hunk_count: ranges.length, byte_len: bytes(buf),
@@ -119,10 +135,10 @@ for (const block of blocks) {
   // not code windows and are exempt from the window ceiling.
   if (!hunks.length) { flush(filePath, preamble.length ? preamble : [block.header], [], { blocks: 1, kind: "file" }); continue; }
 
-  let buf = [], ranges = [], nblocks = 0, lineSplit = false;
-  const flushBuf = (kind) => {
-    flush(filePath, buf, ranges, { blocks: nblocks, kind: kind || (lineSplit ? "line-split" : "block") });
-    buf = []; ranges = []; nblocks = 0; lineSplit = false; // never sticky past this buffer
+  let buf = [], ranges = [], nblocks = 0;
+  const flushBuf = () => {
+    flush(filePath, buf, ranges, { blocks: nblocks, kind: "block" });
+    buf = []; ranges = []; nblocks = 0;
   };
   hunks.forEach((hunk, i) => {
     const range = { old_start: hunk.old_start, old_count: hunk.old_count, new_start: hunk.new_start, new_count: hunk.new_count };
@@ -153,7 +169,6 @@ for (const block of blocks) {
             if (bytes(p) > CEIL) fail(`indivisible line exceeds the ${CEIL}-byte ceiling in ${filePath}; refusing to split mid-line`);
             flush(filePath, p, [range], { blocks: 1, kind: "line-split" });
           }
-          lineSplit = true;
         }
       }
     }
@@ -163,7 +178,7 @@ for (const block of blocks) {
 
 const manifest = {
   schema_version: "code-units-sim/2",
-  recipe: { chunker: "chunker.mjs", target_bytes: TARGET, ceiling_bytes: CEIL, context: 3, block_preference: true },
+  recipe: { chunker: "chunker.mjs", target_bytes: TARGET, ceiling_bytes: CEIL, context: CONTEXT, block_preference: true },
   identity: {
     repo, base_ref: base, subject_ref: subject,
     base_oid: execFileSync("git", ["-C", repo, "rev-parse", base]).toString().trim(),
@@ -172,6 +187,7 @@ const manifest = {
   counts: { units: units.length, files: blocks.length, line_split_units: units.filter((u) => u.boundary_kind === "line-split").length, total_bytes: units.reduce((n, u) => n + u.byte_len, 0) },
   units,
 };
-writeFileSync(join(outDir, "units2", "manifest.json"), JSON.stringify(manifest, null, 1), "utf8");
+try { writeFileSync(join(outDir, "units2", "manifest.json"), JSON.stringify(manifest, null, 1), "utf8"); }
+catch (err) { fail(`cannot write manifest: ${err.message}`); }
 console.log(JSON.stringify(manifest.counts));
 console.log(units.map((u) => `${u.unit_id} ${String(u.byte_len).padStart(6)}B blocks=${u.blocks} ${u.boundary_kind.padEnd(10)} ${u.path}`).join("\n"));

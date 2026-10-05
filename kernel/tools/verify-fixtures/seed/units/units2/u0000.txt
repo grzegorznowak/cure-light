@@ -1,0 +1,9 @@
+index a47d77e..57227e7 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -2,3 +2,5 @@
+ *.log
+ .notes/
+ scratch/
++__pycache__/
++*.pyc

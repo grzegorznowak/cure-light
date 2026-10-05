@@ -1,0 +1,536 @@
+{
+  "schema_version": "claims-draft/3",
+  "run": "grzegorznowak/cure-light#17",
+  "review_state": "s1",
+  "subject_oid": "afe5145da30fa7d5d2e212296f2c458d2bf7e941",
+  "base_oid": "c79a54c57322b45498ffd01db45a876a4712e138",
+  "sources": [
+    {
+      "source_ref": "pr:body",
+      "locator": "pr:body",
+      "path": "claims/sources/pr-body.md",
+      "role": "declares",
+      "sha256": "4910224c9fbe2d1ef12bd00923ba983b2cf0c6f1fc30d2360fde55a1b03314e0",
+      "byte_length": 20413
+    },
+    {
+      "source_ref": "repo:docs/contract-adequacy-validation-plan.md",
+      "locator": "repo:docs/contract-adequacy-validation-plan.md",
+      "path": "claims/sources/designated-contract-adequacy-validation-plan.md",
+      "role": "declares",
+      "blob_subject": "283d629221ec249a893630d65cce3653f3461d62",
+      "sha256": "2636ac18bf39c4bc756a39a0b82d95e7e26791bfe1cf67a60726589fa94104af",
+      "byte_length": 10736
+    }
+  ],
+  "claims": [
+    {
+      "id": "C01",
+      "statement": "Vector 1 must prove code to contract: every changed unit in the diff is accounted for against the captured contract.",
+      "source_ref": "pr:body",
+      "quote": "Now it must also prove code → claims: **every changed unit in the diff is accounted for against the captured contract**",
+      "also_in": []
+    },
+    {
+      "id": "C02",
+      "statement": "Every changed leaf is assigned exactly one accounting state, with attribution edges tying ranges to claims.",
+      "source_ref": "pr:body",
+      "quote": "every changed leaf gets exactly one state (`EXPLAINED` / `UNCLAIMED` / `EXCLUDED` / `UNRESOLVED`); attribution edges tie ranges to claims",
+      "also_in": []
+    },
+    {
+      "id": "C03",
+      "statement": "A mechanical changed-range census is the denominator for accounting.",
+      "source_ref": "pr:body",
+      "quote": "a mechanical changed-range census as the denominator",
+      "also_in": []
+    },
+    {
+      "id": "C04",
+      "statement": "A confirmed unclaimed unit becomes a grouped Vector 1 blocking finding the owner must address in the PR body.",
+      "source_ref": "pr:body",
+      "quote": "A confirmed unclaimed unit is not a statistic: it becomes a grouped Vector 1 finding the **owner must address in the PR body** — declare/justify the behavior or remove it.",
+      "also_in": []
+    },
+    {
+      "id": "C05",
+      "statement": "A newly declared behavior changes the contract and lands as a recapture or new state at closure.",
+      "source_ref": "pr:body",
+      "quote": "A declaration changes the contract, so it lands as a recapture/new state at closure.",
+      "also_in": []
+    },
+    {
+      "id": "C06",
+      "statement": "Additive schema and format support carries unclaimed-delivery, coverage refs, evidence anchors, severity rules and coverage totals.",
+      "source_ref": "pr:body",
+      "quote": "(`conformance_kind: unclaimed-delivery`, coverage refs, old-side/metadata evidence anchors, LOW default / MED material / never HIGH from absence alone, coverage totals in Summary, findings in Findings — no fourth section)",
+      "also_in": []
+    },
+    {
+      "id": "C07",
+      "statement": "Yagni removes the untraceable-hunk atom and the traceable-equals-NOT-A-HIT dismissal; hunk accounting is V1's job.",
+      "source_ref": "pr:body",
+      "quote": "The untraceable-hunk atom and the \"traceable = NOT-A-HIT\" dismissal are removed — hunk accounting is V1's job now.",
+      "also_in": []
+    },
+    {
+      "id": "C08",
+      "statement": "Yagni refocuses on whether the engineering used to deliver claimed behavior is justified, as an optional, fresh-context, non-blocking LOW/MED lens.",
+      "source_ref": "pr:body",
+      "quote": "Yagni asks the narrower question: *is the engineering used to deliver the claimed behavior justified, or over-built?* Still optional, fresh-context, non-blocking LOW/MED lens trail.",
+      "also_in": []
+    },
+    {
+      "id": "C09",
+      "statement": "The coverage ledger and claim registry are coordinator-owned paged notebook pages, the authoritative store with no ambient scratch/global state.",
+      "source_ref": "pr:body",
+      "quote": "Coverage ledger and claim registry are coordinator-owned **paged notebook pages** — the authoritative store, no ambient scratch/global state",
+      "also_in": []
+    },
+    {
+      "id": "C10",
+      "statement": "A notebook-less fallback cannot assert complete coverage.",
+      "source_ref": "pr:body",
+      "quote": "A notebook-less fallback cannot assert complete coverage.",
+      "also_in": []
+    },
+    {
+      "id": "C11",
+      "statement": "In-diff spec/design material enters the contract only through an explicit pointer, and repository convention interprets but never authorizes a designated package.",
+      "source_ref": "pr:body",
+      "quote": "In-diff spec/design material enters the contract only through an explicit pointer (PR body / linked issue / locked decision — the pointer is the trust stamp; repository convention only **interprets** a designated package, never authorizes one).",
+      "also_in": [
+        "repo:docs/contract-adequacy-validation-plan.md"
+      ]
+    },
+    {
+      "id": "C12",
+      "statement": "Before any Vector 1 spend, a bounded within-/cross-source consistency pass compares material purpose/scope/behavior declarations.",
+      "source_ref": "pr:body",
+      "quote": "Before any Vector 1 spend, a bounded within-/cross-source consistency pass compares material purpose/scope/behavior declarations",
+      "also_in": [
+        "repo:docs/contract-adequacy-validation-plan.md"
+      ]
+    },
+    {
+      "id": "C13",
+      "statement": "A material unresolved contradiction without explicit precedence provisionally marks repair_required and defaults the run to pause before Vector 1.",
+      "source_ref": "pr:body",
+      "quote": "a material unresolved contradiction without explicit precedence marks the state provisionally `repair_required` and **defaults the run to pause before Vector 1**",
+      "also_in": [
+        "repo:docs/contract-adequacy-validation-plan.md"
+      ]
+    },
+    {
+      "id": "C14",
+      "statement": "The narrow exception to the pause is an operator-recorded, named, bounded evidence-only Vector 1 run.",
+      "source_ref": "pr:body",
+      "quote": "the narrow exception is an operator-recorded, named, bounded **evidence-only Vector 1 run**",
+      "also_in": [
+        "repo:docs/contract-adequacy-validation-plan.md"
+      ]
+    },
+    {
+      "id": "C15",
+      "statement": "After Vector 1, completion is a review-basis gate of ready/limited-only/blocked/unknown plus a separate repair_required.",
+      "source_ref": "pr:body",
+      "quote": "After Vector 1, completion is a **review-basis gate** (`ready` / `limited-only` / `blocked` / `unknown` plus a separate `repair_required`)",
+      "also_in": [
+        "repo:docs/contract-adequacy-validation-plan.md"
+      ]
+    },
+    {
+      "id": "C16",
+      "statement": "Accounting completeness is not itself a readiness verdict, and limited-only/blocked/unknown cannot reach ordinary V2/V3 without explicit named operator authorization.",
+      "source_ref": "pr:body",
+      "quote": "accounting completeness is not by itself a continuation/readiness verdict, and `limited-only`/`blocked`/`unknown` cannot reach ordinary V2/V3 without an explicit, named operator authorization.",
+      "also_in": [
+        "repo:docs/contract-adequacy-validation-plan.md"
+      ]
+    },
+    {
+      "id": "C17",
+      "statement": "A contract-only repair is a new review state, never an in-place reconciliation.",
+      "source_ref": "pr:body",
+      "quote": "A contract-only repair is a new review state, never an in-place reconciliation.",
+      "also_in": [
+        "repo:docs/contract-adequacy-validation-plan.md"
+      ]
+    },
+    {
+      "id": "C18",
+      "statement": "Phase 0 runs on the standalone cure_light_census plugin (Option A) exposing census_run/census_check, claims_prepare to labeling children to claims_finalize, and gate_check.",
+      "source_ref": "pr:body",
+      "quote": "The census, claim capture and gate are now the installed single Pi model tool `cure_light_census` (`@grzegorznowak/pi-cure-light-census@1.0.2`) — `census_run`/`census_check`, `claims_prepare` → labeling children → `claims_finalize`, `gate_check`",
+      "also_in": [
+        "repo:docs/contract-adequacy-validation-plan.md"
+      ]
+    },
+    {
+      "id": "C19",
+      "statement": "The plugin is pinned against its own dist/TOOL.json version plus describe_sha256/artifact.sha256 and fails closed on PIN_MISMATCH.",
+      "source_ref": "pr:body",
+      "quote": "pinned against its own `dist/TOOL.json` (`version` + `describe_sha256`/`artifact.sha256`) and failing closed on `PIN_MISMATCH`",
+      "also_in": []
+    },
+    {
+      "id": "C20",
+      "statement": "There is no artifact fetch, no .pyz, and no python/uv/tree-sitter dependency in the substrate.",
+      "source_ref": "pr:body",
+      "quote": "there is no artifact fetch, no `.pyz`, no python/uv/tree-sitter.",
+      "also_in": []
+    },
+    {
+      "id": "C21",
+      "statement": "The Python tools/ prototype is retired.",
+      "source_ref": "pr:body",
+      "quote": "The Python `tools/` prototype is retired (it was introduced by this same PR and never merged).",
+      "also_in": [
+        "repo:docs/contract-adequacy-validation-plan.md"
+      ]
+    },
+    {
+      "id": "C22",
+      "statement": "The plugin gates claim-registry completeness only, while the coordinator owns the census-claim join, roles/precedence, leaf fractioning, states, exclusions and coverage ledger.",
+      "source_ref": "pr:body",
+      "quote": "it gates **claim-registry completeness only** (`complete_registry_claims`, `finalized_unclaimed`); changed-unit coverage is `census.partition.ok`; the **coordinator** owns the census↔claim join, claim roles/precedence, leaf fractioning, per-leaf states, exclusions and the coverage ledger.",
+      "also_in": []
+    },
+    {
+      "id": "C23",
+      "statement": "Designated claim sources must be Markdown; a designated non-Markdown source is captured context with a stated limitation.",
+      "source_ref": "pr:body",
+      "quote": "Designated **claim** sources must be Markdown (the frame parser is `tree-sitter-markdown-block`); a designated non-Markdown source is captured context with a stated limitation.",
+      "also_in": []
+    },
+    {
+      "id": "C24",
+      "statement": "docs/contract-adequacy-validation-plan.md is explicitly designated as an in-diff claim source whose F1-F10 clauses are its operative content, delivered by this PR.",
+      "source_ref": "pr:body",
+      "quote": "`docs/contract-adequacy-validation-plan.md`, added by the v0.5.13 commit, is explicitly designated as an in-diff claim source: the fixture-based validation plan for the contract-adequacy rules, whose F1–F10 scenario clauses are its operative content. It is authored design intent, not proof of implementation, and it is delivered by this PR.",
+      "also_in": []
+    },
+    {
+      "id": "C25",
+      "statement": "Mechanical completeness is always required, partial acceptance is explicit, exclusions are evidence-linked (never suffix rules), and a thin/empty contract stops planning.",
+      "source_ref": "pr:body",
+      "quote": "Mechanical completeness always / explicit partial acceptance; evidence-linked exclusions (never suffix rules); thin/empty contract stops planning.",
+      "also_in": []
+    },
+    {
+      "id": "C26",
+      "statement": "Docs-only spec rewrites are real deliverables via documents/specifies against an independent anchor; declares is provenance, never an EXPLAINED edge, with no self-proof or cycles.",
+      "source_ref": "pr:body",
+      "quote": "Docs-only spec rewrites are real deliverables (`documents/specifies` against an independent anchor); `declares` is provenance, never an EXPLAINED edge — no self-proof, no cycles.",
+      "also_in": [
+        "repo:docs/contract-adequacy-validation-plan.md"
+      ]
+    },
+    {
+      "id": "C27",
+      "statement": "A worker-authored proposal is the run's recorded evidence: the coordinator never overwrites, repairs or normalizes it into the authoritative submitted file, and on invalid output retains the original, obtains a new worker-authored proposal, or stops and escalates.",
+      "source_ref": "pr:body",
+      "quote": "the coordinator never overwrites, repairs or normalizes it into the authoritative submitted file (`gate_check` replays the submitted bytes); on invalid worker output, retain the original, obtain a **new worker-authored** proposal (both attempts retained), or stop Phase 0 and escalate.",
+      "also_in": []
+    },
+    {
+      "id": "C28",
+      "statement": "The plugin's bundled slice instructions are the operational worker contract, bundle source is for diagnosis only, and insufficient published instructions stop Phase 0 as a substrate defect reported to the plugin maintainers.",
+      "source_ref": "pr:body",
+      "quote": "the plugin's **bundled slice instructions are the operational worker contract**; bundle source is inspected for **diagnosis only**, never as an undisclosed substitute; insufficient published instructions stop Phase 0 as a **substrate defect reported to the plugin maintainers**.",
+      "also_in": []
+    },
+    {
+      "id": "C29",
+      "statement": "A verified registry is complete under one review state's captured sources, instructions, labels and tool pins; cross-run differences are diagnostic only and fixed model/temperature or gold labels are not required for V1.",
+      "source_ref": "pr:body",
+      "quote": "a verified registry is complete **under one review state's captured sources, instructions, labels and tool pins**; cross-run claim/verdict differences are **diagnostic only**; pinning a fixed model/temperature or operator-approved gold labels is not required for V1",
+      "also_in": []
+    },
+    {
+      "id": "C30",
+      "statement": "The written verbatim contract-<owner>-<pr>-s<n> page (or prescribed disk fallback) is verified to exist, read and match the manifest's contract_ref at the Phase-0 gate.",
+      "source_ref": "pr:body",
+      "quote": "the written verbatim `contract-<owner>-<pr>-s<n>` page (or the prescribed disk fallback) is verified to exist, read and match the manifest's `contract_ref` at the Phase-0 gate.",
+      "also_in": []
+    },
+    {
+      "id": "C31",
+      "statement": "The substrate pin advances 1.0.0 to 1.0.2 in lockstep with published release v1.0.2 and is single-version, so a run prepared under one version is never verified, reused or mixed under another.",
+      "source_ref": "pr:body",
+      "quote": "the declared pin advances `1.0.0 → 1.0.1 → 1.0.2`, synchronized with the published plugin release **`v1.0.2`**",
+      "also_in": []
+    },
+    {
+      "id": "C32",
+      "statement": "The F1 stamped-spec happy path expects every unit attributed/explained with no self-proof and no UNCLAIMED unit.",
+      "source_ref": "repo:docs/contract-adequacy-validation-plan.md",
+      "quote": "the code unit is `ATTRIBUTED implements` → the clause and VERIFIED on independent evidence; the spec unit is `EXPLAINED` only via `documents/specifies` + an independent purpose/target anchor; `declares` is provenance, never an edge (no self-proof); no unit `UNCLAIMED`.",
+      "also_in": []
+    },
+    {
+      "id": "C33",
+      "statement": "The F2 un-stamped lookalike compiles no claims from the lookalike, permits no invented claim, records repair_required, and leaves affected units UNCLAIMED.",
+      "source_ref": "repo:docs/contract-adequacy-validation-plan.md",
+      "quote": "no claim IDs are compiled from the lookalike; affected code/spec units are not attributed or explained through it; the alternate-attribution check runs against the complete designated registry; no reviewer-invented claim appears; missing designation/orientation records `repair_required`.",
+      "also_in": []
+    },
+    {
+      "id": "C34",
+      "statement": "The F3 material contradiction is recorded with exact quotes, byte offsets, source hashes and affected claim IDs plus a materiality witness, sets provisional repair_required, and spawns no Vector 1 child.",
+      "source_ref": "repo:docs/contract-adequacy-validation-plan.md",
+      "quote": "the early pass records the contradiction with exact conflicting quotes, byte offsets, source hashes (blob OIDs / version pins) and affected claim IDs, plus a materiality witness; provisional `repair_required` is set and **no Vector 1 child is spawned**",
+      "also_in": []
+    },
+    {
+      "id": "C35",
+      "statement": "The F4 repair lifecycle opens a new state with a recaptured contract snapshot, limits reuse to identity-checked mechanical census, and re-adjudicates affected verdicts rather than inheriting them.",
+      "source_ref": "repo:docs/contract-adequacy-validation-plan.md",
+      "quote": "both open a new review state `s<n+1>` with a recaptured contract snapshot/hash — the same subject OID for the body-only edit, a normally-new subject OID for the in-diff edit, same treatment either way; reuse is limited to identity-checked mechanical census",
+      "also_in": []
+    },
+    {
+      "id": "C36",
+      "statement": "The F5 limited-only case refuses a blanket proceed-anyway, requires named choices, and runs only the bounded scope named in a recorded authorization.",
+      "source_ref": "repo:docs/contract-adequacy-validation-plan.md",
+      "quote": "the default is no ordinary V2/V3; a blanket \"proceed anyway\" is refused and elicits named choices (exact accepted basis, omissions, rationale, scope guard, state identity); a recorded named authorization runs only the bounded scope it names",
+      "also_in": []
+    },
+    {
+      "id": "C37",
+      "statement": "The F8 docs-only spec rewrite is a real deliverable explained via documents/specifies with no phantom code or behavior claim and no forced code invariant.",
+      "source_ref": "repo:docs/contract-adequacy-validation-plan.md",
+      "quote": "spec units `EXPLAINED` as a real deliverable; no phantom code or behavior claim; no forced code invariant",
+      "also_in": []
+    },
+    {
+      "id": "C38",
+      "statement": "The F10 generated bulk case uses EXCLUDED only with evidence-linked policy, leaving residue UNRESOLVED with basis unknown rather than speculative UNCLAIMED.",
+      "source_ref": "repo:docs/contract-adequacy-validation-plan.md",
+      "quote": "`EXCLUDED` only with evidence-linked policy; residue `UNRESOLVED`, basis `unknown` — not speculative `UNCLAIMED`",
+      "also_in": []
+    },
+    {
+      "id": "C39",
+      "statement": "Supplementary fixture F7 asserts no source-to-deliverable edge is accepted so self-ratifying or mutually ratifying docs stay unexplained.",
+      "source_ref": "repo:docs/contract-adequacy-validation-plan.md",
+      "quote": "no source→deliverable edge is accepted; the units stay unexplained",
+      "also_in": []
+    }
+  ],
+  "nonclaims": [
+    {
+      "id": "N01",
+      "statement": "The pre-PR limitation that Vector 1 only proved claims to code.",
+      "source_ref": "pr:body",
+      "quote": "Before, V1 only proved claims → code (*does the code deliver what the PR says?*).",
+      "reason": "background-defect"
+    },
+    {
+      "id": "N02",
+      "statement": "Narration of the commit set and per-file changes.",
+      "source_ref": "pr:body",
+      "quote": "Commits: `6f2a408` (v0.5.12 — code→contract accounting + yagni refocus), `50dbaf5` (v0.5.13 — contract-adequacy rules + the validation plan)",
+      "reason": "implementation-narration"
+    },
+    {
+      "id": "N03",
+      "statement": "Per-file change narration for v0.5.12 core passes.",
+      "source_ref": "pr:body",
+      "quote": "**Core passes** — `kernel/references/conformance-pass.md` (two obligations, two-block child return, accounting states, reconciliation, matrix projection, blocking unclaimed delivery)",
+      "reason": "implementation-narration"
+    },
+    {
+      "id": "N04",
+      "statement": "Verification narration about the independent verifier and fixed issues.",
+      "source_ref": "pr:body",
+      "quote": "Independent verifier plus a narrow re-verification pass. 10 issues found (4 should-fix, 6 nits), all fixed",
+      "reason": "evidence"
+    },
+    {
+      "id": "N05",
+      "statement": "Explicit scope exclusion of the F1-F10 campaign harness and post-pilot items.",
+      "source_ref": "pr:body",
+      "quote": "Out of scope (post-pilot per the approved design): the F1–F10 campaign harness and its executable fixtures",
+      "reason": "scope-exclusion"
+    },
+    {
+      "id": "N06",
+      "statement": "Context about the description's revision history and review states.",
+      "source_ref": "pr:body",
+      "quote": "This description was revised 2026-09-24 to cover both commits and to carry the explicit designation above",
+      "reason": "context"
+    },
+    {
+      "id": "N07",
+      "statement": "The plan records that no campaign harness or build/test manifest ships.",
+      "source_ref": "repo:docs/contract-adequacy-validation-plan.md",
+      "quote": "The repo ships **no F1–F10 campaign harness**: no CI config and no build/test manifest for the validation scenarios.",
+      "reason": "background-defect"
+    },
+    {
+      "id": "N08",
+      "statement": "Advisory statement on when fixtures become executable.",
+      "source_ref": "repo:docs/contract-adequacy-validation-plan.md",
+      "quote": "F1–F10 fixtures become executable only when the contract-adequacy campaign harness is built",
+      "reason": "advisory"
+    },
+    {
+      "id": "N09",
+      "statement": "Plan scope note that no pipeline code or numeric budgets are changed.",
+      "source_ref": "repo:docs/contract-adequacy-validation-plan.md",
+      "quote": "This plan changes no pipeline code and commits to no numeric budgets",
+      "reason": "scope-exclusion"
+    },
+    {
+      "id": "N10",
+      "statement": "Plan header cross-references to kernel files, which are not designated sources.",
+      "source_ref": "repo:docs/contract-adequacy-validation-plan.md",
+      "quote": "Design artifact for the contract-adequacy rules drafted in `kernel/references/intake-and-scope.md` §0.2/§0.4,",
+      "reason": "context"
+    },
+    {
+      "id": "N11",
+      "statement": "Implementation narration of the prototype deletion.",
+      "source_ref": "pr:body",
+      "quote": "`b3c8802` deletes the Python `tools/` prototype (91 files).",
+      "reason": "implementation-narration"
+    },
+    {
+      "id": "N12",
+      "statement": "Evidence narration of the retired pilot tool units' prior verification.",
+      "source_ref": "pr:body",
+      "quote": "The pilot Python tool units passed independent verification at the time (suites 7/100/26/48 green, corpus 918 bodies / 0 errors, tamper matrices rejected, byte-identical rebuilds)",
+      "reason": "evidence"
+    },
+    {
+      "id": "N13",
+      "statement": "Note that plugin-side follow-ups are tracked separately.",
+      "source_ref": "pr:body",
+      "quote": "plugin-side follow-ups are tracked separately",
+      "reason": "scope-exclusion"
+    }
+  ],
+  "conflicts": [
+    {
+      "id": "X01",
+      "kind": "within-source",
+      "materiality": "non-material",
+      "quotes": [
+        {
+          "source_ref": "pr:body",
+          "quote": "there is no artifact fetch, no `.pyz`, no python/uv/tree-sitter.",
+          "offset_bytes": null
+        },
+        {
+          "source_ref": "pr:body",
+          "quote": "the frame parser is `tree-sitter-markdown-block`",
+          "offset_bytes": null
+        }
+      ],
+      "affected_claim_ids": [
+        "C19",
+        "C23"
+      ],
+      "precedence": "none",
+      "witness": "Wording tension only: the no-tree-sitter claim scopes the retired Python substrate, while the Markdown frame parser names the host's markdown block parser. No scope, behavior or deliverable changes either way.",
+      "reasoning": "Both clauses are in pr:body Target 6. They describe different layers (substrate dependencies vs the Markdown frame parser used when compiling designated sources), so the difference is non-material and does not pause the run. No explicit precedence is needed."
+    }
+  ],
+  "notes": [
+    {
+      "note": "Bounded within-/cross-source consistency pass run over pr:body and the designated plan: no material purpose/scope/behavior contradiction found between the two sources; the plan's F1-F10 clauses are consistent with pr:body Targets 1-5 and Decisions 7-9. Only the non-material within-source wording tension X01 was recorded."
+    },
+    {
+      "note": "pr-title.txt (245 bytes, sha256 8c7a847d7a39904d0ea7fee40f151d05265d10417d1a563a533c3765f22d6060) was read for context but is not a designated/captured claim source in this draft."
+    },
+    {
+      "note": "The designated plan's header and scenario Rule lines cross-reference kernel/*.md files; per the interpretation these are not designated claim sources and their content is not granted source authority here."
+    },
+    {
+      "note": "Coverage-page retention through the closure/finalization window and retirement after durable snapshots is a pr:body promise noted here because it is a detail of C09; it is not separately claimed to keep the draft bounded."
+    }
+  ],
+  "missing_source_candidates": [
+    {
+      "resource": "kernel/references/intake-and-scope.md",
+      "affected_claim_ids": [
+        "C11",
+        "C12",
+        "C13",
+        "C24",
+        "C27",
+        "C28",
+        "C30",
+        "C31",
+        "C33",
+        "C34",
+        "C35"
+      ],
+      "reference_quote": "Design artifact for the contract-adequacy rules drafted in `kernel/references/intake-and-scope.md` §0.2/§0.4,",
+      "why_it_matters": "The designated plan points at required engine rules; the file is in the diff but not designated/captured, so the plan's operative clauses cannot be grounded against it here."
+    },
+    {
+      "resource": "kernel/references/conformance-pass.md",
+      "affected_claim_ids": [
+        "C32",
+        "C33",
+        "C34",
+        "C36",
+        "C37"
+      ],
+      "reference_quote": "`conformance-pass.md` (§Sources declare, §Disposition)",
+      "why_it_matters": "Plan scenario rules reference this file; it is not designated/captured."
+    },
+    {
+      "resource": "kernel/references/closure-verification.md",
+      "affected_claim_ids": [
+        "C35"
+      ],
+      "reference_quote": "`closure-verification.md` (§1, §Coverage in closure),",
+      "why_it_matters": "Plan F4 repair lifecycle references this file; it is not designated/captured."
+    },
+    {
+      "resource": "kernel/references/implementation-pass.md",
+      "affected_claim_ids": [
+        "C25",
+        "C32",
+        "C36"
+      ],
+      "reference_quote": "`implementation-pass.md` (split compile) and `pipeline-model.md` §10.",
+      "why_it_matters": "Plan references this file for split compile; it is not designated/captured."
+    },
+    {
+      "resource": "kernel/references/pipeline-model.md",
+      "affected_claim_ids": [
+        "C12",
+        "C34",
+        "C36"
+      ],
+      "reference_quote": "`implementation-pass.md` (split compile) and `pipeline-model.md` §10.",
+      "why_it_matters": "Plan references pipeline-model rule 10; it is not designated/captured."
+    },
+    {
+      "resource": "direction §8 / §5 (converged direction)",
+      "affected_claim_ids": [
+        "C25",
+        "C29",
+        "C37",
+        "C38"
+      ],
+      "reference_quote": "the pilot budget and acceptance criteria remain an operator checkpoint\n(direction §8)",
+      "why_it_matters": "Plan defers fixtures, budgets and gold labels to the converged direction and an implementation checkpoint; that direction is not designated/captured."
+    }
+  ],
+  "source_consistency": {
+    "status": "recorded-inconsistency",
+    "records": [
+      {
+        "id": "X01",
+        "class": "non-material-wording",
+        "note": "within pr:body Target 6: no-tree-sitter substrate statement vs tree-sitter-markdown-block frame parser"
+      }
+    ],
+    "notes": "Within- and cross-source pass over pr:body and the designated plan. No material purpose/scope/behavior contradiction found; the only recorded item is the non-material wording tension X01 within pr:body. Status is recorded-inconsistency (not provisional-repair-required), so no pause is triggered."
+  }
+}

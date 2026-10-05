@@ -1,0 +1,127 @@
+{
+ "schema_version": "code-units-sim/2",
+ "recipe": {
+  "chunker": "chunker.mjs",
+  "target_bytes": 4096,
+  "ceiling_bytes": 6144,
+  "context": 3,
+  "block_preference": true
+ },
+ "identity": {
+  "repo": "<REPO>",
+  "base_ref": "main",
+  "subject_ref": "subject",
+  "base_oid": "bfa7b461a7535bc52d4b01501dc92b2921f1682d",
+  "subject_oid": "862d7827f8375667937692ff5a8dba3e095c19ff"
+ },
+ "counts": {
+  "units": 6,
+  "files": 2,
+  "line_split_units": 4,
+  "total_bytes": 14637
+ },
+ "units": [
+  {
+   "unit_id": "u0000",
+   "file": "units2/u0000.txt",
+   "path": "cross-hunk.txt",
+   "ranges": [
+    {
+     "old_start": 3,
+     "old_count": 16,
+     "new_start": 3,
+     "new_count": 111
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 4077,
+   "blocks": 1,
+   "boundary_kind": "line-split"
+  },
+  {
+   "unit_id": "u0001",
+   "file": "units2/u0001.txt",
+   "path": "cross-hunk.txt",
+   "ranges": [
+    {
+     "old_start": 3,
+     "old_count": 16,
+     "new_start": 3,
+     "new_count": 111
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 3070,
+   "blocks": 1,
+   "boundary_kind": "line-split"
+  },
+  {
+   "unit_id": "u0002",
+   "file": "units2/u0002.txt",
+   "path": "cross-hunk.txt",
+   "ranges": [
+    {
+     "old_start": 398,
+     "old_count": 6,
+     "new_start": 493,
+     "new_count": 7
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 442,
+   "blocks": 1,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0003",
+   "file": "units2/u0003.txt",
+   "path": "same-hunk.txt",
+   "ranges": [
+    {
+     "old_start": 3,
+     "old_count": 16,
+     "new_start": 3,
+     "new_count": 113
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 4063,
+   "blocks": 1,
+   "boundary_kind": "line-split"
+  },
+  {
+   "unit_id": "u0004",
+   "file": "units2/u0004.txt",
+   "path": "same-hunk.txt",
+   "ranges": [
+    {
+     "old_start": 3,
+     "old_count": 16,
+     "new_start": 3,
+     "new_count": 113
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 2794,
+   "blocks": 1,
+   "boundary_kind": "line-split"
+  },
+  {
+   "unit_id": "u0005",
+   "file": "units2/u0005.txt",
+   "path": "same-hunk.txt",
+   "ranges": [
+    {
+     "old_start": 3,
+     "old_count": 16,
+     "new_start": 3,
+     "new_count": 113
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 191,
+   "blocks": 1,
+   "boundary_kind": "block"
+  }
+ ]
+}

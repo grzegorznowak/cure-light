@@ -1,0 +1,22 @@
++## Later execution (when the contract-adequacy harness exists)
++
++Each fixture is exercised as a **synthetic target repo** (base commit → subject commit + a PR body/issue/locked-decision stub) plus **scripted
++Phase-0 inputs** (frame/manifest with contract-source pins and the Phase-0 gate decision), driving the pipeline only up to the gate under test
++(Phase 0 for F3, a V1 run up to the gate for F1–F2, the state transition for F4, the V1 gate for F5). Assertions read classifications from run records — the manifest fields
++`contract_sources` / `source_consistency` / `review_basis`, the claim registry, coverage states per unit, and spawn decisions — not prose:
++
++- source capture: designation pointer, blob OIDs/hash, normative/advisory interpretation (F1, F2);
++- consistency: contradiction-record completeness (quotes/offsets/hashes/claim IDs) and the material-vs-non-material class (F3);
++- attribution/accounting: role enums, edge presence/absence, per-unit states, `UNRESOLVED` vs `UNCLAIMED` (F2, F4, supplementary);
++- state identity: new state id + pins on repair, census-reuse scope (F4);
++- gate output: `review_basis`, `repair_required`, blockers, V2 child spawn (F1, F3, F5).
++
++**Assertion granularity is classification outcomes** — enums, IDs, counts, edge presence, spawn/no-spawn. A fixture passes on the expected
++classification with the forbidden alternative asserted absent; no snapshot diffs of comment prose, no LLM-judged text similarity, no numeric
++threshold baked in here. Each fixture must also assert at least one **negative** outcome (the wrong state/edge/spawn does not occur), so a run
++that "passes by accident" on wording cannot pass the fixture.
++
++## Scope note
++
++This plan changes no pipeline code and commits to no numeric budgets; the pilot budget and acceptance criteria remain an operator checkpoint
++(direction §8) — the fixtures only pin the classification behavior the drafted rules promise.

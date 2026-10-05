@@ -39,7 +39,7 @@ A provisional `repair_required` from P0.2 defaults to pause before V1; only the 
 3. **Two-axis severity**: impact (HIGH/MED/LOW) × disposition (fix-in-PR / pre-existing-debt / deferred-decision / track-separately).
 4. **Notebook is the shared memory.** The coordinator writes run frame + findings pages; children return compact evidence records, they do not compete for writes. P0.4 children may write their own single-writer JSONL box files; notebook writes remain coordinator-owned.
 5. **Inconclusive = no pass.** A child timeout/truncation means the finding is unverified, not accepted.
-6. **Fleets are budgeted.** Per-phase child counts, timeouts, output caps, and a cheap re-review path (delta-only) are mandatory.
+6. **Fleets are budgeted and parallel.** Per-phase child counts, timeouts, output caps, and a cheap re-review path (delta-only) are mandatory; a split's compiled children spawn as one concurrent batch — never one child after another — and no coordinator write shares the spawn batch.
 7. **Review is diagnostic.** cure-light proposes; the operator gates the single external review comment (see evidence-format.md, External routing).
 8. **Coverage completeness is asserted per run.** Vector 1 owes two obligations: a verdict for every captured claim, and exactly one accounting state for every eligible changed unit (conformance-pass.md). The run reports four distinct completion flags — enumeration, accounting, attribution, claim conformance — and keeps mechanical completeness separate from semantic judgment: `UNRESOLVED` residue is disclosed and requires explicit operator acceptance at the gate, never a silent pass.
 9. **Vector 1 coverage is a frame assertion, separate from the lens table.** The run must map an owner for every claim and every eligible changed unit (intake-and-scope.md §0.3); the lens table proves only that each active lens has an owning pass. A claim or unit without an owner is a frame error, like an unowned lens.
@@ -91,9 +91,12 @@ Rules:
    product criticality — suggestion-only on the lens trail.
 6. **`blast` rows are advisory, its instances are findings** (blast-lens.md): row
    hits follow the lens trail; a concrete data-hazard instance routes to the bug
-   table as a Vector 2 finding at its own severity; the preflight's mechanical
-   symbol map may surface as the comment's `Symbol impact` section
-   (chhound-driver.md / evidence-format.md).
+   table as a Vector 2 finding at its own severity; a verified in-scope
+   consumer's explicitly deferred compatibility obligation is a **LOW Vector 2
+   finding (assurance-gap)** — reviewer omission / an unread occurrence alone is
+   not an author bug, and concrete harm keeps the ordinary instance severity; the
+   preflight's mechanical symbol map may surface as the comment's `Symbol
+   impact` section (chhound-driver.md / evidence-format.md).
 
 ## Optional pass: yagni (over-engineering / YAGNI)
 

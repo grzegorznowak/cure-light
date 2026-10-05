@@ -1,0 +1,20 @@
+@@ -90,7 +133,10 @@ Finalization is **one aggregated review comment per run** — never per-finding
+ The single review comment contains:
+ 
+ ```text
+-## Summary                     — owner/repo pr# @ head OID, vectors run
++## Summary                     — owner/repo pr# @ head OID, vectors run, review
++                                basis + any outstanding repair requirement,
++                                approved/omitted scope; coverage accounting
++                                totals/limits by state and side
+ ## Findings                    — in scope of this PR (introduced or enforced by it;
+                                 origin may still be pre-existing): file:line evidence,
+                                 severity, origin — to be addressed
+@@ -110,6 +156,7 @@ The single review comment contains:
+ ```
+ 
+ **Scope routes the comment.** `origin` is base-diff evidence, not the routing key. **In scope** = the PR owns the issue: introduced by the PR, or pre-existing on a path the PR's own change now depends on, routes through, or claims to guarantee (a new gate, validation, dependency, standard, or contract claim). **Out of scope** = the PR neither introduces the issue nor depends on/claims that path — a passing touch does not make it enforced. In-scope items go to Findings, to be addressed — never a follow-up suggestion; only out-of-scope items may appear under follow-ups.
++- **Coverage accounting renders in Summary; confirmed unclaimed delivery renders in Findings.** `EXPLAINED` / `EXCLUDED` / `UNRESOLVED` totals, exclusion classes and honest limits stay in the summary and the coverage pages; grouped `unclaimed-delivery` rows are in-scope, blocking, to be addressed — never follow-ups. No fourth comment section.
+ 
+ - **Never auto-post.** The single draft is operator-gated at the `before_post` pause — mandatory whenever `draft_comment` is enabled — and the operator may edit or veto it.
+ - **Lens-trail rows stay in the notebook** (hygiene / blast / quality / yagni) and are never included in the comment; the one exception is the mechanical `Symbol impact` table — outside-occurrence counts with census scope, provenance, and caps (chhound-driver.md, Symbol sweep), never a row's advisory judgment.

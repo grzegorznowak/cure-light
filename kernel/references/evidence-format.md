@@ -5,7 +5,7 @@ Every finding in a cure-light run conforms to this shape. It is the interop cont
 ## Finding schema
 
 ```yaml
-id: <vector-letter><#>            # V1-V3 + seq, e.g. F2-03 or D3-01 (yagni: Y-01)
+id: V1-<n> | V2-<n> | D3-<n> | Y-<n>   # V1 conformance, V2 implementation, D3 debt, Y yagni; e.g. V1-03, V2-03, D3-01, Y-01
 vector: conformance | implementation | debt | yagni
 lens: type | dead | read | name | blast | test | security | yagni | quality | none   # optional; see hygiene-lens.md + blast-lens.md + quality-lens.md
 lens-checked: [<lens>, ...]       # lenses proven exercised on this artifact
@@ -60,7 +60,14 @@ disposition never establishes readiness.
 
 **Artifact identity is not semantic proof.** Phase 0 records source captures,
 claims-draft, units-manifest and join-draft refs/hashes plus the shipped chunker's
-path/sha256/recipe bound to `cure_light_source_head_oid`. Draft claim and unit IDs
+path/sha256/recipe and the pinned verifier's path/sha256/tool_version bound to
+`cure_light_source_head_oid`, with the delegated `verify join` verdict
+ref/hash/exit code bound to those exact inputs (optional `verify claims|units`
+diagnostic verdicts use the same shape when run and never gate). The verifier
+proves
+recorded artifact mechanics (identity, pins, shapes, witnesses, budgets) only —
+never claim correctness, source-universe completeness or final attribution.
+Draft claim and unit IDs
 are scoped to those artifacts, not canonical semantic identities. P0.5 validates
 row mechanics and the assigned sweep, not claim correctness or final negative
 attribution. V1 findings cite the validated/frozen claim directory and unit
@@ -90,6 +97,7 @@ compiler output — never a silent skip and never a finding-status by itself.
 - **Yagni rows (`yagni` lens)**: LOW default, MED ceiling — existence questions are advisory (non-blocking); current harm is V2's, future-change cost is V3's.
 - **Quality rows (`quality` lens)**: LOW default, MED only when the quality problem's *own scale* is material — never HIGH, rated independently of product criticality (a spaghetti tree in a payments feature is not elevated because payments is critical); advisory (non-blocking), lens-trail only.
 - **Blast rows (`blast` lens)**: LOW default, MED ceiling — never HIGH, suggestion-only; the concrete hazard instance is a Vector 2 finding at its own severity (blast-lens.md).
+- **Deferred-consumer finding (`blast` lens, V2)**: a verified in-scope consumer's explicitly deferred compatibility obligation is a **LOW Vector 2 finding (assurance-gap)** — cite the deferred value, the consumer relation, the unchecked obligation, and the verification required; reviewer omission / an unread occurrence alone is not an author bug (the `sweep` row stays trail-only); concrete harm keeps the ordinary instance severity (blast-lens.md).
 
 ## Origin rule (Vector 2+)
 
@@ -117,12 +125,12 @@ Vector-2 and Vector-3 children attach a RESEARCH TRACE footer (implementation-pa
 
 ## Notebook layout
 
-- `pipeline-frame-<owner>-<pr>-s<n>` — frozen run options, base OID, planned subject mechanism; the manifest's tree fields (`subject_path` / `subject_oid`, changed-file list), contract-source pins/designation, the source-consistency outcome (provisional `repair_required` / evidence-only authorization) and the post-V1 `review_basis` record are recorded at their gates (notebook-plan-contract.md). Written at seal, completed at Phase 0 and the V1 gate.
+- `pipeline-frame-<owner>-<pr>-s<n>` — frozen run options, base OID, planned subject mechanism; the manifest's tree fields (`subject_path` / `subject_oid`, changed-file list), contract-source pins/designation, the P0.2 `source_consistency` outcome and the independent `repair_required` record (records + continuation) and the post-V1 `review_basis` record are recorded at their gates (notebook-plan-contract.md). Written at seal, completed at Phase 0 and the V1 gate.
 - `symbol-map-<owner>-<pr>-s<n>` — the preflight symbol map (chhound-driver.md, Symbol sweep): selected symbols, census heat table, capped outside locations, provenance/caps. One per review state; a bounded state cache kept while the state's consumers run (V2 sweep, V3 seed, yagni), discarded when the state closes.
 - `coverage-<owner>-<pr>-s<n>` — Vector 1 coverage summary/index: denominator and counts by state and side, completion flags, exclusion classes/policy, exact refs to the ledger shards. The paged ledger records themselves live in `coverage-<owner>-<pr>-s<n>-p<k>` pages (bounded, coordinator-owned, **in-notebook** — never scratch files); workers read only their assigned pages/slices. Kept through the state's closure/finalization window, retired after durable snapshots land.
 - `claims-<owner>-<pr>-s<n>` — the source-bound claim directory: Phase-0 claims-draft ref/hash and proposed claims/nonclaims/notes/conflicts/missing sources, then V1 validation/freeze evidence and the resulting directory ref/hash. Preserve source class/designating pointer/interpretation and source-consistency witness records. Draft IDs are run-scoped; no plugin permission or canonical registry projection is required. The complete V1 directory remains queryable (paged `-p<k>` when long); an inaccessible or incomplete directory cannot support finalized negative attribution.
-- `pr-<n>-review` — findings table (schema rows) + closure table. Appended per vector.
-- `decisions` (durable, survives the PR) — deferred-decision and closed-by-operator records with author/time/rationale/scope, plus the leading subarea open questions.
+- `pr-<n>-review` — findings table (schema rows) + closure table + the Vector-2 review-check outcome trail (`checked-and-clear` | `advisory` | `question` | `finding`, implementation-pass.md; `question` outcomes are mirrored to the decisions page). Appended per vector.
+- `decisions` (durable, survives the PR) — deferred-decision and closed-by-operator records with author/time/rationale/scope, plus V2 review-check `question` outcomes and the leading subarea open questions.
 
 The coordinator owns writes. Children return compact records; they never race the notebook.
 

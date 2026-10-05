@@ -1,0 +1,12 @@
+index c26d93a..d0b85e8 100644
+--- a/one.txt
++++ b/one.txt
+@@ -2,7 +2,7 @@ one line 01 [one-marker]
+ one line 02 [one-marker]
+ one line 03 [one-marker]
+ one line 04 [one-marker]
+-one line 05 [one-marker]
++one line 05 changed [one-marker]
+ one line 06 [one-marker]
+ one line 07 [one-marker]
+ one line 08 [one-marker]

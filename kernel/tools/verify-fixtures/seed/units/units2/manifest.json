@@ -1,0 +1,1665 @@
+{
+ "schema_version": "code-units-sim/2",
+ "recipe": {
+  "chunker": "chunker.mjs",
+  "target_bytes": 4096,
+  "ceiling_bytes": 6144,
+  "context": 3,
+  "block_preference": true
+ },
+ "identity": {
+  "repo": "/tmp/cure-grzegorznowak-cure-light-17/tree",
+  "base_ref": "c79a54c57322b45498ffd01db45a876a4712e138",
+  "subject_ref": "afe5145da30fa7d5d2e212296f2c458d2bf7e941",
+  "base_oid": "c79a54c57322b45498ffd01db45a876a4712e138",
+  "subject_oid": "afe5145da30fa7d5d2e212296f2c458d2bf7e941"
+ },
+ "counts": {
+  "units": 46,
+  "files": 22,
+  "line_split_units": 0,
+  "total_bytes": 171492
+ },
+ "units": [
+  {
+   "unit_id": "u0000",
+   "file": "units2/u0000.txt",
+   "path": ".gitignore",
+   "ranges": [
+    {
+     "old_start": 2,
+     "old_count": 3,
+     "new_start": 2,
+     "new_count": 5
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 126,
+   "blocks": 1,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0001",
+   "file": "units2/u0001.txt",
+   "path": "BOOTSTRAP.md",
+   "ranges": [
+    {
+     "old_start": 23,
+     "old_count": 7,
+     "new_start": 23,
+     "new_count": 7
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 1163,
+   "blocks": 1,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0002",
+   "file": "units2/u0002.txt",
+   "path": "CHANGELOG.md",
+   "ranges": [
+    {
+     "old_start": 2,
+     "old_count": 6,
+     "new_start": 2,
+     "new_count": 59
+    },
+    {
+     "old_start": 2,
+     "old_count": 6,
+     "new_start": 2,
+     "new_count": 59
+    },
+    {
+     "old_start": 2,
+     "old_count": 6,
+     "new_start": 2,
+     "new_count": 59
+    },
+    {
+     "old_start": 2,
+     "old_count": 6,
+     "new_start": 2,
+     "new_count": 59
+    },
+    {
+     "old_start": 2,
+     "old_count": 6,
+     "new_start": 2,
+     "new_count": 59
+    },
+    {
+     "old_start": 2,
+     "old_count": 6,
+     "new_start": 2,
+     "new_count": 59
+    },
+    {
+     "old_start": 2,
+     "old_count": 6,
+     "new_start": 2,
+     "new_count": 59
+    }
+   ],
+   "hunk_count": 7,
+   "byte_len": 4061,
+   "blocks": 7,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0003",
+   "file": "units2/u0003.txt",
+   "path": "CHANGELOG.md",
+   "ranges": [
+    {
+     "old_start": 2,
+     "old_count": 6,
+     "new_start": 2,
+     "new_count": 59
+    },
+    {
+     "old_start": 2,
+     "old_count": 6,
+     "new_start": 2,
+     "new_count": 59
+    },
+    {
+     "old_start": 2,
+     "old_count": 6,
+     "new_start": 2,
+     "new_count": 59
+    },
+    {
+     "old_start": 2,
+     "old_count": 6,
+     "new_start": 2,
+     "new_count": 59
+    },
+    {
+     "old_start": 2,
+     "old_count": 6,
+     "new_start": 2,
+     "new_count": 59
+    }
+   ],
+   "hunk_count": 5,
+   "byte_len": 3694,
+   "blocks": 5,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0004",
+   "file": "units2/u0004.txt",
+   "path": "CHANGELOG.md",
+   "ranges": [
+    {
+     "old_start": 2,
+     "old_count": 6,
+     "new_start": 2,
+     "new_count": 59
+    },
+    {
+     "old_start": 2,
+     "old_count": 6,
+     "new_start": 2,
+     "new_count": 59
+    },
+    {
+     "old_start": 2,
+     "old_count": 6,
+     "new_start": 2,
+     "new_count": 59
+    },
+    {
+     "old_start": 2,
+     "old_count": 6,
+     "new_start": 2,
+     "new_count": 59
+    },
+    {
+     "old_start": 2,
+     "old_count": 6,
+     "new_start": 2,
+     "new_count": 59
+    },
+    {
+     "old_start": 2,
+     "old_count": 6,
+     "new_start": 2,
+     "new_count": 59
+    }
+   ],
+   "hunk_count": 6,
+   "byte_len": 4019,
+   "blocks": 6,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0005",
+   "file": "units2/u0005.txt",
+   "path": "README.md",
+   "ranges": [
+    {
+     "old_start": 7,
+     "old_count": 14,
+     "new_start": 7,
+     "new_count": 16
+    },
+    {
+     "old_start": 43,
+     "old_count": 6,
+     "new_start": 45,
+     "new_count": 7
+    },
+    {
+     "old_start": 110,
+     "old_count": 6,
+     "new_start": 113,
+     "new_count": 12
+    }
+   ],
+   "hunk_count": 3,
+   "byte_len": 2755,
+   "blocks": 3,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0006",
+   "file": "units2/u0006.txt",
+   "path": "assets/child-pass-prompt-template.md",
+   "ranges": [
+    {
+     "old_start": 16,
+     "old_count": 8,
+     "new_start": 16,
+     "new_count": 9
+    },
+    {
+     "old_start": 35,
+     "old_count": 13,
+     "new_start": 36,
+     "new_count": 16
+    },
+    {
+     "old_start": 54,
+     "old_count": 14,
+     "new_start": 58,
+     "new_count": 23
+    }
+   ],
+   "hunk_count": 3,
+   "byte_len": 5454,
+   "blocks": 3,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0007",
+   "file": "units2/u0007.txt",
+   "path": "assets/child-pass-prompt-template.md",
+   "ranges": [
+    {
+     "old_start": 71,
+     "old_count": 18,
+     "new_start": 84,
+     "new_count": 86
+    },
+    {
+     "old_start": 71,
+     "old_count": 18,
+     "new_start": 84,
+     "new_count": 86
+    },
+    {
+     "old_start": 71,
+     "old_count": 18,
+     "new_start": 84,
+     "new_count": 86
+    },
+    {
+     "old_start": 71,
+     "old_count": 18,
+     "new_start": 84,
+     "new_count": 86
+    },
+    {
+     "old_start": 71,
+     "old_count": 18,
+     "new_start": 84,
+     "new_count": 86
+    },
+    {
+     "old_start": 71,
+     "old_count": 18,
+     "new_start": 84,
+     "new_count": 86
+    },
+    {
+     "old_start": 71,
+     "old_count": 18,
+     "new_start": 84,
+     "new_count": 86
+    },
+    {
+     "old_start": 71,
+     "old_count": 18,
+     "new_start": 84,
+     "new_count": 86
+    }
+   ],
+   "hunk_count": 8,
+   "byte_len": 4128,
+   "blocks": 8,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0008",
+   "file": "units2/u0008.txt",
+   "path": "assets/child-pass-prompt-template.md",
+   "ranges": [
+    {
+     "old_start": 71,
+     "old_count": 18,
+     "new_start": 84,
+     "new_count": 86
+    },
+    {
+     "old_start": 71,
+     "old_count": 18,
+     "new_start": 84,
+     "new_count": 86
+    },
+    {
+     "old_start": 71,
+     "old_count": 18,
+     "new_start": 84,
+     "new_count": 86
+    },
+    {
+     "old_start": 71,
+     "old_count": 18,
+     "new_start": 84,
+     "new_count": 86
+    },
+    {
+     "old_start": 71,
+     "old_count": 18,
+     "new_start": 84,
+     "new_count": 86
+    },
+    {
+     "old_start": 71,
+     "old_count": 18,
+     "new_start": 84,
+     "new_count": 86
+    },
+    {
+     "old_start": 210,
+     "old_count": 6,
+     "new_start": 291,
+     "new_count": 8
+    }
+   ],
+   "hunk_count": 7,
+   "byte_len": 3064,
+   "blocks": 7,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0009",
+   "file": "units2/u0009.txt",
+   "path": "assets/finding-schema.json",
+   "ranges": [
+    {
+     "old_start": 13,
+     "old_count": 7,
+     "new_start": 13,
+     "new_count": 9
+    },
+    {
+     "old_start": 27,
+     "old_count": 6,
+     "new_start": 29,
+     "new_count": 9
+    }
+   ],
+   "hunk_count": 2,
+   "byte_len": 2004,
+   "blocks": 2,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0010",
+   "file": "units2/u0010.txt",
+   "path": "docs/contract-adequacy-validation-plan.md",
+   "ranges": [
+    {
+     "old_start": 0,
+     "old_count": 0,
+     "new_start": 1,
+     "new_count": 89
+    },
+    {
+     "old_start": 0,
+     "old_count": 0,
+     "new_start": 1,
+     "new_count": 89
+    },
+    {
+     "old_start": 0,
+     "old_count": 0,
+     "new_start": 1,
+     "new_count": 89
+    },
+    {
+     "old_start": 0,
+     "old_count": 0,
+     "new_start": 1,
+     "new_count": 89
+    },
+    {
+     "old_start": 0,
+     "old_count": 0,
+     "new_start": 1,
+     "new_count": 89
+    },
+    {
+     "old_start": 0,
+     "old_count": 0,
+     "new_start": 1,
+     "new_count": 89
+    },
+    {
+     "old_start": 0,
+     "old_count": 0,
+     "new_start": 1,
+     "new_count": 89
+    }
+   ],
+   "hunk_count": 7,
+   "byte_len": 4232,
+   "blocks": 7,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0011",
+   "file": "units2/u0011.txt",
+   "path": "docs/contract-adequacy-validation-plan.md",
+   "ranges": [
+    {
+     "old_start": 0,
+     "old_count": 0,
+     "new_start": 1,
+     "new_count": 89
+    },
+    {
+     "old_start": 0,
+     "old_count": 0,
+     "new_start": 1,
+     "new_count": 89
+    },
+    {
+     "old_start": 0,
+     "old_count": 0,
+     "new_start": 1,
+     "new_count": 89
+    },
+    {
+     "old_start": 0,
+     "old_count": 0,
+     "new_start": 1,
+     "new_count": 89
+    },
+    {
+     "old_start": 0,
+     "old_count": 0,
+     "new_start": 1,
+     "new_count": 89
+    }
+   ],
+   "hunk_count": 5,
+   "byte_len": 4758,
+   "blocks": 5,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0012",
+   "file": "units2/u0012.txt",
+   "path": "docs/contract-adequacy-validation-plan.md",
+   "ranges": [
+    {
+     "old_start": 0,
+     "old_count": 0,
+     "new_start": 1,
+     "new_count": 89
+    },
+    {
+     "old_start": 0,
+     "old_count": 0,
+     "new_start": 1,
+     "new_count": 89
+    },
+    {
+     "old_start": 0,
+     "old_count": 0,
+     "new_start": 1,
+     "new_count": 89
+    },
+    {
+     "old_start": 0,
+     "old_count": 0,
+     "new_start": 1,
+     "new_count": 89
+    },
+    {
+     "old_start": 0,
+     "old_count": 0,
+     "new_start": 1,
+     "new_count": 89
+    },
+    {
+     "old_start": 0,
+     "old_count": 0,
+     "new_start": 1,
+     "new_count": 89
+    }
+   ],
+   "hunk_count": 6,
+   "byte_len": 1955,
+   "blocks": 6,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0013",
+   "file": "units2/u0013.txt",
+   "path": "kernel/SKILL.md",
+   "ranges": [
+    {
+     "old_start": 17,
+     "old_count": 7,
+     "new_start": 17,
+     "new_count": 7
+    },
+    {
+     "old_start": 28,
+     "old_count": 7,
+     "new_start": 28,
+     "new_count": 7
+    }
+   ],
+   "hunk_count": 2,
+   "byte_len": 2649,
+   "blocks": 2,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0014",
+   "file": "units2/u0014.txt",
+   "path": "kernel/SKILL.md",
+   "ranges": [
+    {
+     "old_start": 50,
+     "old_count": 19,
+     "new_start": 50,
+     "new_count": 19
+    },
+    {
+     "old_start": 70,
+     "old_count": 7,
+     "new_start": 70,
+     "new_count": 7
+    }
+   ],
+   "hunk_count": 2,
+   "byte_len": 4869,
+   "blocks": 2,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0015",
+   "file": "units2/u0015.txt",
+   "path": "kernel/SKILL.md",
+   "ranges": [
+    {
+     "old_start": 85,
+     "old_count": 10,
+     "new_start": 85,
+     "new_count": 18
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 6058,
+   "blocks": 1,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0016",
+   "file": "units2/u0016.txt",
+   "path": "kernel/references/blast-lens.md",
+   "ranges": [
+    {
+     "old_start": 74,
+     "old_count": 6,
+     "new_start": 74,
+     "new_count": 13
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 934,
+   "blocks": 1,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0017",
+   "file": "units2/u0017.txt",
+   "path": "kernel/references/chhound-driver.md",
+   "ranges": [
+    {
+     "old_start": 104,
+     "old_count": 8,
+     "new_start": 104,
+     "new_count": 16
+    },
+    {
+     "old_start": 160,
+     "old_count": 8,
+     "new_start": 168,
+     "new_count": 10
+    }
+   ],
+   "hunk_count": 2,
+   "byte_len": 2464,
+   "blocks": 2,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0018",
+   "file": "units2/u0018.txt",
+   "path": "kernel/references/closure-verification.md",
+   "ranges": [
+    {
+     "old_start": 10,
+     "old_count": 7,
+     "new_start": 10,
+     "new_count": 7
+    },
+    {
+     "old_start": 34,
+     "old_count": 6,
+     "new_start": 34,
+     "new_count": 8
+    },
+    {
+     "old_start": 57,
+     "old_count": 7,
+     "new_start": 59,
+     "new_count": 31
+    }
+   ],
+   "hunk_count": 3,
+   "byte_len": 5774,
+   "blocks": 3,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0019",
+   "file": "units2/u0019.txt",
+   "path": "kernel/references/conformance-pass.md",
+   "ranges": [
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    }
+   ],
+   "hunk_count": 13,
+   "byte_len": 5386,
+   "blocks": 13,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0020",
+   "file": "units2/u0020.txt",
+   "path": "kernel/references/conformance-pass.md",
+   "ranges": [
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    }
+   ],
+   "hunk_count": 11,
+   "byte_len": 4106,
+   "blocks": 11,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0021",
+   "file": "units2/u0021.txt",
+   "path": "kernel/references/conformance-pass.md",
+   "ranges": [
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    }
+   ],
+   "hunk_count": 9,
+   "byte_len": 4746,
+   "blocks": 9,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0022",
+   "file": "units2/u0022.txt",
+   "path": "kernel/references/conformance-pass.md",
+   "ranges": [
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    },
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    }
+   ],
+   "hunk_count": 9,
+   "byte_len": 5010,
+   "blocks": 9,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0023",
+   "file": "units2/u0023.txt",
+   "path": "kernel/references/conformance-pass.md",
+   "ranges": [
+    {
+     "old_start": 1,
+     "old_count": 42,
+     "new_start": 1,
+     "new_count": 118
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 1230,
+   "blocks": 1,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0024",
+   "file": "units2/u0024.txt",
+   "path": "kernel/references/debt-pass.md",
+   "ranges": [
+    {
+     "old_start": 6,
+     "old_count": 7,
+     "new_start": 6,
+     "new_count": 7
+    },
+    {
+     "old_start": 38,
+     "old_count": 7,
+     "new_start": 38,
+     "new_count": 7
+    },
+    {
+     "old_start": 77,
+     "old_count": 4,
+     "new_start": 77,
+     "new_count": 5
+    }
+   ],
+   "hunk_count": 3,
+   "byte_len": 2383,
+   "blocks": 3,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0025",
+   "file": "units2/u0025.txt",
+   "path": "kernel/references/evidence-format.md",
+   "ranges": [
+    {
+     "old_start": 13,
+     "old_count": 13,
+     "new_start": 13,
+     "new_count": 18
+    },
+    {
+     "old_start": 31,
+     "old_count": 6,
+     "new_start": 36,
+     "new_count": 39
+    }
+   ],
+   "hunk_count": 2,
+   "byte_len": 4611,
+   "blocks": 2,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0026",
+   "file": "units2/u0026.txt",
+   "path": "kernel/references/evidence-format.md",
+   "ranges": [
+    {
+     "old_start": 48,
+     "old_count": 6,
+     "new_start": 86,
+     "new_count": 7
+    },
+    {
+     "old_start": 66,
+     "old_count": 18,
+     "new_start": 105,
+     "new_count": 22
+    }
+   ],
+   "hunk_count": 2,
+   "byte_len": 6125,
+   "blocks": 2,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0027",
+   "file": "units2/u0027.txt",
+   "path": "kernel/references/evidence-format.md",
+   "ranges": [
+    {
+     "old_start": 90,
+     "old_count": 7,
+     "new_start": 133,
+     "new_count": 10
+    },
+    {
+     "old_start": 110,
+     "old_count": 6,
+     "new_start": 156,
+     "new_count": 7
+    }
+   ],
+   "hunk_count": 2,
+   "byte_len": 2255,
+   "blocks": 2,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0028",
+   "file": "units2/u0028.txt",
+   "path": "kernel/references/implementation-pass.md",
+   "ranges": [
+    {
+     "old_start": 14,
+     "old_count": 7,
+     "new_start": 14,
+     "new_count": 9
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 1826,
+   "blocks": 1,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0029",
+   "file": "units2/u0029.txt",
+   "path": "kernel/references/intake-and-scope.md",
+   "ranges": [
+    {
+     "old_start": 4,
+     "old_count": 7,
+     "new_start": 4,
+     "new_count": 7
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 1732,
+   "blocks": 1,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0030",
+   "file": "units2/u0030.txt",
+   "path": "kernel/references/intake-and-scope.md",
+   "ranges": [
+    {
+     "old_start": 46,
+     "old_count": 24,
+     "new_start": 46,
+     "new_count": 84
+    },
+    {
+     "old_start": 46,
+     "old_count": 24,
+     "new_start": 46,
+     "new_count": 84
+    },
+    {
+     "old_start": 46,
+     "old_count": 24,
+     "new_start": 46,
+     "new_count": 84
+    },
+    {
+     "old_start": 46,
+     "old_count": 24,
+     "new_start": 46,
+     "new_count": 84
+    },
+    {
+     "old_start": 46,
+     "old_count": 24,
+     "new_start": 46,
+     "new_count": 84
+    },
+    {
+     "old_start": 46,
+     "old_count": 24,
+     "new_start": 46,
+     "new_count": 84
+    },
+    {
+     "old_start": 46,
+     "old_count": 24,
+     "new_start": 46,
+     "new_count": 84
+    },
+    {
+     "old_start": 46,
+     "old_count": 24,
+     "new_start": 46,
+     "new_count": 84
+    }
+   ],
+   "hunk_count": 8,
+   "byte_len": 5237,
+   "blocks": 8,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0031",
+   "file": "units2/u0031.txt",
+   "path": "kernel/references/intake-and-scope.md",
+   "ranges": [
+    {
+     "old_start": 46,
+     "old_count": 24,
+     "new_start": 46,
+     "new_count": 84
+    },
+    {
+     "old_start": 46,
+     "old_count": 24,
+     "new_start": 46,
+     "new_count": 84
+    }
+   ],
+   "hunk_count": 2,
+   "byte_len": 4505,
+   "blocks": 2,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0032",
+   "file": "units2/u0032.txt",
+   "path": "kernel/references/intake-and-scope.md",
+   "ranges": [
+    {
+     "old_start": 46,
+     "old_count": 24,
+     "new_start": 46,
+     "new_count": 84
+    },
+    {
+     "old_start": 46,
+     "old_count": 24,
+     "new_start": 46,
+     "new_count": 84
+    },
+    {
+     "old_start": 46,
+     "old_count": 24,
+     "new_start": 46,
+     "new_count": 84
+    },
+    {
+     "old_start": 46,
+     "old_count": 24,
+     "new_start": 46,
+     "new_count": 84
+    },
+    {
+     "old_start": 46,
+     "old_count": 24,
+     "new_start": 46,
+     "new_count": 84
+    },
+    {
+     "old_start": 46,
+     "old_count": 24,
+     "new_start": 46,
+     "new_count": 84
+    }
+   ],
+   "hunk_count": 6,
+   "byte_len": 4687,
+   "blocks": 6,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0033",
+   "file": "units2/u0033.txt",
+   "path": "kernel/references/intake-and-scope.md",
+   "ranges": [
+    {
+     "old_start": 46,
+     "old_count": 24,
+     "new_start": 46,
+     "new_count": 84
+    },
+    {
+     "old_start": 46,
+     "old_count": 24,
+     "new_start": 46,
+     "new_count": 84
+    },
+    {
+     "old_start": 46,
+     "old_count": 24,
+     "new_start": 46,
+     "new_count": 84
+    },
+    {
+     "old_start": 46,
+     "old_count": 24,
+     "new_start": 46,
+     "new_count": 84
+    },
+    {
+     "old_start": 46,
+     "old_count": 24,
+     "new_start": 46,
+     "new_count": 84
+    },
+    {
+     "old_start": 46,
+     "old_count": 24,
+     "new_start": 46,
+     "new_count": 84
+    },
+    {
+     "old_start": 46,
+     "old_count": 24,
+     "new_start": 46,
+     "new_count": 84
+    },
+    {
+     "old_start": 46,
+     "old_count": 24,
+     "new_start": 46,
+     "new_count": 84
+    },
+    {
+     "old_start": 46,
+     "old_count": 24,
+     "new_start": 46,
+     "new_count": 84
+    },
+    {
+     "old_start": 46,
+     "old_count": 24,
+     "new_start": 46,
+     "new_count": 84
+    }
+   ],
+   "hunk_count": 10,
+   "byte_len": 4944,
+   "blocks": 10,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0034",
+   "file": "units2/u0034.txt",
+   "path": "kernel/references/intake-and-scope.md",
+   "ranges": [
+    {
+     "old_start": 46,
+     "old_count": 24,
+     "new_start": 46,
+     "new_count": 84
+    },
+    {
+     "old_start": 46,
+     "old_count": 24,
+     "new_start": 46,
+     "new_count": 84
+    },
+    {
+     "old_start": 46,
+     "old_count": 24,
+     "new_start": 46,
+     "new_count": 84
+    }
+   ],
+   "hunk_count": 3,
+   "byte_len": 4074,
+   "blocks": 3,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0035",
+   "file": "units2/u0035.txt",
+   "path": "kernel/references/intake-and-scope.md",
+   "ranges": [
+    {
+     "old_start": 78,
+     "old_count": 7,
+     "new_start": 138,
+     "new_count": 13
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 3368,
+   "blocks": 1,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0036",
+   "file": "units2/u0036.txt",
+   "path": "kernel/references/pipeline-model.md",
+   "ranges": [
+    {
+     "old_start": 4,
+     "old_count": 7,
+     "new_start": 4,
+     "new_count": 7
+    },
+    {
+     "old_start": 16,
+     "old_count": 10,
+     "new_start": 16,
+     "new_count": 10
+    },
+    {
+     "old_start": 32,
+     "old_count": 6,
+     "new_start": 32,
+     "new_count": 10
+    }
+   ],
+   "hunk_count": 3,
+   "byte_len": 5691,
+   "blocks": 3,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0037",
+   "file": "units2/u0037.txt",
+   "path": "kernel/references/pipeline-model.md",
+   "ranges": [
+    {
+     "old_start": 82,
+     "old_count": 11,
+     "new_start": 86,
+     "new_count": 12
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 1003,
+   "blocks": 1,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0038",
+   "file": "units2/u0038.txt",
+   "path": "kernel/references/quality-lens.md",
+   "ranges": [
+    {
+     "old_start": 51,
+     "old_count": 5,
+     "new_start": 51,
+     "new_count": 8
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 820,
+   "blocks": 1,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0039",
+   "file": "units2/u0039.txt",
+   "path": "kernel/references/yagni-pass.md",
+   "ranges": [
+    {
+     "old_start": 1,
+     "old_count": 58,
+     "new_start": 1,
+     "new_count": 68
+    },
+    {
+     "old_start": 1,
+     "old_count": 58,
+     "new_start": 1,
+     "new_count": 68
+    },
+    {
+     "old_start": 1,
+     "old_count": 58,
+     "new_start": 1,
+     "new_count": 68
+    },
+    {
+     "old_start": 1,
+     "old_count": 58,
+     "new_start": 1,
+     "new_count": 68
+    },
+    {
+     "old_start": 1,
+     "old_count": 58,
+     "new_start": 1,
+     "new_count": 68
+    },
+    {
+     "old_start": 1,
+     "old_count": 58,
+     "new_start": 1,
+     "new_count": 68
+    },
+    {
+     "old_start": 1,
+     "old_count": 58,
+     "new_start": 1,
+     "new_count": 68
+    },
+    {
+     "old_start": 1,
+     "old_count": 58,
+     "new_start": 1,
+     "new_count": 68
+    },
+    {
+     "old_start": 1,
+     "old_count": 58,
+     "new_start": 1,
+     "new_count": 68
+    },
+    {
+     "old_start": 1,
+     "old_count": 58,
+     "new_start": 1,
+     "new_count": 68
+    },
+    {
+     "old_start": 1,
+     "old_count": 58,
+     "new_start": 1,
+     "new_count": 68
+    },
+    {
+     "old_start": 1,
+     "old_count": 58,
+     "new_start": 1,
+     "new_count": 68
+    },
+    {
+     "old_start": 1,
+     "old_count": 58,
+     "new_start": 1,
+     "new_count": 68
+    }
+   ],
+   "hunk_count": 13,
+   "byte_len": 5275,
+   "blocks": 13,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0040",
+   "file": "units2/u0040.txt",
+   "path": "kernel/references/yagni-pass.md",
+   "ranges": [
+    {
+     "old_start": 1,
+     "old_count": 58,
+     "new_start": 1,
+     "new_count": 68
+    },
+    {
+     "old_start": 1,
+     "old_count": 58,
+     "new_start": 1,
+     "new_count": 68
+    },
+    {
+     "old_start": 1,
+     "old_count": 58,
+     "new_start": 1,
+     "new_count": 68
+    },
+    {
+     "old_start": 1,
+     "old_count": 58,
+     "new_start": 1,
+     "new_count": 68
+    },
+    {
+     "old_start": 65,
+     "old_count": 7,
+     "new_start": 75,
+     "new_count": 10
+    }
+   ],
+   "hunk_count": 5,
+   "byte_len": 2030,
+   "blocks": 5,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0041",
+   "file": "units2/u0041.txt",
+   "path": "libs/pi-driver/references/notebook-plan-contract.md",
+   "ranges": [
+    {
+     "old_start": 6,
+     "old_count": 9,
+     "new_start": 6,
+     "new_count": 12
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 5197,
+   "blocks": 1,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0042",
+   "file": "units2/u0042.txt",
+   "path": "libs/pi-driver/references/notebook-plan-contract.md",
+   "ranges": [
+    {
+     "old_start": 16,
+     "old_count": 10,
+     "new_start": 19,
+     "new_count": 32
+    }
+   ],
+   "hunk_count": 1,
+   "byte_len": 6030,
+   "blocks": 1,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0043",
+   "file": "units2/u0043.txt",
+   "path": "libs/pi-driver/references/requirements-check.md",
+   "ranges": [
+    {
+     "old_start": 4,
+     "old_count": 6,
+     "new_start": 4,
+     "new_count": 8
+    },
+    {
+     "old_start": 13,
+     "old_count": 10,
+     "new_start": 15,
+     "new_count": 12
+    }
+   ],
+   "hunk_count": 2,
+   "byte_len": 5150,
+   "blocks": 2,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0044",
+   "file": "units2/u0044.txt",
+   "path": "libs/pi-driver/references/requirements-check.md",
+   "ranges": [
+    {
+     "old_start": 24,
+     "old_count": 7,
+     "new_start": 28,
+     "new_count": 8
+    },
+    {
+     "old_start": 32,
+     "old_count": 7,
+     "new_start": 37,
+     "new_count": 8
+    }
+   ],
+   "hunk_count": 2,
+   "byte_len": 3871,
+   "blocks": 2,
+   "boundary_kind": "block"
+  },
+  {
+   "unit_id": "u0045",
+   "file": "units2/u0045.txt",
+   "path": "templates/KICKOFF.md",
+   "ranges": [
+    {
+     "old_start": 18,
+     "old_count": 10,
+     "new_start": 18,
+     "new_count": 10
+    },
+    {
+     "old_start": 52,
+     "old_count": 6,
+     "new_start": 52,
+     "new_count": 8
+    },
+    {
+     "old_start": 65,
+     "old_count": 6,
+     "new_start": 67,
+     "new_count": 32
+    },
+    {
+     "old_start": 81,
+     "old_count": 10,
+     "new_start": 109,
+     "new_count": 10
+    }
+   ],
+   "hunk_count": 4,
+   "byte_len": 6039,
+   "blocks": 4,
+   "boundary_kind": "block"
+  }
+ ]
+}

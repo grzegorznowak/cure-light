@@ -35,9 +35,10 @@ cure-light/
 ├── BOOTSTRAP.md              ← the remote manifest + bootstrap prompt
 ├── kernel/                   ← the review method (the master skill)
 │   ├── SKILL.md              ← dispatcher: phases, gates, rules
-│   └── references/           ← pipeline-model, intake, the 3 pass contracts,
-│                               hygiene-lens, blast-lens, yagni-pass, quality-lens, closure-verification,
-│                               evidence-format, chhound-driver
+│   ├── references/           ← pipeline-model, intake, the 3 pass contracts,
+│   │                           hygiene-lens, blast-lens, yagni-pass, quality-lens, closure-verification,
+│   │                           evidence-format, chhound-driver
+│   └── tools/verify.mjs      ← pinned mechanical verifier (kernel/tools/verify.mjs; claims|units|join)
 ├── libs/pi-driver/           ← pi binding (notebook + handoff + model-groups)
 │   ├── SKILL.md
 │   └── references/           ← requirements-check, notebook-plan-contract
@@ -61,11 +62,12 @@ Paste into the fresh session (also `templates/KICKOFF.md`):
 > Fetch the manifest, follow its instructions exactly: fetch every listed file
 > as raw markdown (no summarization, preserve bytes), report each file's line
 > count, run the quick requirements check, ask the intake fields once (owner/
-> repo, PR number, vectors, auto-draft policy), compile the run plan into the
-> notebook, and — because this runtime provides the pi notebook + handoff —
-> seal the compiled frame and hand off so the next context kicks off Phase 0
-> then Vector 1. Report the requirements result and compiled plan back before
-> proceeding. No clone or install.
+> repo, PR number, vectors, auto-draft policy), compile the run plan unsealed
+> and show the compiled frame (with the requirements result) for explicit
+> confirmation, wait for that confirmation, then write + read back the frame and
+> findings skeleton and — because this runtime provides the pi notebook +
+> handoff — seal the compiled frame and hand off so the next context kicks off
+> Phase 0 then Vector 1. No clone or install.
 
 ### Option B — local (clone or vendor)
 
@@ -78,23 +80,25 @@ Paste into the fresh session (also `templates/KICKOFF.md`):
 `libs/pi-driver/references/requirements-check.md` verifies: gh auth, target repo
 reach, PR base + remote head OIDs, the planned subject mechanism (chhound sandbox
 when the [pi-chhound](https://github.com/grzegorznowak/pi-chunkhound) plugin's rail is
-live (chhound-driver.md §Presence), plain detached worktree otherwise), notebook writable,
+live (chhound-driver.md §Presence), plain detached worktree otherwise), notebook available (write/readback verified at seal),
 fleet groups present
 ([model-groups](https://github.com/agenticoding/pi-agenticoding)).
 Subject-tree rows (sandbox connect, git diff base..subject on the pulled tree,
 index health) defer to the Phase 0 gate — before the subject pull, nothing local
 in the target repo is read or used for orientation.
-Fall back (git/rg, plain worktree, inherit-parent spelling) or **stop before
-fleet cost** when a hard requirement fails — the review never spends a fleet on
-an unverified subject.
+Fall back (git/rg, plain worktree) or **stop before
+fleet cost** when a hard requirement fails — and a missing or degenerate
+required group pauses that stage rather than substituting. The review never
+spends a fleet on an unverified subject.
 
 ## Why the notebook + handoff
 
 State (frame, findings, decisions) lives in the [pi](https://github.com/earendil-works/pi)
 session notebook — the shared store that survives compaction and handoff. When
-`handoff` is available, the driver marks the compiled frame and hands off so
-the next context starts post-boot and runs Phase 0 (pull subject + contract) →
-Vector 1 without re-reading the kernel. See `libs/pi-driver/SKILL.md`.
+`handoff` is available and the operator has confirmed the compiled frame, the
+driver marks it and hands off so the next context starts post-boot and runs
+Phase 0 (pull subject + contract) → Vector 1 without re-reading the kernel.
+See `libs/pi-driver/SKILL.md`.
 
 ## Operating principles (short)
 

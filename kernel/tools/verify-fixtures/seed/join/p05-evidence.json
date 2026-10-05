@@ -1,0 +1,25 @@
+{
+  "check": "p05-coordinator-gate",
+  "box": "box-0000",
+  "expected_rows": 46,
+  "received_rows": 46,
+  "total_links": 249,
+  "zero_units": [],
+  "zero_claims": [],
+  "unresolved": [],
+  "error_count": 0,
+  "errors": [],
+  "witness_containment": "all 249 witnesses are verbatim contiguous substrings of their unit payload bytes (0 failures)",
+  "duplicate_pairs": 0,
+  "retry_history": "none (box passed first attempt)",
+  "budget": {
+    "input_ceiling_bytes": 196608,
+    "unit_bytes": 171492,
+    "claims_list_bytes": 6660,
+    "instructions_bytes": 825,
+    "box_input_bytes": 178977,
+    "headroom_bytes": 17631,
+    "output_bytes": 51394,
+    "output_links": 249
+  }
+}

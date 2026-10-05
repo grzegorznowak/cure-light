@@ -1,0 +1,7 @@
+index 2752a22..11b029c 100644
+--- a/a
++++ b/a
+@@ -1,2 +1,2 @@
+-base content of a
++subject content of a
+ second base line

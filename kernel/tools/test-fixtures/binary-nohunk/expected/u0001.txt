@@ -1,0 +1,6 @@
+index 2f9138e..12651cb 100644
+--- a/plain.txt
++++ b/plain.txt
+@@ -1 +1 @@
+-plain base
++plain subject

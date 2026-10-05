@@ -1,0 +1,41 @@
+index 13010e6..383a659 100644
+--- a/kernel/references/conformance-pass.md
++++ b/kernel/references/conformance-pass.md
+@@ -1,42 +1,118 @@
+-# conformance-pass.md — Vector 1: contract vs code
++# conformance-pass.md — Vector 1: contract vs changed units (both ends)
+ 
+-**Question:** does the code deliver what the PR description + linked issue (incl. locked decisions) claim?
++**Question:** does the delivered change match what the captured contract — PR description + linked issue (incl. locked decisions) + explicitly designated in-diff sources — claims, and is every changed unit accounted for against that contract?
+ 
+-**Fleet group:** `flash`. **Stance:** *prove every stated behavior and compatibility claim; cite evidence; do not redesign.*
++**Fleet group:** `flash`. **Stance:** *prove every stated behavior and compatibility claim; account for every changed unit; cite evidence; do not redesign.*
++
++Vector 1 owes two independent obligations:
++
++1. **Claim adjudication** — every claim in the captured contract gets a verdict.
++2. **Changed-unit accounting** — every changed range/event from the mechanical census (Phase 0.3a, intake-and-scope.md §0.3) gets exactly one final accounting state.
++
++Neither obligation promises full semantic review: enumerated ≠ inspected ≠ explained ≠ correct ≠ adequately engineered. Enumeration and accounting are mechanically complete; semantic attribution is bounded judgment and is reported honestly when budget runs out. Both obligations run on **canonical identities**: claim IDs, counts and the registry hash are the pinned `cure_light_census` tool's values, published only when `gate_check` reports `status=verified` with both coverage booleans (`finalized_unclaimed`, `complete_registry_claims`), and the claims pages are hash-checked projections of that canonical registry (intake-and-scope.md §0.2; notebook-plan-contract.md). Window/slice IDs never become claim IDs, and no coordinator or child authors, renumbers or "fixes" an ID. Without the gate permission the claim universe is incomplete: negative attribution cannot finalize, affected claims stay `UNRESOLVED`, and the state records the explicit incomplete fallback rather than a registry of record.
++
++## Census (Phase 0.3a)
++
++Before the split, the coordinator runs the pinned `cure_light_census` census unit (`census_run` then `census_check`, exact placement and gate: intake-and-scope.md §0.3a) over the two-dot `base..subject` pair. Parent units are `git diff -U0` edit blocks; deletions, renames, mode/binary/submodule changes are explicit metadata events. The artifact's canonical `census_hash`, parent/event IDs and unique-changed-line counts by side are the coverage denominator and are projected onto the state's coordinator-owned coverage pages (notebook-plan-contract.md, Coverage pages) with identical IDs/counts; the census tool performs the O(D) enumeration internally, the coordinator performs the census↔claim join, and no agent ingests the whole diff. A `census_check` mismatch or `partition.ok:false` leaves the denominator unvalidated — affected coverage cannot claim completeness.
+ 
+ ## Split
+ 
+-By **contract surface**, not by file. One child per surface (adjust to the PR's shape):
++By **contract surface first**, not by file — same pattern as before (adjust to the PR's shape: derivation core / persistence-schema / spawn-router / main-session+TUI / tests), then **capacity-bounded** within the approved budget:
++
++- **Claim/range shards** carry one surface's claims plus the changed ranges with candidate claim links. A claim has one *verdict owner* (other shards contribute evidence); every changed leaf has one *accounting owner*.
++- **Residual attribution shards** carry units with no candidate claim, packaged by path/functionality only — work packaging, never an invented contract or a new invariant.
++
++Test claims may draw evidence from other surfaces' shards without duplicating accountability. All V1 children stay `flash`.
+ 
+-1. **Derivation core** — the pure computation (common/supported/effective sets): intersection/union algebra, reasoning fusion, ordering, vocabulary.
+-2. **Persistence / schema guard** — persisted fields, versioning, migration, opaque-key preservation, capping.
+-3. **Spawn / router / schema** — new tool params, fail-early gate, error semantics, reachability.
+-4. **Main-session + TUI** — prompt injection format, editor flow, warnings, display.
+-5. **Tests** — which contract-mandated behaviors are actually under test, and which claims rely on tests that don't exercise them.
++Each child receives: subject/base identity, its contract source slices (captured sources + designated in-diff sources with their provenance) and a queryable complete claim directory (paged — not injected wholesale), its assigned claim IDs and unit/range IDs plus input digest, exact diff slices, optional enclosing context, the scope of alternate claims it must check, budgets, and the coverage-return shape. The claim directory is usable only with the state's `gate_check` permission — the child prompt carries the pinned report ref, both coverage booleans and the projected `registry_hash` (child-pass-prompt-template.md) — and its claim IDs are canonical tool IDs, never local ordinals. Negative attribution requires enough claim access; otherwise the child returns the unit `UNRESOLVED`.
+ 

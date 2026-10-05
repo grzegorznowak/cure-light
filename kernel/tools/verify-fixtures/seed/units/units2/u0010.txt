@@ -1,0 +1,38 @@
+new file mode 100644
+index 0000000..283d629
+--- /dev/null
++++ b/docs/contract-adequacy-validation-plan.md
+@@ -0,0 +1,89 @@
++# contract-adequacy-validation-plan.md — fixture-based validation of the contract-adequacy gates
++
++> Design artifact for the contract-adequacy rules drafted in `kernel/references/intake-and-scope.md` §0.2/§0.4,
++> `conformance-pass.md` (§Sources declare, §Disposition), `closure-verification.md` (§1, §Coverage in closure),
++> `implementation-pass.md` (split compile) and `pipeline-model.md` §10. Frozen terminology: `review_basis = ready | limited-only | blocked | unknown`,
++> separate `repair_required`; early "source-consistency pass"; "evidence-only V1 run" (operator-recorded, named, bounded); source role `declares`
++> versus delivery roles `implements | tests | necessary-support | removes/changes | documents/specifies`.
++
++## Harness status
++
++The repo ships **no F1–F10 campaign harness**: no CI config and no build/test manifest for the validation scenarios.
++The prototype Python `tools/` units (`claim-registry`, `gate-check`, `census`) are **retired**; the Phase-0 mechanical substrate is now
++the standalone `cure_light_census` plugin (`@grzegorznowak/pi-cure-light-census@1.0.2` — `census_run` / `census_check` /
++`claims_prepare` / `claims_finalize` / `gate_check`), which ships with its own tests. This plan remains the deliverable for the scenarios;
++F1–F10 fixtures become executable only when the contract-adequacy campaign harness is built — the implementation checkpoint in the converged
++direction §8.
++
++## Scenarios (F1–F5)
++
++### F1 — Stamped in-diff spec happy path
++- **Rule**: intake-and-scope.md §0.2 (designation + pinning); conformance-pass.md §Sources declare; implementation-pass.md split compile.
++- **Setup**: synthetic target repo; the PR body explicitly designates an openspec-style package changed in the diff; one `specs/**/spec.md` delta clause defines expected behavior; a code unit in the same diff implements it.
++- **Assert**: the package is captured with designating pointer + blob OID/hash/spans; the code unit is `ATTRIBUTED implements` → the clause and VERIFIED on independent evidence; the spec unit is `EXPLAINED` only via `documents/specifies` + an independent purpose/target anchor; `declares` is provenance, never an edge (no self-proof); no unit `UNCLAIMED`.
++- **Expected**: `source_consistency: clean`; `review_basis: ready`; no `repair_required`; the V2 compiler accepts the named invariant and planning proceeds.
++- **Guards against**: a false repair stop — penalizing a short body or demanding reviewer re-derivation of intent the explicit designation already supplies; self-ratifying spec units.
++
++### F2 — Un-stamped spec lookalike
++- **Rule**: intake-and-scope.md §0.2 ("convention interprets, never authorizes"); conformance-pass.md negative-attribution rules.
++- **Setup**: the diff changes a spec-looking file (`specs/…`, `design/…`, behavior-describing prose) that **nothing points at**; code in the same area also changes.
++- **Assert**: no claim IDs are compiled from the lookalike; affected code/spec units are not attributed or explained through it; the alternate-attribution check runs against the complete designated registry; no reviewer-invented claim appears; missing designation/orientation records `repair_required`.
++- **Expected**: `repair_required` records the missing-designation reason; the affected units keep their evidenced accounting state (no invented edge); the reviewer never invents a claim to clear code.
++- **Guards against**: convention-as-authority (openspec/ADR layout granting source status), and clearing real code with an unpointed doc or a reviewer-supplied claim. **Asserted boundary**: the affected units are `UNCLAIMED` against the captured contract (never explained through the lookalike or a reviewer-invented claim) with `repair_required` recorded; `UNRESOLVED` is reserved for a designated source whose purpose/target anchor cannot be established. The missing-designation defect defaults to the repair pause before V1, with an explicit limited V1-only review as the operator alternative (intake-and-scope.md §0.2/§0.4; conformance-pass.md §Sources declare).
++

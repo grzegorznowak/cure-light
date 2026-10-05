@@ -1,0 +1,12 @@
+index ee280b6..50f87a3 100644
+--- a/kernel/references/intake-and-scope.md
++++ b/kernel/references/intake-and-scope.md
+@@ -4,7 +4,7 @@ Phase 0 runs once per **review state**. Its output is the **run manifest** — t
+ 
+ ## The subject rule
+ 
+-cure-light reviews the tree it **pulls**, not the remote tip. Whatever SHA the pulled tree has at pull time is the version under review (reviewing the latest is desired, not a risk). The tree is stable for the whole state — nothing mutates it mid-run; a deliberate re-pull at an operator gate starts a **new review state** and updates the tree in place to the new head at that boundary (or pulls fresh when the tree is gone/broken, §0.1). Evidence is anchored to the subject; a state's findings never mix trees.
++cure-light reviews the tree it **pulls**, not the remote tip. Whatever SHA the pulled tree has at pull time is the version under review (reviewing the latest is desired, not a risk). The tree is stable for the whole state — nothing mutates it mid-run; a deliberate re-pull at an operator gate starts a **new review state** and updates the tree in place to the new head at that boundary (or pulls fresh when the tree is gone/broken, §0.1). A **contract-only repair** — the PR body/issue changed while no new code work was pulled — also opens a new review state with a recaptured contract snapshot; the tree itself is not re-pulled. An in-diff designated-source repair normally moves the subject OID even when executable code bytes are unchanged and is re-pulled as a new state on the new `base..subject` pair (both: closure-verification.md). Evidence is anchored to the subject; a state's findings never mix trees.
+ 
+ ## 0.1 Pull the subject (preflight, ground truth)
+ 

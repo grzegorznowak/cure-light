@@ -1,0 +1,7 @@
+index acd994d..ac37197 100644
+--- a/x b/y.txt	
++++ b/x b/y.txt	
+@@ -1,2 +1,2 @@
+-base content of x b/y.txt
++subject content of x b/y.txt
+ second base line

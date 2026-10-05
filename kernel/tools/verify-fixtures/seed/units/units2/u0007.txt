@@ -1,0 +1,49 @@
+@@ -71,18 +84,86 @@ Under {budget} lines.
+ ## Child contract invariants (always)
+ 
+ 1. Analyze the **subject tree** at {SUBJECT_PATH} only; every row carries `subject_oid`; a tree whose HEAD differs from {SUBJECT_OID} is `inconclusive` (should not happen — the tree is stable for the state).
+-2. Compare against the **verbatim** contract, never a paraphrase.
++2. Compare against the **verbatim** captured sources and their designation/interpretation, never a paraphrase or an unpointed lookalike.
+ 3. Evidence = file:line in the subject tree, plus base evidence for origin (Vector 2+).
+ 4. No **unrouted** style nits, no redesign, no unrequested tests. Style hits go to the lens trail.
+ 5. Explicitly label `NOT-A-BUG` when a checked suspicion clears — that keeps the coordinator from re-checking.
+ 6. Return compact records; do not write the notebook (coordinator owns writes).
+ 7. When {research_protocol} is present, run it and close with the RESEARCH TRACE footer; a missing trace is `inconclusive`, never a pass.
++8. Vector 1: close with `CLOSE <assignment digest> — processed n/total`. An absent unit, digest mismatch, or missing claim verdict stays unresolved; `NONE` never substitutes for accounting. The complete claim directory must be queryable before any negative attribution — read the scope you need; insufficient access means `UNRESOLVED`, not `UNCLAIMED`. The directory is usable only under the state's `gate_check` permission ({claim_gate_ref}); without it every affected unit stays `UNRESOLVED`. Before returning `UNCLAIMED_CANDIDATE`, check every qualifying designated in-diff clause; a doc/spec unit is explained only through `documents/specifies` against an independent purpose/target anchor (conformance-pass.md).
+ 
+ ## Given budget & cost
+ 
+ - Set a per-child timeout and line budget at spawn. Over-budget or timed-out output is recorded as `inconclusive`, never `pass`.
+ - The coordinator fans out children per vector with a concurrency cap and merges their records into the findings page.
+ 
++## Labeling children (Phase 0) — separate binding
++
++Phase-0 labeling children are **not** vector children and do not use the vector
++template. The coordinator spawns them under the plugin's **bundled slice instructions
++returned by `claims_prepare`** (`claim-registry-slice-instructions/1`), bound to the
++run's pinned `cure_light_census` plugin: a whole-source child receives the framed source
++(within ≤16 KiB raw / ≤80 units / ≤64 KiB complete worker input) and returns
++`claim-proposals/1`; a bounded child receives one `frame-slice-input/1` payload
++(exact unit text + `core_ids` / `overlap_ids`) and returns `slice-proposals/1`
++(core assignments over core non-separators only, overlap votes, per-adjacency
++grouping votes, left/right boundary). Children never run the tools, compute
++IDs/hashes, reconcile, or write the registry — the coordinator runs the pinned
++toolchain, and the slice budget caps the child count (≤32 slices default,
++≤4 concurrent; an oversized indivisible unit stops the run). The bundled instructions
++are the operational worker contract; the coordinator may inspect the plugin
++implementation for diagnosis only, never as an undisclosed substitute instruction set.
++If the published instructions cannot yield validator-valid proposals, stop Phase 0 and
++report the substrate defect. A returned proposal is recorded evidence: the coordinator
++never overwrites or normalizes it into the submitted file — an invalid proposal is
++re-authored by the worker (both attempts retained) or the run stops.
++
++## Coverage block variants (filler for {coverage})
++
++Vector 1 always fills the slot; the yagni pass fills it with its coverage
++inputs; V2/V3 add no coverage-assignment block — their matrix-projection /
++prior-vector facts travel with the prior findings and contract slots, and their
++`{return}` is unchanged. The coordinator still renders the V1 gate's
++**authorized scope + explicit omissions** into every V2/V3 prompt
++(`{authorized_scope}`, from the `review_basis` record — conformance-pass.md):
++a child may not widen beyond the recorded scope.
++
