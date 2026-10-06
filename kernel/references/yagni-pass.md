@@ -58,6 +58,8 @@ it (the lens matrix shows `off`, exempt from the coverage assertion).
 
 ## Child return format
 
+The terminal return is wrapped by the bounded return transport (4096 UTF-8 bytes; `assets/child-pass-prompt-template.md` §Bounded return transport): full evidence goes unchanged to a child-exclusive run artifact, and the wrapper is transport only. The format below is unchanged.
+
 ```text
 ENGINEERING: JUSTIFIED — <unit → served claim, file:line per mechanism, why required>
    | CHALLENGED — <unit → unnecessary mechanism, file:line>

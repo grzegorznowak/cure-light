@@ -6,7 +6,7 @@
 
 ## Split
 
-By **sealed concept / invariant** — each child owns one data flow or invariant the review already established, NOT an open-ended file sweep. Examples from a real run:
+By **sealed concept / invariant** — each child owns one data flow or invariant the review already established (a second only under the recorded two-concept exception below), NOT an open-ended file sweep. Examples from a real run:
 
 - derivation core edge cases (ordering, empty sets, casts)
 - persistence atomicity / security / version boundaries
@@ -16,7 +16,7 @@ By **sealed concept / invariant** — each child owns one data flow or invariant
 
 The split is derived from the V1 **matrix projection** — the adjudicated claims/invariants with their implementation/test anchors, the relevant coverage refs and carried uncertainty (conformance-pass.md, Artifacts) — paged and bounded: read only the projection rows and coverage slices your concept needs, never the coverage-ledger bulk, and never one child per changed unit/hunk.
 
-The projection has a second consequence. `UNCLAIMED` groups stay Vector 1's accounting: disclosed uncertainty, not an automatic V2 lane and not an invariant source. The gate result compiles the split: only named, grounded invariants become children — the compiler refuses a split with no adjudicated invariant, and when the V1 gate recorded `limited-only`/`blocked`/`unknown` or an outstanding `repair_required`, only the operator's exact named authorization may proceed. A thin or empty contract — or a projection with no adjudicated invariant worth a split — stops V2 planning at the gate: the operator requests author scope, skips or explicitly limits Vector 2, or approves a specifically evidenced invariant to review. An unmet but clear requirement remains a valid invariant (a GAP is an excellent anchor); a docs-only deliverable is never forced into a code invariant, and V3/skip routes cannot expand the authorized scope.
+The projection has a second consequence. `UNCLAIMED` groups stay Vector 1's accounting: disclosed uncertainty, not an automatic V2 lane and not an invariant source. The gate result compiles the split **and records it as V2's `fleet_plan`** (concept → shard → depth budget) on the frame page before any child spawns: only named, grounded invariants become children — the compiler refuses a split with no adjudicated invariant, and when the V1 gate recorded `limited-only`/`blocked`/`unknown` or an outstanding `repair_required`, only the operator's exact named authorization may proceed. One child owns at most two sealed concepts unless the plan records why a larger load is safe; each child's depth budget is its named `read` checks (per owned concept) plus its four `blast` judgment rows. A thin or empty contract — or a projection with no adjudicated invariant worth a split — stops V2 planning at the gate: the operator requests author scope, skips or explicitly limits Vector 2, or approves a specifically evidenced invariant to review. An unmet but clear requirement remains a valid invariant (a GAP is an excellent anchor); a docs-only deliverable is never forced into a code invariant, and V3/skip routes cannot expand the authorized scope.
 
 ## Subsystem research protocol (Vector 2)
 
@@ -25,7 +25,7 @@ Vector 2 uses the run manifest's research policy (`research.mode`) before direct
 When `research.mode = chhound-rail` (sandbox index under the frame's registered prefix `{ch_prefix}`), every child MUST:
 
 1. Call the exact `{ch_prefix}_daemon_status` tool and record `query_ready`.
-2. If ready, call the exact `{ch_prefix}_code_research` tool with ONE question scoped to its sealed invariant — end-to-end callers, state transitions, failure paths, persistence/version boundaries, tests, correlated sites.
+2. If ready, call the exact `{ch_prefix}_code_research` tool with ONE question per owned sealed invariant — end-to-end callers, state transitions, failure paths, persistence/version boundaries, tests, correlated sites.
 3. Use the exact `{ch_prefix}_search` tool at least once (regex for known symbols, semantic for behavior) to pinpoint a lead from that map.
 4. Verify every cited or classified line in the subject tree with direct read/grep; decide origin only with `git show <base_oid>:<path>`.
 
@@ -69,6 +69,8 @@ Every finding gets an origin, decided by **base-diff evidence**, never vibes:
 Verify by diffing the base commit (`git show <base>:<path>`) and citing where the mechanics come from. This feeds the disposition below.
 
 ## Child return format
+
+The terminal return is wrapped by the bounded return transport (4096 UTF-8 bytes; `assets/child-pass-prompt-template.md` §Bounded return transport): full evidence goes unchanged to a child-exclusive run artifact, and the wrapper is transport only. The format below is unchanged.
 
 ```text
 [V2-<n>] file:line — what — concrete failure mode (exploit or user-visible) — severity (HIGH/MED/LOW)

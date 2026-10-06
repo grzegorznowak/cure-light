@@ -3,7 +3,9 @@
 The chunker is the small zero-dependency engine tool shipped at
 [`kernel/tools/chunker.mjs`](../tools/chunker.mjs). It supplies the unit inventory
 for P0.4 joining and V1 accounting; it does not extract claims, judge links,
-finalize UNCLAIMED or implement the coordinator's P0.5 gate.
+finalize UNCLAIMED or implement the coordinator's P0.5 gate. The recorded
+units-manifest/payload field contracts and their path bases are in
+[artifact-contracts.md](artifact-contracts.md).
 
 ## Identity and invocation
 

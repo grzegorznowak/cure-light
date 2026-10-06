@@ -127,6 +127,25 @@ search thread).
 - Set a per-child timeout and line budget at spawn. Over-budget or timed-out output is recorded as `inconclusive`, never `pass`.
 - The coordinator fans out a vector's compiled children as one concurrent batch (bounded by the concurrency cap), merges their records into the findings page, and never awaits one child before spawning the next; no coordinator write shares the spawn batch.
 
+## Bounded return transport (reviewer/proposer children)
+
+Every reviewer or proposer child's terminal return is capped at **4096 UTF-8 bytes** serialized (measured on the actual serialized string; multibyte content counts its UTF-8 bytes). The return is one JSON object, no fences:
+
+`{status, counts, finding_ids, artifact_ref, sha256}`
+
+plus the typed binding fields `run, review_state, subject_oid, assignment_digest` where applicable.
+
+- `status` is `complete | inconclusive | blocked`; `complete` means report delivery, not semantic or gate pass.
+- `finding_ids` is capped at 32 entries inline; an overflow, a count mismatch or any truncation is recorded in `counts`, and the full ID index lives in the pinned artifact — never silently omitted as "none".
+- Full vector blocks, lens trail, CLOSE digest, research trace, uncertainty and findings go unchanged to a child-exclusive run artifact; the wrapper is transport, not a replacement finding schema.
+- P0 children keep their exact existing output paths and formats; a P0 receipt points to their output or an evidence report referencing those pins, never wraps or rewrites the join JSONL.
+- Missing, stale, unreadable, truncated or over-cap receipt => `inconclusive`; no silent truncation, and no syntactically plausible success is fabricated.
+- Shared-disk availability is a prerequisite: without it the operator pauses or explicitly retains the legacy transport with no savings claim.
+
+The coordinator owns notebook writes and adjudication. It must consume ALL required claim/unit/closure/trace records in bounded artifact slices before asserting completion, never trusting counts or cherry-picking findings.
+
+**Mechanical-verdict exemption.** This cap does not apply to the mechanical verification child: it returns the stdout JSON verdict verbatim plus exit code and stderr under the existing contract, untruncated (a missing or truncated verdict already fails the mechanical gate).
+
 ## Phase-0 children — separate bindings
 
 Phase-0 children are not vector children and do not use the vector template.
@@ -151,6 +170,16 @@ conflicts[{id,kind,materiality,quotes[{source_ref,quote,offset_bytes}],
 notes[{note}] (a quote-bearing note carries the defined optional
 source_ref+quote pair),
 missing_source_candidates[{resource,affected_claim_ids,reference_quote,why_it_matters}].
+Conflicts vocabulary is exact: kind is `within-source` or `cross-source`;
+materiality is `material` or `non-material` (structural enums only — put the
+richer subtype wording in witness/reasoning); precedence is a required nonempty
+string, `"none"` when no precedence is stated.
+Quote rule (mechanical): every quote must be an exact UTF-8 byte substring of
+the captured source bytes — copy byte-for-byte, never normalized, re-wrapped or
+Markdown-cleaned; claims/nonclaims quotes bind to their source_ref, a note quote
+to its paired source_ref, a missing_source_candidates reference_quote to some
+captured source, and a conflict quote's non-null offset_bytes is the zero-based
+byte offset of its first occurrence.
 Use run-scoped draft IDs. Include stated fixes and acceptance requirements;
 separate background/advisory/evidence from promises and never duplicate a clause
 as both claim and nonclaim. Absorb bounded within-/cross-source consistency:
@@ -161,7 +190,7 @@ Return the artifact path and compact counts/hard cases, not a semantic verdict.
 
 This nested profile is the frozen `claims-draft/3` structural shape (the S28
 profile); no alternate shape is accepted by the pinned `verify claims` command.
-V1 validates/freezes claims against sources before adjudication.
+V1 validates/freezes claims against sources before adjudication. The inline quote rule above restates the mechanical containment contract in artifact-contracts.md §2.
 
 ### P0.4 Per-box join JSONL
 
@@ -233,6 +262,13 @@ The frame fills `{verifier_command}`, `{verifier_path}`, `{verifier_sha256}`,
 `{run_root}` and `{artifact_class}`; a missing or blank slot is a frame error —
 do not spawn. The verifier pin freezes at frame seal and the artifact refs land
 at their gates.
+
+**Preparation/repair is a distinct role.** A distinct `fast` repair child
+(never this verification child, never the coordinator) prepares or repairs
+artifacts from the coordinator's exact verdict/error refs, the pinned
+`kernel/references/artifact-contracts.md` and the authorized artifact paths; it
+never changes captured source meaning, witness bytes, policy or claims
+semantics to pass, and ambiguity pauses for the operator.
 
 ## Coverage block variants (filler for {coverage})
 

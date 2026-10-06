@@ -28,11 +28,13 @@ By **contract surface first**, not by file — same pattern as before (adjust to
 - **Claim/range shards** carry one surface's claims plus the changed ranges with candidate claim links. A claim has one *verdict owner* (other shards contribute evidence); every manifest unit has one *accounting owner*.
 - **Residual attribution shards** carry units with no candidate claim, packaged by path/functionality only — work packaging, never an invented contract or a new invariant.
 
-Test claims may draw evidence from other surfaces' shards without duplicating accountability. All V1 children stay `flash`; a missing or degenerate `flash` group pauses the vector — no substitution (templates/KICKOFF.md §4).
+Test claims may draw evidence from other surfaces' shards without duplicating accountability. The split is V1's recorded `fleet_plan`, approved at the Phase-0 gate before any V1 child spawns; each shard's depth budget is its minimum checking load — a verdict for every assigned claim, an accounting state for every assigned unit, and the named checks it exercises. All V1 children stay `flash`; a missing or degenerate `flash` group pauses the vector — no substitution (templates/KICKOFF.md §4).
 
 Each child receives: subject/base identity, its contract source slices (captured sources + designated in-diff sources with their provenance) and a queryable complete claim directory (paged — not injected wholesale), its assigned claim IDs and unit/range IDs plus input digest, exact diff slices, optional enclosing context, the scope of alternate claims it must check, budgets, and the coverage-return shape. The prompt carries the V1-validated/frozen claim-directory ref/hash, the source refs, and the state's units-manifest/join-draft refs/hashes ([child-pass-prompt-template.md](../../assets/child-pass-prompt-template.md)). IDs refer to those state-bound records, never cross-run canonical identities. P0 candidate links are leads and must be rechecked against the validated claim and the actual delivered bytes. Negative attribution requires enough claim access; otherwise the child returns the unit `UNRESOLVED`.
 
 ## Child return — two orthogonal blocks
+
+The terminal return is wrapped by the bounded return transport (4096 UTF-8 bytes; `assets/child-pass-prompt-template.md` §Bounded return transport): full evidence goes unchanged to a child-exclusive run artifact, and the wrapper is transport only. The block formats below are unchanged.
 
 Claim block, per assigned claim:
 

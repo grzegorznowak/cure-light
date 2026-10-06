@@ -122,6 +122,7 @@ Vector-2 and Vector-3 children attach a RESEARCH TRACE footer (implementation-pa
 - `blast` rows (V2 lens) follow the same lens trail — suggestion-only, never bug/debt tables; the concrete data-hazard instance routes to the bug table as a Vector 2 finding (blast-lens.md).
 - Evidence is read from the state's **subject tree** at its recorded `subject_oid` (intake-and-scope.md §0.1). Every row carries `subject_oid`; if a child read a different tree, its output is `inconclusive` — a checkout whose HEAD differs from the row's OID is a different tree.
 - A completeness statement cites the state's source and claims-draft/units-manifest/join-draft refs/hashes, P0.5 sweep evidence, V1 frozen claim directory and V1 accounting evidence. Mechanical checks never substitute for semantic coverage; a candidate-unclaimed row is not a finalized negative, and unit/context counts are not unique changed-line counts.
+- Child returns use the bounded transport (`assets/child-pass-prompt-template.md`): a receipt's `artifact_ref, sha256` address the full evidence; the coordinator consumes the artifact, never the receipt counts alone.
 
 ## Notebook layout
 

@@ -12,7 +12,7 @@ The pi binding for the cure-light pipeline. It answers two questions the kernel 
 
 ## When to read
 
-After fetching the kernel, read this skill and its two references. They define how to verify the runtime and how to compile the run plan into the notebook.
+Boot per the stage map (`kernel/references/context-loading.md`): this skill and `references/requirements-check.md` are the pi boot set and are read in full before any preflight; `references/notebook-plan-contract.md` is loaded at the frame/intake compile stage. Later stages load only their active documents — never the whole corpus at boot. The coordinator never ingests executable source: the verifier/chunker are fetched hash-only to disk and enter context as pins (`{path, sha256, tool_version|recipe}`). Do not restate the contract page's prose in every spawn or notebook update — reference it by name with pins/counts.
 
 ## Boot sequence (pi)
 
