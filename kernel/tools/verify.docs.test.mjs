@@ -18,7 +18,7 @@ import {
   BOX_0000_ASSIGNMENT, CAPTURE_MANIFEST, CLAIMS_DRAFT, CLAIMS_LIST, JOIN_DRAFT,
   P05_CHECK, P05_EVIDENCE, RUN_MANIFEST,
   cleanupTempDirs, editJson, findCheck, findFailedCheck, materializeRun,
-  readJson, readText, resealEnvelope, resealRun, runVerifier, sha256, writeText,
+  readBytes, readJson, readText, resealEnvelope, resealRun, runVerifier, sha256, writeText,
 } from "./verify-testkit.mjs";
 
 after(cleanupTempDirs);
@@ -1386,6 +1386,146 @@ describe("docs contract — artifact contracts S2 follow-up (assignment / claims
       "p05 count mismatch",
       "p05 zero/unresolved mismatch",
       "p05 claim_link_counts mismatch",
+    ]) {
+      assert.ok(map.includes(norm(token)), `§7 repair map missing token ${token}`);
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// S38 follow-up: the join-draft `units_manifest` binding the coordinator
+// missed (S38 followed §5's "(ref/hash identity)" literally → 2 tool-source
+// diagnosis children + 1 repair + 1 extra verify round) and the quote-
+// containment rule (candidate reference_quote `**Seals from review**` vs the
+// source's `## Seals from review` → 1 diagnostic + 1 repair). RED-first: the
+// content assertions were red before the matching artifact-contracts.md and
+// child-template edits; the mutation matrices encode today's real claims/join
+// outcomes (probed live before authoring).
+// ---------------------------------------------------------------------------
+
+describe("docs contract — artifact contracts S2 follow-up (join-draft units_manifest binding + quote containment)", () => {
+  it("documents the join-draft units_manifest four-field binding and its distinction from the other manifest records", () => {
+    for (const phrase of [
+      "Join-draft `units_manifest` binding",
+      "distinct from the envelope `units_manifest` pin",
+      "must equal the discovered units manifest ref",
+      "sha256 of the exact units manifest bytes",
+      "exactly `code-units-sim/2`",
+      "whole-manifest",
+      "required checks, not an exclusive allowed-key set",
+      "does not require `unit_count`",
+      "see §5 for the join draft's own four-field binding",
+    ]) {
+      has(ARTIFACT_CONTRACTS, phrase, `join binding contract phrase ${phrase}`);
+    }
+  });
+
+  it("documents quote containment and drives the real claims validator on every quote family", () => {
+    for (const phrase of [
+      "Quote containment (verbatim rule)",
+      "exact UTF-8 byte substring of the captured source bytes",
+      "never normalize",
+      "zero-based byte offset of the quote's first occurrence",
+      "in **any** captured source",
+      "unidentified by definition",
+    ]) {
+      has(ARTIFACT_CONTRACTS, phrase, `quote containment contract phrase ${phrase}`);
+    }
+
+    const cases = [
+      ["claim quote", (c) => { c.claims[0].quote = "definitely-not-in-any-source"; }, "claims.quote", 'quote not in source: "C01"'],
+      ["nonclaim quote", (c) => { c.nonclaims[0].quote = "definitely-not-in-any-source"; }, "claims.quote", 'quote not in source: "N01"'],
+      ["unknown claim source ref", (c) => { c.claims[0].source_ref = "pr:nope"; }, "claims.quote", 'unknown source ref: "pr:nope"'],
+      ["markdown-normalized claim quote", (c) => { c.claims[0].quote = `**${c.claims[0].quote}**`; }, "claims.quote", 'quote not in source: "C01"'],
+      ["conflict quote", (c) => { c.conflicts[0].quotes[0].quote = "definitely-not-in-any-source"; }, "claims.conflicts", 'quote not in source: "X01"'],
+      ["note quote", (c) => { c.notes[0].source_ref = c.claims[0].source_ref; c.notes[0].quote = "definitely-not-in-any-source"; }, "claims.notes", "note quote not in source: /notes/0"],
+      ["candidate quote", (c) => { c.missing_source_candidates[0].reference_quote = "**Seals from review**"; }, "claims.candidates", "candidate quote not in captured sources: 0"],
+    ];
+    for (const [label, mutate, check, detail] of cases) {
+      const run = materializeRun(`s38-quote-${label.replace(/\W+/g, "-")}`);
+      editJson(run, CLAIMS_DRAFT, mutate);
+      resealEnvelope(run);
+      expectFailedCheck(runVerifier(["claims", "--run", run], { runRoot: run }), 1, check, detail, label);
+    }
+  });
+
+  it("drives the real join validator across the documented units_manifest binding", () => {
+    const baseline = materializeRun("s38-jb-baseline");
+    expectVerdict(runVerifier(["join", "--run", baseline], { runRoot: baseline }), 0, "baseline join");
+
+    const um = (mutate) => (run) => editJson(run, JOIN_DRAFT, (j) => mutate(j.units_manifest));
+    const cases = [
+      ["unit_count removed", um((m) => { delete m.unit_count; })],
+      ["unit_count wrong", um((m) => { m.unit_count = 45; })],
+      ["schema_version removed", um((m) => { delete m.schema_version; })],
+      ["schema_version wrong", um((m) => { m.schema_version = "code-units-sim/9"; })],
+      ["ref wrong", um((m) => { m.ref = "units/units2/other.json"; })],
+      ["sha256 wrong", um((m) => { m.sha256 = "0".repeat(64); })],
+      ["units_manifest removed", (run) => editJson(run, JOIN_DRAFT, (j) => { delete j.units_manifest; }), "shape", "invalid field: /units_manifest expected object"],
+      ["units_manifest not an object", (run) => editJson(run, JOIN_DRAFT, (j) => { j.units_manifest = []; }), "shape", "invalid field: /units_manifest expected object"],
+    ];
+    for (const [label, mutate, check = "join.identity", detail = "join manifest binding mismatch"] of cases) {
+      const run = materializeRun(`s38-jb-${label.replace(/\W+/g, "-")}`);
+      mutate(run);
+      resealEnvelope(run);
+      expectFailedCheck(runVerifier(["join", "--run", run], { runRoot: run }), 1, check, detail, label);
+    }
+  });
+
+  it("drives the conflict offset_bytes first-occurrence rule and its shape bound", () => {
+    const run = materializeRun("s38-offset");
+    const claims = readJson(run, CLAIMS_DRAFT);
+    const capture = readJson(run, CAPTURE_MANIFEST);
+    const cap = capture.sources.find((s) => s.locator === claims.conflicts[0].quotes[0].source_ref);
+    assert.ok(cap, "seed conflict source must be captured");
+    const sourceBytes = readBytes(run, `claims/${cap.path}`);
+    const first = sourceBytes.indexOf("the");
+    const second = sourceBytes.indexOf("the", first + 1);
+    assert.ok(first >= 0 && second > first, "seed source must contain a repeated probe quote");
+
+    const quote = (mutate) => (r) => editJson(r, CLAIMS_DRAFT, (c) => mutate(c.conflicts[0].quotes[0]));
+    for (const [label, mutate] of [
+      ["null offset", quote((q) => { q.offset_bytes = null; })],
+      ["first-occurrence offset", quote((q) => { q.quote = "the"; q.offset_bytes = first; })],
+    ]) {
+      const r = materializeRun(`s38-off-ok-${label.replace(/\W+/g, "-")}`);
+      mutate(r);
+      resealEnvelope(r);
+      expectVerdict(runVerifier(["claims", "--run", r], { runRoot: r }), 0, label);
+    }
+
+    for (const [label, mutate, check, detail] of [
+      ["later-occurrence offset", quote((q) => { q.quote = "the"; q.offset_bytes = second; }), "claims.conflicts", 'quote offset mismatch: "X01"'],
+      ["malformed offset type", quote((q) => { q.offset_bytes = "5"; }), "shape", "invalid field: /conflicts/0/quotes/0/offset_bytes expected null or nonnegative integer"],
+    ]) {
+      const r = materializeRun(`s38-off-${label.replace(/\W+/g, "-")}`);
+      mutate(r);
+      resealEnvelope(r);
+      expectFailedCheck(runVerifier(["claims", "--run", r], { runRoot: r }), 1, check, detail, label);
+    }
+  });
+
+  it("carries the drafting-time quote rule in the P0.2 child template", () => {
+    for (const phrase of [
+      "exact UTF-8 byte substring of the captured source bytes",
+      "never normalized",
+      "zero-based byte offset of its first occurrence",
+      "artifact-contracts.md §2",
+    ]) {
+      has(CHILD_TEMPLATE, phrase, `P0.2 inline quote rule phrase ${phrase}`);
+    }
+  });
+
+  it("extends the repair map with the join binding and quote-containment refusals", () => {
+    const body = read(ARTIFACT_CONTRACTS);
+    const map = norm(body.slice(body.indexOf("## 7. Error → field → doc anchor")));
+    for (const token of [
+      "join manifest binding mismatch",
+      "invalid field: /units_manifest expected object",
+      "quote not in source",
+      "quote offset mismatch",
+      "note quote not in source",
+      "candidate quote not in captured sources",
     ]) {
       assert.ok(map.includes(norm(token)), `§7 repair map missing token ${token}`);
     }
