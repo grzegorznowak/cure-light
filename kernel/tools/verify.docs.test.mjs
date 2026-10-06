@@ -15,7 +15,8 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  CAPTURE_MANIFEST, CLAIMS_DRAFT, JOIN_DRAFT, RUN_MANIFEST,
+  BOX_0000_ASSIGNMENT, CAPTURE_MANIFEST, CLAIMS_DRAFT, CLAIMS_LIST, JOIN_DRAFT,
+  P05_CHECK, P05_EVIDENCE, RUN_MANIFEST,
   cleanupTempDirs, editJson, findCheck, findFailedCheck, materializeRun,
   readJson, readText, resealEnvelope, resealRun, runVerifier, sha256, writeText,
 } from "./verify-testkit.mjs";
@@ -1209,6 +1210,182 @@ describe("docs contract — conflicts[] vocabulary (S36 follow-up)", () => {
       "invalid conflict kind",
       "invalid conflict materiality",
       "/conflicts/<i>/precedence",
+    ]) {
+      assert.ok(map.includes(norm(token)), `§7 repair map missing token ${token}`);
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// S37 follow-up: the box-assignment, claims-list and P0.5 authoring contract.
+// In S37 the coordinator trial-and-errored the accepted assignment shape
+// through 57 refused envelope invocations (~87 s wall) because no doc outside
+// verify.mjs/tests described it; the refusal loop also triggered a tool-source
+// diagnosis child. RED-first: the content assertions were red before the
+// matching artifact-contracts.md edits; the mutation matrix encodes today's
+// real generator/join outcomes (probed live before authoring).
+// ---------------------------------------------------------------------------
+
+describe("docs contract — artifact contracts S2 follow-up (assignment / claims-list / P0.5 authoring)", () => {
+  const envelopeArgs = (run, seed) => [
+    "envelope", "--run", run,
+    "--operator-ref", seed.pilot.operator_ref,
+    "--chunker-sha256", sha256(readFileSync(path.join(ROOT, "kernel/tools/chunker.mjs"))),
+    "--input-ceiling-bytes", String(seed.pilot.input_ceiling_bytes),
+  ];
+
+  /** Normed §5 slice (join draft + assignment/claims-list/P0.5 authoring). */
+  const section5 = () => {
+    const body = read(ARTIFACT_CONTRACTS);
+    const from = body.indexOf("## 5.");
+    const to = body.indexOf("## 6.", from);
+    assert.ok(from !== -1 && to !== -1, "artifact-contracts §5 section bounds");
+    return norm(body.slice(from, to));
+  };
+
+  it("documents the assignment authoring contract, refusal order and skeleton example", () => {
+    for (const phrase of [
+      "Assignment authoring contract",
+      "the generator refuses the first failing check in this order",
+      "not an exclusive allowed-key set",
+      "key-level reporting is deferred",
+    ]) {
+      has(ARTIFACT_CONTRACTS, phrase, `assignment contract phrase ${phrase}`);
+    }
+
+    const example = jsonExample(ARTIFACT_CONTRACTS, "<!-- assignment-example -->");
+    const fields = ["box_id", "output_path", "manifest_ref", "manifest_sha256", "claims_list_path", "units", "units_dir", "unit_count", "total_unit_bytes", "input_ceiling_bytes", "claims_list_bytes"];
+    for (const field of fields) {
+      assert.ok(field in example, `assignment example missing ${field}`);
+      assert.ok(section5().includes(field), `§5 assignment contract missing field ${field}`);
+    }
+    assert.ok(Array.isArray(example.units) && example.units.length > 0, "assignment example units nonempty");
+    assert.equal(example.unit_count, example.units.length, "assignment example unit_count must match units");
+    assert.ok(Number.isInteger(example.total_unit_bytes) && example.total_unit_bytes >= 0, "assignment example total_unit_bytes integer");
+
+    for (const token of [
+      "assignment box mismatch", "assignment output mismatch", "assignment manifest mismatch",
+      "malformed assignment", "input ceiling mismatch", "cannot read artifact",
+      "assignment unit count mismatch", "box assignment binding mismatch",
+      "claims_list_bytes mismatch", "budget metric mismatch",
+    ]) {
+      assert.ok(section5().includes(token), `§5 assignment contract missing enforcing check ${token}`);
+    }
+  });
+
+  it("drives the real envelope generator across the documented assignment refusal order", () => {
+    const baseline = materializeRun("s37-asm-baseline");
+    const baselineSeed = readJson(baseline, RUN_MANIFEST);
+    const baselineGen = runVerifier(envelopeArgs(baseline, baselineSeed), { runRoot: baseline });
+    assert.equal(baselineGen.status, 0, `baseline assignment envelope prep failed\n${report(baselineGen)}`);
+
+    const asm = (mutate) => (run) => editJson(run, BOX_0000_ASSIGNMENT, mutate);
+    const cases = [
+      ["assignment box_id changed", asm((a) => { a.box_id = "box-9999"; }), 'assignment box mismatch: "box-0000"'],
+      ["assignment output_path changed", asm((a) => { a.output_path = "join/box-9999.jsonl"; }), 'assignment output mismatch: "box-0000"'],
+      ["assignment manifest_ref changed", asm((a) => { a.manifest_ref = "units/units2/other.json"; }), 'assignment manifest mismatch: "box-0000"'],
+      ["assignment manifest_sha256 changed", asm((a) => { a.manifest_sha256 = "0".repeat(64); }), 'assignment manifest mismatch: "box-0000"'],
+      ["assignment input ceiling changed", asm((a) => { a.input_ceiling_bytes = 1; }), 'input ceiling mismatch: "box-0000"'],
+      ["assignment claims_list_path removed", asm((a) => { delete a.claims_list_path; }), 'malformed assignment: "join/box-0000.assignment.json"'],
+      ["assignment units removed", asm((a) => { delete a.units; }), 'malformed assignment: "join/box-0000.assignment.json"'],
+      ["assignment units not an array", asm((a) => { a.units = {}; }), 'malformed assignment: "join/box-0000.assignment.json"'],
+      ["assignment not an object", (run) => writeText(run, BOX_0000_ASSIGNMENT, "[]"), 'malformed assignment: "join/box-0000.assignment.json"'],
+      ["assignment claims-list ref without file", asm((a) => { a.claims_list_path = "join/nope.json"; }), "cannot read artifact: join/nope.json"],
+      ["p05 evidence ceiling changed", (run) => editJson(run, P05_EVIDENCE, (e) => { e.budget.input_ceiling_bytes += 1; }), 'input ceiling mismatch: "box-0000"'],
+      ["p05 evidence budget removed", (run) => editJson(run, P05_EVIDENCE, (e) => { delete e.budget; }), 'malformed p05 evidence: "join/p05-evidence.json"'],
+    ];
+    for (const [label, mutate, detail] of cases) {
+      const run = materializeRun(`s37-asm-${label.replace(/\W+/g, "-")}`);
+      const seed = readJson(run, RUN_MANIFEST);
+      mutate(run);
+      expectFailedCheck(runVerifier(envelopeArgs(run, seed), { runRoot: run }), 2, "envelope", detail, label);
+    }
+  });
+
+  it("documents the claims-list projection and drives the join-side assignment/claims-list bindings", () => {
+    for (const phrase of [
+      "top-level JSON array of exactly `{id, statement}` objects",
+      "claims list mismatch",
+      "claims_list_bytes mismatch",
+    ]) {
+      has(ARTIFACT_CONTRACTS, phrase, `claims-list contract phrase ${phrase}`);
+    }
+    const example = jsonExample(ARTIFACT_CONTRACTS, "<!-- claims-list-example -->");
+    assert.ok(Array.isArray(example) && example.length > 0, "claims-list example is a nonempty array");
+    assert.deepEqual(Object.keys(example[0]).sort(), ["id", "statement"], "claims-list example item keys");
+
+    const baseline = materializeRun("s37-join-baseline");
+    expectVerdict(runVerifier(["join", "--run", baseline], { runRoot: baseline }), 0, "baseline join");
+
+    const asm = (mutate) => (run) => editJson(run, BOX_0000_ASSIGNMENT, mutate);
+    const cases = [
+      ["assignment unit_count changed", asm((a) => { a.unit_count = 45; }), "join.assignments", 'assignment unit count mismatch: "box-0000"'],
+      ["assignment units_dir changed", asm((a) => { a.units_dir = "units"; }), "join.assignments", 'box assignment binding mismatch: "box-0000"'],
+      ["assignment total_unit_bytes changed", asm((a) => { a.total_unit_bytes = 1; }), "join.budget", 'budget metric mismatch: "box-0000":total_unit_bytes'],
+      ["assignment claims_list_bytes changed", asm((a) => { a.claims_list_bytes = 1; }), "join.claim_list", 'claims_list_bytes mismatch: "box-0000"'],
+      ["claims-list object form", (run) => writeText(run, CLAIMS_LIST, "{}"), "shape", "invalid field: / expected array"],
+      ["claims-list item extra key", (run) => editJson(run, CLAIMS_LIST, (list) => { list[0].extra = true; }), "join.claim_list", 'claims list mismatch: "box-0000"'],
+      ["claims-list reordered", (run) => editJson(run, CLAIMS_LIST, (list) => { list.reverse(); }), "join.claim_list", 'claims list mismatch: "box-0000"'],
+    ];
+    for (const [label, mutate, check, detail] of cases) {
+      const run = materializeRun(`s37-join-${label.replace(/\W+/g, "-")}`);
+      mutate(run);
+      resealEnvelope(run);
+      expectFailedCheck(runVerifier(["join", "--run", run], { runRoot: run }), 1, check, detail, label);
+    }
+  });
+
+  it("documents the P0.5 records and drives the join p05/budget recomputation", () => {
+    for (const phrase of [
+      "P0.5 coordinator records",
+      "recomputes every count from the actual rows",
+      "prose fields",
+      "never trusted",
+    ]) {
+      has(ARTIFACT_CONTRACTS, phrase, `P0.5 contract phrase ${phrase}`);
+    }
+    const fields = ["file_rows", "expected_rows", "total_links", "received_rows", "zero_units", "zero_claims", "unresolved", "error_count", "errors", "duplicate_pairs", "claim_link_counts"];
+    for (const field of fields) {
+      assert.ok(section5().includes(field), `§5 P0.5 contract missing field ${field}`);
+    }
+    for (const token of ["budget.unit_bytes", "budget.claims_list_bytes", "budget.instructions_bytes", "budget.box_input_bytes", "budget.headroom_bytes", "budget.output_bytes", "budget.output_links"]) {
+      assert.ok(section5().includes(token), `§5 P0.5 contract missing budget token ${token}`);
+    }
+
+    const cases = [
+      ["p05 check file_rows changed", (run) => editJson(run, P05_CHECK, (c) => { c.file_rows += 1; }), "join.p05", 'p05 count mismatch: "box-0000":file_rows'],
+      ["p05 evidence zero_units invariant", (run) => editJson(run, P05_EVIDENCE, (e) => { e.zero_units = ["u0000"]; }), "join.p05", 'p05 zero/unresolved mismatch: "box-0000":zero_units'],
+      ["p05 evidence unresolved array", (run) => editJson(run, P05_EVIDENCE, (e) => { e.unresolved = ["u0000"]; }), "join.p05", 'p05 zero/unresolved mismatch: "box-0000":unresolved'],
+      ["p05 budget unit_bytes changed", (run) => editJson(run, P05_EVIDENCE, (e) => { e.budget.unit_bytes += 1; }), "join.budget", 'budget metric mismatch: "box-0000":unit_bytes'],
+    ];
+    for (const [label, mutate, check, detail] of cases) {
+      const run = materializeRun(`s37-p05-${label.replace(/\W+/g, "-")}`);
+      mutate(run);
+      resealEnvelope(run);
+      expectFailedCheck(runVerifier(["join", "--run", run], { runRoot: run }), 1, check, detail, label);
+    }
+  });
+
+  it("extends the repair map with the assignment/claims-list/P0.5 refusals", () => {
+    const body = read(ARTIFACT_CONTRACTS);
+    const map = norm(body.slice(body.indexOf("## 7. Error → field → doc anchor")));
+    for (const token of [
+      "assignment box mismatch",
+      "assignment output mismatch",
+      "assignment manifest mismatch",
+      "malformed assignment",
+      "input ceiling mismatch",
+      "malformed p05 evidence",
+      "cannot read artifact: join/",
+      "invalid field: / expected array",
+      "claims list mismatch",
+      "claims_list_bytes mismatch",
+      "assignment unit count mismatch",
+      "box assignment binding mismatch",
+      "budget metric mismatch",
+      "p05 count mismatch",
+      "p05 zero/unresolved mismatch",
+      "p05 claim_link_counts mismatch",
     ]) {
       assert.ok(map.includes(norm(token)), `§7 repair map missing token ${token}`);
     }
