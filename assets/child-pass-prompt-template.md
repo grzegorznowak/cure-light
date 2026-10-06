@@ -174,6 +174,12 @@ Conflicts vocabulary is exact: kind is `within-source` or `cross-source`;
 materiality is `material` or `non-material` (structural enums only — put the
 richer subtype wording in witness/reasoning); precedence is a required nonempty
 string, `"none"` when no precedence is stated.
+Quote rule (mechanical): every quote must be an exact UTF-8 byte substring of
+the captured source bytes — copy byte-for-byte, never normalized, re-wrapped or
+Markdown-cleaned; claims/nonclaims quotes bind to their source_ref, a note quote
+to its paired source_ref, a missing_source_candidates reference_quote to some
+captured source, and a conflict quote's non-null offset_bytes is the zero-based
+byte offset of its first occurrence.
 Use run-scoped draft IDs. Include stated fixes and acceptance requirements;
 separate background/advisory/evidence from promises and never duplicate a clause
 as both claim and nonclaim. Absorb bounded within-/cross-source consistency:
@@ -184,7 +190,7 @@ Return the artifact path and compact counts/hard cases, not a semantic verdict.
 
 This nested profile is the frozen `claims-draft/3` structural shape (the S28
 profile); no alternate shape is accepted by the pinned `verify claims` command.
-V1 validates/freezes claims against sources before adjudication.
+V1 validates/freezes claims against sources before adjudication. The inline quote rule above restates the mechanical containment contract in artifact-contracts.md §2.
 
 ### P0.4 Per-box join JSONL
 

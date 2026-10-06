@@ -2,6 +2,14 @@
 
 ## Unreleased (working tree)
 
+### 2026-10-06 — artifact contracts follow-up: join-draft units_manifest binding + quote containment (S38 repair loop)
+
+- **Join-draft `units_manifest` binding.** The join draft's own manifest binding is now documented as four fields (`ref`, `sha256`, `schema_version`, `unit_count`), distinguished from the envelope's three-field pin and from a box assignment's manifest pair; `unit_count` is the whole-manifest count, not the assigned subset. This closes the gap behind S38's `join.identity` failure (2 tool-source diagnosis children + 1 repair + 1 re-verify round) — the coordinator followed §5's "(ref/hash identity)" literally.
+- **Quote containment (verbatim rule).** §2 states the mechanical rule for every quote-bearing field: exact UTF-8 byte substrings (claims/nonclaims against the declared source, conflicts against theirs with the first-occurrence `offset_bytes`, notes against the paired source, and `missing_source_candidates[].reference_quote` against any captured source), with the observed failure strings; the P0.2 child template carries the drafting-time rule inline (S38's candidate quote `**Seals from review**` vs the source's `## Seals from review` cost 1 diagnostic + 1 repair).
+- **Repair map.** §7 gains rows for `join manifest binding mismatch`, the `units_manifest` shape failure and the claims quote/offset refusals.
+- **No tool change.** `kernel/tools/verify.mjs` behavior, schemas, exit codes and written bytes are unchanged; the extended docs suite drives the real claims/join validators (baseline pass plus the probed binding/quote/offset mutation matrices).
+- **Docs:** `kernel/references/artifact-contracts.md`, `assets/child-pass-prompt-template.md`, `kernel/tools/verify.docs.test.mjs`.
+
 ### 2026-10-05 — artifact contracts follow-up: assignment authoring contract + claims-list/P0.5 records (S37 repair loop)
 
 - **Assignment authoring contract.** `join/box-<id>.assignment.json` is now documented field-by-field (all 11 recorded keys with their exact types and enforcing checks) plus the generator's per-box refusal order and a valid skeleton example. The table distinguishes the pre-recording generator checks (`assignment box`/`output`/`manifest mismatch`, `malformed assignment`, `input ceiling mismatch`) from the delegated `verify join` re-bind (`assignment unit count mismatch`, `box assignment binding mismatch`, budget metrics, `claims_list_bytes`); the keys are recorded facts, not an exclusive allowed-key set, and `malformed assignment` names the file rather than the offending key. This closes the gap behind S37's 57 refused envelope invocations (~87 s wall) and the tool-source diagnosis child they triggered.
