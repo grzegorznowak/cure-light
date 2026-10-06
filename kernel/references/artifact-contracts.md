@@ -234,6 +234,65 @@ The merged `join/join-draft.v1.json` carries `schema_version: "join-draft/1"`, i
 
 Per-box inputs and outputs (all pinned in `join_boxes`): `box-<id>.assignment.json`, `box-<id>.instructions.md`, `join/claims-list.json`, the child-written `box-<id>.jsonl`, and the P0.5 records `p05-check.json` / `p05-evidence.json`. JSONL is one row per assigned unit in listed order; retains original attempts and retry/split records in `join_attempts[]` — the explicit history the generator cannot infer without `--attempts`.
 
+**Assignment authoring contract (`join/box-<id>.assignment.json`).** Each box's assignment is a JSON object recording the box identity, its child output ref, and the exact inputs the box was packed from. The table lists every recorded field; it is **not an exclusive allowed-key set** (extra keys are ignored), and the refused condition is a recorded fact disagreeing with another record of the same fact — not an unexpected key.
+
+| Field | Required | Type | Recorded meaning and enforcing check |
+|---|---|---|---|
+| `box_id` | yes | nonempty string | must equal the draft box and `join/<box_id>.jsonl`; generator: `assignment box mismatch: "<box_id>"` |
+| `output_path` | yes | nonempty string | must equal the draft box `path` (e.g. `join/box-0000.jsonl`); generator: `assignment output mismatch: "<box_id>"` |
+| `manifest_ref` | yes | nonempty string | must equal the discovered units manifest ref; generator: `assignment manifest mismatch: "<box_id>"` |
+| `manifest_sha256` | yes | 64-char hex | sha256 of the exact units manifest bytes; same generator check |
+| `claims_list_path` | yes | nonempty string | ref of the packed claims list; the generator reads and pins those bytes (`cannot read artifact: <ref>` when unreadable) |
+| `units[]` | yes | unit-id strings | the assigned units, in the order the box JSONL must project |
+| `units_dir` | yes | nonempty string | parent dir of the units manifest (payload base); delegated join: `box assignment binding mismatch: "<box_id>"` |
+| `unit_count` | yes | nonneg integer | must equal `units.length`; delegated join: `assignment unit count mismatch: "<box_id>"` |
+| `total_unit_bytes` | yes | nonneg integer | sum of the assigned payload bytes; delegated join: `budget metric mismatch: "<box_id>":total_unit_bytes` |
+| `input_ceiling_bytes` | yes | nonneg integer | approved pilot ceiling; must equal the `--input-ceiling-bytes` flag and the p05 evidence ceiling; generator: `input ceiling mismatch: "<box_id>"` |
+| `claims_list_bytes` | yes | nonneg integer | exact claims-list byte length; delegated join: `claims_list_bytes mismatch: "<box_id>"` |
+
+**Refusal order (generator).** Per box, the generator refuses the first failing check in this order: assignment is an object → `box_id` → `output_path` → manifest pair → `claims_list_path` → `units` array → input ceiling → instructions discovery → claims-list read → P0.5 discovery/read and evidence budget → box output read. `malformed assignment: "<ref>"` covers a non-object assignment, a missing/empty `claims_list_path`, or a non-array `units`; it names the file, not the offending key (key-level reporting is deferred). The table's "delegated join" checks run later, over the recorded envelope: the generator must pass first, and `verify join` re-binds the recorded facts — it never repairs them.
+
+Valid skeleton (synthetic; one unit per box for brevity):
+
+<!-- assignment-example -->
+```json
+{
+  "box_id": "box-0000",
+  "output_path": "join/box-0000.jsonl",
+  "units": ["u0000"],
+  "unit_count": 1,
+  "units_dir": "units/units2",
+  "claims_list_path": "join/claims-list.json",
+  "claims_list_bytes": 61,
+  "input_ceiling_bytes": 196608,
+  "total_unit_bytes": 42,
+  "manifest_ref": "units/units2/manifest.json",
+  "manifest_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+}
+```
+
+**Claims-list contract (`join/claims-list.json`).** The claims list is a top-level JSON array of exactly `{id, statement}` objects — one per claims-draft claim, in draft order, with no wrapper object and no other item keys. The envelope generator only reads and pins the bytes; the delegated `verify join` re-derives the exact array from the claims draft (length, order, two keys, exact strings): any difference fails `join.claim_list` with `claims list mismatch: "<box_id>"`, a top-level non-array fails shape with `invalid field: / expected array`, and the assignment's `claims_list_bytes` must equal the exact byte length.
+
+<!-- claims-list-example -->
+```json
+[
+  {"id": "C01", "statement": "The PR adds the documented flag."}
+]
+```
+
+**P0.5 coordinator records (`join/p05-check.json`, `join/p05-evidence.json`).** Both are unversioned JSON objects written by the coordinator alongside the box output. A per-box `join/<box_id>.p05-check.json` and `join/<box_id>.p05-evidence.json` pair wins; the global pair is a single-box fallback. The generator pins both and requires each to be an object; the evidence's `budget.input_ceiling_bytes` must be a nonneg integer equal to the pilot ceiling (`malformed p05 evidence: "<ref>"` / `input ceiling mismatch: "<box_id>"` otherwise). The delegated `verify join` recomputes every count from the actual rows and the claims draft; prose fields (`witness_containment`, `retry_history`) are never trusted:
+
+| Record | Field | Recomputed rule and observed failure |
+|---|---|---|
+| check | `file_rows`, `expected_rows` | actual box row count; `p05 count mismatch: "<box_id>":<field>` |
+| check | `total_links` | actual total links; same failure family |
+| evidence | `expected_rows`, `received_rows`, `total_links` | must equal the same recomputed counts |
+| both | `zero_units`, `zero_claims`, `unresolved` | recomputed zero-link unit/claim ids and unresolved unit ids; `p05 zero/unresolved mismatch: "<box_id>":<field>` |
+| both | `error_count` = 0, `errors` = [] | any recorded error: `p05 errors recorded: "<box_id>"` |
+| evidence | `duplicate_pairs` = 0 | recomputed duplicate `(unit_id, claim_id)` pairs; `p05 count mismatch: "<box_id>":duplicate_pairs` |
+| check | `claim_link_counts` | exact per-claim link-count map; `p05 claim_link_counts mismatch: "<box_id>"` |
+| evidence | `budget.unit_bytes`, `budget.claims_list_bytes`, `budget.instructions_bytes`, `budget.box_input_bytes`, `budget.headroom_bytes`, `budget.output_bytes`, `budget.output_links` | recomputed budget metrics; `budget metric mismatch: "<box_id>":<field>` |
+
 ## 6. Budget, witness and recovery rules
 
 - Packing is by input length only: instructions + the full `claims[].id`/`statement` list + whole units in manifest order; no unit-count cap, no reserved answer space, no unit split. Greedy box packing is enforced (`non-greedy box packing: <box>`); recovery halves are exempt.
@@ -258,6 +317,15 @@ Per-box inputs and outputs (all pinned in `join_boxes`): `box-<id>.assignment.js
 | `envelope`, `malformed join draft: boxes` / `malformed join draft: boxes entry` / `malformed join draft: schema_version` / `malformed join draft: /<field>` | pre-recording join draft: `boxes` not an array / entry without nonempty `box_id`+`path` / missing identity field | §4/§5 |
 | `envelope`, `ambiguous join draft` / `ambiguous instructions` | more than one candidate draft / instructions file | §4/§5 |
 | `envelope`, `assignment ... mismatch` / `missing instructions` / `missing p05 check` / `missing p05 evidence` / `input ceiling mismatch` | per-box assignment/instructions/P0.5 bindings refused at prep | §5 |
+| `envelope`, `assignment box mismatch` / `assignment output mismatch` / `assignment manifest mismatch` | assignment `box_id` / `output_path` / manifest pair disagree with the draft box and discovered units manifest | §5 |
+| `envelope`, `malformed assignment: "<ref>"` | assignment not an object, `claims_list_path` missing/empty, or `units` not an array — names the file, not the offending key | §5 |
+| `envelope`, `malformed p05 evidence: "<ref>"` | p05 evidence not an object, or `budget` missing / ceiling not a nonneg integer | §5 |
+| `envelope`, `cannot read artifact: <ref>` (assignment `claims_list_path` example: `cannot read artifact: join/nope.json`) | assignment `claims_list_path` has no readable bytes | §5 |
+| `shape`, `invalid field: / expected array` | delegated join: claims-list top level is not an array | §5 |
+| `join.claim_list`, `claims list mismatch` / `claims_list_bytes mismatch` | claims-list not the exact ordered `{id,statement}` projection, or the assignment byte length differs | §5 |
+| `join.assignments`, `assignment unit count mismatch` / `box assignment binding mismatch` | delegated-join re-bind: `unit_count`, `units_dir`, manifest pair or refs disagree with the envelope pins | §5 |
+| `join.budget`, `budget metric mismatch: "<box_id>":<field>` | recomputed assignment/p05 budget metric differs | §5 |
+| `join.p05`, `p05 count mismatch` / `p05 zero/unresolved mismatch` / `p05 claim_link_counts mismatch` | recorded p05 counts, zero/unresolved arrays or per-claim counts differ from the recomputation | §5 |
 | `shape`, `invalid field: /source_consistency/...` | `source_consistency` present but empty-string or wrong-typed object/array | §2 |
 | `claims.conflicts`, `consistency record not found: "<id>"` | `source_consistency.records[].id` not a recorded `conflicts[].id` | §2 |
 | `claims.conflicts`, `invalid conflict kind: "<id>": "<value>"` | `conflicts[].kind` not `within-source`/`cross-source` (structural enum; no semantic subtypes) | §2 |

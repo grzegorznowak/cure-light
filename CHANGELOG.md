@@ -2,6 +2,14 @@
 
 ## Unreleased (working tree)
 
+### 2026-10-05 — artifact contracts follow-up: assignment authoring contract + claims-list/P0.5 records (S37 repair loop)
+
+- **Assignment authoring contract.** `join/box-<id>.assignment.json` is now documented field-by-field (all 11 recorded keys with their exact types and enforcing checks) plus the generator's per-box refusal order and a valid skeleton example. The table distinguishes the pre-recording generator checks (`assignment box`/`output`/`manifest mismatch`, `malformed assignment`, `input ceiling mismatch`) from the delegated `verify join` re-bind (`assignment unit count mismatch`, `box assignment binding mismatch`, budget metrics, `claims_list_bytes`); the keys are recorded facts, not an exclusive allowed-key set, and `malformed assignment` names the file rather than the offending key. This closes the gap behind S37's 57 refused envelope invocations (~87 s wall) and the tool-source diagnosis child they triggered.
+- **Claims-list + P0.5 records.** The claims-list shape (top-level ordered array of exactly `{id, statement}`; the generator pins bytes only, the delegated join re-derives it from the claims draft) and the P0.5 `check`/`evidence` records (counts, zero/unresolved invariants, duplicate pairs, `claim_link_counts`, budget metrics recomputed by `verify join`) are documented with their observed failure strings.
+- **Repair map.** §7 gains rows for the assignment generator refusals, the malformed-assignment semantics, claims-list shape/mismatch and the join-side assignment/budget/p05 recomputation failures.
+- **No tool change.** `kernel/tools/verify.mjs` behavior, schemas, exit codes and written bytes are unchanged; the extended docs suite drives the real generator/join (baseline pass plus the probed assignment/claims-list/P0.5 mutation matrix).
+- **Docs:** `kernel/references/artifact-contracts.md`, `kernel/tools/verify.docs.test.mjs`.
+
 ### 2026-10-05 — artifact contracts follow-up: `conflicts[]` vocabulary + precedence rule (S36 repair loop)
 
 - **`conflicts[]` vocabulary.** The claims-draft contract now states the exact enums `verify claims` enforces: `kind` is `within-source` or `cross-source` and `materiality` is `material` or `non-material` — structural enums only, with richer subtypes belonging in `witness`/`reasoning` (an invented `kind` subtype or graded materiality fails `claims.conflicts`). `precedence` is a required nonempty string (`"none"` when no precedence is stated), and a concrete valid conflict record is documented. The P0.2 child template carries the same vocabulary inline so the drafting child no longer has to infer it.
