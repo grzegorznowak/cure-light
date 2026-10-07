@@ -29,11 +29,12 @@ import path from "node:path";
 import {
   BOX_0000, BOX_0000_ASSIGNMENT, CLAIMS_DRAFT, CLAIMS_LIST, JOIN_DRAFT,
   P05_CHECK, P05_EVIDENCE, RAW_WITNESSES_PATH, RUN_MANIFEST, UNITS_MANIFEST,
-  appendPayloadLine, cleanupTempDirs, editBoxRow, editJson, findFailedCheck,
-  makeMetadataFileUnit, materializeEmptyRun, materializeRun, readBoxRows,
-  readBytes, readJson, resealEnvelope, resealRun, runVerifier, setJoinAttempts,
-  setRowUnlinked, snapshotTree, splitIntoTwoBoxes, writeAttemptOutput,
-  writeBoxRows, writeBytes, writeJson, writeText,
+  addOpaqueMachineRow, appendPayloadLine, cleanupTempDirs, editBoxRow, editJson,
+  findFailedCheck, makeMetadataFileUnit, materializeEmptyRun, materializeOpaqueRun,
+  materializeRun, readBoxRows, readBytes, readJson, resealEnvelope, resealRun,
+  resealUnitsBinding, runVerifier, setJoinAttempts, setRowUnlinked, snapshotTree,
+  splitIntoTwoBoxes, writeAttemptOutput, writeBoxRows, writeBytes, writeJson,
+  writeOperatorApproval, writeText,
 } from "./verify-testkit.mjs";
 
 after(cleanupTempDirs);
@@ -91,6 +92,37 @@ function joinRun(label) {
   const runRoot = materializeRun(label);
   const r = runVerifier(["join", "--run", runRoot], { runRoot });
   return { runRoot, r };
+}
+
+function opaqueJoinRun(label, options) {
+  const fixture = materializeOpaqueRun(label, options);
+  addOpaqueMachineRow(fixture.runRoot, fixture.unitId);
+  return fixture;
+}
+
+function partialOpaqueJoinRun(label) {
+  return opaqueJoinRun(label, {
+    bodies: [Buffer.alloc(7000, 0x51)],
+    sides: ["added"],
+    pairId: null,
+    states: ["unpaired"],
+    coverage: { status: "partial", machine_occurrences: 1, skips: ["skip-0000"] },
+    skips: [{ skip_id: "skip-0000", reason: "unpaired", occurrence_ids: ["occ-0000"] }],
+  });
+}
+
+function twoSkipPartialOpaqueJoinRun(label) {
+  return opaqueJoinRun(label, {
+    bodies: [Buffer.alloc(7000, 0x51), Buffer.alloc(7000, 0x52)],
+    sides: ["added", "removed"],
+    pairId: null,
+    states: ["unpaired", "unpaired"],
+    coverage: { status: "partial", machine_occurrences: 2, skips: ["skip-0000", "skip-0001"] },
+    skips: [
+      { skip_id: "skip-0000", reason: "unpaired", occurrence_ids: ["occ-0000"] },
+      { skip_id: "skip-0001", reason: "unpaired", occurrence_ids: ["occ-0001"] },
+    ],
+  });
 }
 
 /** Mutate exactly one link's witness via editBoxRow + full reseal. */
@@ -1300,6 +1332,146 @@ describe("join.candidates — candidate_unclaimed encoding (J12, RED until P4b)"
     const r = runVerifier(["join", "--run", runRoot], { runRoot });
     const v = expectVerdict(r, 1);
     expectCheckOk(v, "join.candidates");
+  });
+});
+
+describe("join.machine and join.approval — opaque units are machine-only (plan §3 b7-b15)", () => {
+  it("b7: a machine row accounts for the opaque unit in manifest order", () => {
+    const { runRoot } = opaqueJoinRun("join-machine-row");
+    const r = runVerifier(["join", "--run", runRoot], { runRoot });
+    const v = expectVerdict(r, 0);
+    expectCheckOk(v, "join.machine", "machine units: 1");
+  });
+
+  it("b8: an opaque unit assigned to a model box fails join.assignments", () => {
+    const { runRoot, unitId } = opaqueJoinRun("join-machine-in-box");
+    const rows = readBoxRows(runRoot);
+    const row = { unit_id: unitId, links: [], unresolved: null };
+    writeBoxRows(runRoot, BOX_0000, [...rows, row]);
+    editJson(runRoot, JOIN_DRAFT, (join) => { join.units.push(row); });
+    editJson(runRoot, BOX_0000_ASSIGNMENT, (assignment) => {
+      assignment.units.push(unitId);
+      assignment.unit_count = assignment.units.length;
+    });
+    resealUnitsBinding(runRoot);
+    resealRun(runRoot);
+    const r = runVerifier(["join", "--run", runRoot], { runRoot });
+    expectFailure(r, "join.assignments", `opaque unit assigned to a model box: ${JSON.stringify(unitId)}`);
+  });
+
+  it("b9: omitting an opaque machine row fails join.machine", () => {
+    const fixture = materializeOpaqueRun("join-machine-missing");
+    const r = runVerifier(["join", "--run", fixture.runRoot], { runRoot: fixture.runRoot });
+    expectFailure(r, "join.machine", `machine row missing: ${JSON.stringify(fixture.unitId)}`);
+  });
+
+  it("b9: a machine row must never carry model links", () => {
+    const { runRoot } = opaqueJoinRun("join-machine-links");
+    editJson(runRoot, JOIN_DRAFT, (join) => {
+      join.machine[0].links = [{ claim_id: "C21" }];
+    });
+    resealEnvelope(runRoot);
+    const r = runVerifier(["join", "--run", runRoot], { runRoot });
+    expectFailure(r, "join.machine", "machine row must have links: []");
+  });
+
+  it("CB5: oversized machine-row unresolved text is refused without echoing raw bytes", () => {
+    const blob = Buffer.from(`ZZBLOB7K${"q".repeat(6992)}`);
+    const { runRoot, unitId } = opaqueJoinRun("join-machine-unresolved-bound", {
+      bodies: [blob, blob],
+    });
+    const unresolved = `needs review: ${blob.subarray(0, 256).toString("utf8")}`;
+    setRowUnlinked(runRoot, "u0000", null); // one legitimate model-side candidate
+    editJson(runRoot, JOIN_DRAFT, (join) => {
+      join.machine[0].unresolved = unresolved;
+      join.candidate_unclaimed = ["u0000"];
+    });
+    resealEnvelope(runRoot);
+
+    const r = runVerifier(["join", "--run", runRoot], { runRoot });
+    const v = expectFailure(r, "join.machine", `machine unresolved exceeds 200 characters: ${JSON.stringify(unitId)}`);
+    const output = r.stdout + r.stderr;
+    assert.ok(!output.includes("ZZBLOB7K"), "verifier output must not echo the raw blob marker");
+    assert.ok(!output.includes(unresolved.slice(0, 64)), "verifier output must not echo a 64-character unresolved slice");
+    assert.ok(!output.includes(blob.subarray(64, 128).toString("utf8")), "verifier output must not echo a 64-byte raw blob slice");
+    assert.ok(v.checks.every(({ detail }) => detail === undefined || detail.length <= 200),
+      "verifier check details must remain bounded");
+    const candidates = readJson(runRoot, JOIN_DRAFT).candidate_unclaimed;
+    assert.deepEqual(candidates, ["u0000"], "candidate_unclaimed contains only the decidable model unit id");
+    assert.ok(!candidates.includes(unitId), "opaque machine units are not candidates");
+  });
+
+  it("b10: partial opaque coverage without an approval fails join.approval", () => {
+    const { runRoot } = partialOpaqueJoinRun("join-approval-missing");
+    const r = runVerifier(["join", "--run", runRoot], { runRoot });
+    expectFailure(r, "join.approval", 'skip not approved: "skip-0000"');
+  });
+
+  it("b11: a pinned approval with a different subject_oid fails its binding", () => {
+    const { runRoot } = partialOpaqueJoinRun("join-approval-subject");
+    writeOperatorApproval(runRoot, { subject_oid: "0".repeat(40) });
+    const r = runVerifier(["join", "--run", runRoot], { runRoot });
+    expectFailure(r, "join.approval", "approval binding mismatch: subject_oid");
+  });
+
+  it("b12: approval bytes must match the envelope approval pin", () => {
+    const { runRoot } = partialOpaqueJoinRun("join-approval-pin");
+    const { ref } = writeOperatorApproval(runRoot);
+    writeBytes(runRoot, ref, Buffer.concat([readBytes(runRoot, ref), Buffer.from(" ")]));
+    const r = runVerifier(["join", "--run", runRoot], { runRoot });
+    expectFailure(r, "join.approval", "approval artifact sha256 mismatch");
+  });
+
+  it("b13: approval operator_ref must bind to pilot.operator_ref", () => {
+    const { runRoot } = partialOpaqueJoinRun("join-approval-operator");
+    writeOperatorApproval(runRoot, { operator_ref: "fixture:other-operator" });
+    const r = runVerifier(["join", "--run", runRoot], { runRoot });
+    expectFailure(r, "join.approval", "approval binding mismatch: operator_ref");
+  });
+
+  it("b14: an unknown approval policy_class fails closed", () => {
+    const { runRoot } = partialOpaqueJoinRun("join-approval-policy");
+    writeOperatorApproval(runRoot, {
+      approved: [{
+        skip_id: "skip-0000", occurrence_ids: ["occ-0000"], policy_class: "automatic",
+        rationale: "invalid fixture policy", basis: "partial-review",
+      }],
+    });
+    const r = runVerifier(["join", "--run", runRoot], { runRoot });
+    expectFailure(r, "join.approval", 'invalid policy_class: "automatic"');
+  });
+
+  it("b14: a duplicate policy_class across approvals fails closed", () => {
+    const { runRoot } = twoSkipPartialOpaqueJoinRun("join-approval-duplicate-policy");
+    writeOperatorApproval(runRoot, {
+      approved: [
+        { skip_id: "skip-0000", occurrence_ids: ["occ-0000"], policy_class: "big-blob", rationale: "first", basis: "partial-review" },
+        { skip_id: "skip-0001", occurrence_ids: ["occ-0001"], policy_class: "big-blob", rationale: "duplicate", basis: "partial-review" },
+      ],
+    });
+    const r = runVerifier(["join", "--run", runRoot], { runRoot });
+    expectFailure(r, "join.approval", 'invalid policy_class: "big-blob"');
+  });
+
+  it("b14: an extra approval entry for an unrecorded skip fails closed", () => {
+    const { runRoot } = partialOpaqueJoinRun("join-approval-extra");
+    writeOperatorApproval(runRoot, {
+      approved: [
+        { skip_id: "skip-0000", occurrence_ids: ["occ-0000"], policy_class: "big-blob", rationale: "recorded", basis: "partial-review" },
+        { skip_id: "skip-9999", occurrence_ids: [], policy_class: "vendor", rationale: "extra", basis: "excluded" },
+      ],
+    });
+    const r = runVerifier(["join", "--run", runRoot], { runRoot });
+    expectFailure(r, "join.approval", 'unapproved skip reference: "skip-9999"');
+  });
+
+  it("b15: a coherent approval passes and leaves the machine unit out of candidates", () => {
+    const { runRoot, unitId } = partialOpaqueJoinRun("join-approval-pass");
+    writeOperatorApproval(runRoot);
+    const r = runVerifier(["join", "--run", runRoot], { runRoot });
+    const v = expectVerdict(r, 0);
+    expectCheckOk(v, "join.machine", "machine units: 1");
+    assert.equal(readJson(runRoot, JOIN_DRAFT).candidate_unclaimed.includes(unitId), false);
   });
 });
 

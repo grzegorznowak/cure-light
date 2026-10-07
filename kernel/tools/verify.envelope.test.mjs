@@ -16,9 +16,11 @@ import { copyFileSync, existsSync, rmSync } from "node:fs";
 import path from "node:path";
 import {
   RUN_MANIFEST,
+  artifactSha,
   cleanupTempDirs,
   findFailedCheck,
   materializeEmptyRun,
+  materializeOpaqueRun,
   materializeRun,
   readBoxRows,
   readJson,
@@ -203,6 +205,44 @@ describe("envelope prep subcommand: pilot/output and attempts", () => {
       },
     ]);
     expectRefusal(runVerifier(envelopeArgs(runRoot, { attempts: "join/attempts.json" }), { runRoot }));
+  });
+});
+
+describe("envelope prep subcommand: opaque approval binding", () => {
+  const APPROVAL_REF = "approvals/operator-approval.json";
+
+  it("b16: --approval accepts a present operator-approval/1 artifact and pins exact bytes", () => {
+    const { runRoot } = materializeOpaqueRun("envelope-approval");
+    const env = readJson(runRoot, RUN_MANIFEST);
+    writeJson(runRoot, APPROVAL_REF, {
+      schema_version: "operator-approval/1", run: env.run, review_state: env.review_state,
+      base_oid: env.base_oid, subject_oid: env.subject_oid,
+      operator_ref: OPERATOR_REF, approved: [],
+    });
+    const before = snapshotTree(runRoot);
+    const document = expectDocument(runVerifier([...envelopeArgs(runRoot), "--approval", APPROVAL_REF], { runRoot }));
+    assert.equal(document.units_manifest.schema_version, "code-units-sim/3");
+    assert.deepEqual(document.pilot.approval, { ref: APPROVAL_REF, sha256: artifactSha(runRoot, APPROVAL_REF) });
+    assert.deepEqual(snapshotTree(runRoot), before, "approval prep must remain read-only");
+  });
+
+  it("b16: --approval missing artifact refuses rather than recording an unverifiable pin", () => {
+    const { runRoot } = materializeOpaqueRun("envelope-approval-missing");
+    const r = runVerifier([...envelopeArgs(runRoot), "--approval", APPROVAL_REF], { runRoot });
+    const verdict = expectRefusal(r);
+    assert.match(verdict.summary, /approval artifact missing/);
+  });
+
+  it("b17: partial coverage without --approval refuses before preparing a V1 run", () => {
+    const { runRoot } = materializeOpaqueRun("envelope-partial-no-approval", {
+      bodies: [Buffer.alloc(7000, 0x51)], sides: ["added"], pairId: null,
+      states: ["unpaired"],
+      coverage: { status: "partial", machine_occurrences: 0, skips: ["skip-0000"] },
+      skips: [{ skip_id: "skip-0000", reason: "unpaired", occurrence_ids: ["occ-0000"] }],
+    });
+    const r = runVerifier(envelopeArgs(runRoot), { runRoot });
+    const verdict = expectRefusal(r);
+    assert.match(verdict.summary, /approval required for partial coverage/);
   });
 });
 
