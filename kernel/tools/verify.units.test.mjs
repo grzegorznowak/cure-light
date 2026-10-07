@@ -1,5 +1,5 @@
 // RED-first contract tests for the `units` command of kernel/tools/verify.mjs —
-// code-units-sim/2 (plan §3 U1–U7, plan §4 items 7–11). Authored BEFORE the U
+// code-units-sim/3 (plan §3 U1–U8, plan §4 items 7–11). Authored BEFORE the U
 // validators exist (P3 batch C): with only the P2 stub in place every case fails
 // at `units.not_implemented` / a missing target check; the intended failure mode
 // encoded here becomes the regression gate.
@@ -67,10 +67,10 @@ function mutateManifest(runRoot, fn) {
 }
 
 describe("units pass (plan §4 item 7)", () => {
-  it("pass: exit 0, schema code-units-sim/2, all checks true, counts 46/22/0/171492", () => {
+  it("pass: exit 0, schema code-units-sim/3, all checks true, counts 46/22/0/171492", () => {
     const { r } = unitsPass("units-pass-ok");
     const v = expectVerdict(r, 0);
-    assert.equal(v.schema, "code-units-sim/2");
+    assert.equal(v.schema, "code-units-sim/3");
     assert.equal(v.tool_version, "1.0.0");
     assert.match(v.summary, /^PASS units: \d+ checks$/);
     for (const check of v.checks) assert.equal(check.ok, true, `check ${check.name} must pass: ${check.detail}`);
@@ -423,11 +423,75 @@ describe("units.opaque — /3 raw-store quarantine and certificates", () => {
     const r = runVerifier(["units", "--run", runRoot], { runRoot });
     expectFailure(r, "units.opaque", `opaque descriptor too large: "${unitId}"`);
   });
+
+  /** Rewrite the opaque descriptor payload and keep unit/counts/binding coherent. */
+  function rewriteDescriptor(runRoot, descriptorRef, mutate) {
+    const rel = `units/${descriptorRef}`;
+    const descriptor = JSON.parse(readBytes(runRoot, rel).toString("utf8"));
+    mutate(descriptor);
+    const after = Buffer.from(JSON.stringify(descriptor), "utf8");
+    writeBytes(runRoot, rel, after);
+    editJson(runRoot, UNITS_MANIFEST, (manifest) => {
+      const unit = manifest.units.find((entry) => entry.boundary_kind === "opaque");
+      manifest.counts.total_bytes += after.length - unit.byte_len;
+      unit.byte_len = after.length;
+    });
+    resealUnitsBinding(runRoot);
+  }
+
+  it("review: descriptor extra fields cannot smuggle bytes into the metadata document", () => {
+    const { runRoot, unitId, descriptorRef } = materializeOpaqueRun("opaque-descriptor-extra");
+    rewriteDescriptor(runRoot, descriptorRef, (descriptor) => { descriptor.raw = `ZZBLOB7K${"q".repeat(64)}`; });
+    const r = runVerifier(["units", "--run", runRoot], { runRoot });
+    expectFailure(r, "units.opaque", `opaque descriptor invalid: "${unitId}"`);
+    assert.ok(!`${r.stdout}\n${r.stderr}`.includes("ZZBLOB7K"), "extra descriptor bytes must not be echoed");
+  });
+
+  it("review: descriptor occurrence projection must cover every recorded occurrence", () => {
+    const { runRoot, descriptorRef } = materializeOpaqueRun("opaque-descriptor-partition");
+    rewriteDescriptor(runRoot, descriptorRef, (descriptor) => { descriptor.occurrences = []; descriptor.pairing = null; });
+    const r = runVerifier(["units", "--run", runRoot], { runRoot });
+    expectFailure(r, "units.opaque", 'opaque descriptor missing occurrence: "occ-0000"');
+  });
+
+  it("review: occurrence id and raw ref are bound exactly", () => {
+    const { runRoot } = materializeOpaqueRun("opaque-id-ref");
+    editJson(runRoot, UNITS_MANIFEST, (manifest) => { manifest.opaque_occurrences[0].occurrence_id = "occ-1111"; });
+    const r = runVerifier(["units", "--run", runRoot], { runRoot });
+    expectFailure(r, "units.opaque", 'invalid raw occurrence ref for "occ-1111"');
+  });
+
+  it("review: a skip reason must match the covered occurrence evidence", () => {
+    const { runRoot } = materializeOpaqueRun("opaque-skip-reason", {
+      bodies: [Buffer.alloc(7000, 0x51)], sides: ["added"], pairId: null, states: ["unpaired"],
+      coverage: { status: "partial", machine_occurrences: 1, skips: ["skip-0000"] },
+      skips: [{ skip_id: "skip-0000", reason: "unpaired", occurrence_ids: ["occ-0000"] }],
+    });
+    editJson(runRoot, UNITS_MANIFEST, (manifest) => { manifest.skips[0].reason = "ambiguous"; });
+    resealUnitsBinding(runRoot);
+    const r = runVerifier(["units", "--run", runRoot], { runRoot });
+    expectFailure(r, "units.opaque", "coverage/skips mismatch");
+  });
+
+  it("review: attacker-controlled occurrence ids are never echoed", () => {
+    const { runRoot } = materializeOpaqueRun("opaque-id-echo");
+    editJson(runRoot, UNITS_MANIFEST, (manifest) => {
+      manifest.opaque_occurrences[0].occurrence_id = `ZZBLOB7K${"q".repeat(64)}`;
+      manifest.opaque_occurrences[0].side = "invalid-side";
+    });
+    resealUnitsBinding(runRoot);
+    const r = runVerifier(["units", "--run", runRoot], { runRoot });
+    expectFailure(r, "units.opaque", "invalid occurrence id");
+    assert.ok(!`${r.stdout}\n${r.stderr}`.includes("ZZBLOB7K"), "invalid ids must not reach verdict output");
+  });
 });
 
 describe("units schema hard migration", () => {
   it('a plain /2 units manifest refuses with unsupported schema_version: "code-units-sim/2" (exit 2)', () => {
     const runRoot = materializeRun("units-v2-refusal");
+    // The committed seed is /3; pin the refusal by presenting a legacy /2
+    // manifest, regardless of seed drift.
+    editJson(runRoot, UNITS_MANIFEST, (manifest) => { manifest.schema_version = "code-units-sim/2"; });
     const r = runVerifier(["units", "--run", runRoot], { runRoot });
     const v = expectVerdict(r, 2);
     assert.equal(v.summary, 'REFUSE units: unsupported schema_version: "code-units-sim/2"');

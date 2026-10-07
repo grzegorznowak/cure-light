@@ -33,8 +33,8 @@
   },
   "units_manifest": {
     "ref": "units/units2/manifest.json",
-    "sha256": "7266b92f33e441899bdfef59ef15cc3364655be4697caf8df44331e92a85a826",
-    "schema_version": "code-units-sim/2"
+    "sha256": "730ec8b4badd32887acfb707bdcddd7dd1e891db9cc764cca1202845f3517bc9",
+    "schema_version": "code-units-sim/3"
   },
   "unit_payloads": [
     {
@@ -270,7 +270,7 @@
   ],
   "join_draft": {
     "ref": "join/join-draft.v1.json",
-    "sha256": "c5750e1f228e23d49e2a1830d0b5220e448adf6437e243254f3b8b2ebb1f44d3",
+    "sha256": "6cb635f8cad87c0c0fa63d318912c93c6d42dfc040e43dac0e525828ad27d78e",
     "schema_version": "join-draft/1"
   },
   "pilot": {
@@ -287,7 +287,7 @@
       "box_id": "box-0000",
       "assignment": {
         "ref": "join/box-0000.assignment.json",
-        "sha256": "3107938f0fe88bc6b79d79d7e1837e276974eb2e027095c18e5fb56f12f47a9b"
+        "sha256": "f9cd180767da1e7bf4f32bb5528ac8c7ac65578a7edf4b9a536b41cc76a0a00e"
       },
       "instructions": {
         "ref": "join/box-0000.instructions.md",

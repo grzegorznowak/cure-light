@@ -75,6 +75,31 @@ A docs-only PR that updates the actual specification is a **real deliverable**: 
 
 Unclaimed is **not** "no lexical match", "no owner assigned", or child silence: if contract-search breadth is inadequate, the unit stays `UNRESOLVED`. Exclusions are waivers of attribution, never assertions of correctness — lock/dependency/security changes and hand-authored behavioral fixtures stay reviewable. Unknown formats and parser errors stay `UNRESOLVED`.
 
+### Opaque units and the machine lane
+
+opaque units initialize UNRESOLVED like every other manifest unit: a
+byte-equality certificate is mechanical evidence, and a certified pure move may
+be machine-attributed but never auto-EXPLAINED — attribution to the machine lane
+is separate from claim satisfaction. An opaque unit is EXCLUDED only via
+evidence-linked policy_class in the operator approval artifact; suffix or
+minification alone cannot exclude an opaque unit, and security-relevant opaque
+units cannot be EXCLUDED under any class. Where the skipped bytes are
+security-relevant the basis is downgraded instead: security-relevant opaque units
+force limited-only or blocked review basis until a human resolves them.
+
+No skip may pass silently: every deliberate skip bubbles clearly to the human
+reviewer at the pre-V1 pause, which presents occurrence ids, byte lengths,
+sha256, policy_class and rationale for each skip — never hidden behind machine
+metadata, never summarized away. policy_class is a reviewer-visible label, not an automatic waiver. The
+operator signs the `operator-approval/1` artifact
+(`approvals/operator-approval.json`) and the coordinator pins it with
+--approval <run-root-relative-ref> in the run envelope; the delegated
+`verify join` re-binds the artifact bytes, the identity tuple and the
+operator_ref to the recorded skips. unapproved partial coverage pauses before
+V1: no Vector 1 children are launched while any recorded skip lacks approval,
+and missing designation keeps repair_required (a Phase-0 defect an approval can
+never clear).
+
 ## Coordinator reconciliation
 
 1. Initialize every manifest unit `UNRESOLVED`; load source captures, the V1-validated/frozen claim directory and its ref/hash, P0 join leads, assignments and approved exclusions. Do not initialize zero-link candidates as final negatives.

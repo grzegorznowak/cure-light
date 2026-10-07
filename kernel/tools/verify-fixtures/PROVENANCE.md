@@ -13,7 +13,7 @@ or unresolved rows, no retry history).
 - Run: `grzegorznowak/cure-light#17`, `review_state: s1`
 - Subject `afe5145da30fa7d5d2e212296f2c458d2bf7e941`, base `c79a54c57322b45498ffd01db45a876a4712e138`
 - Historical engine OID: `cda939bab1e953e9e2f189d22d7bae995463816f` (replaced, see below)
-- Schema versions: `claims-draft/3`, `code-units-sim/2`, `join-draft/1`; the
+- Schema versions: `claims-draft/3`, `code-units-sim/3`, `join-draft/1`; the
   capture manifest, assignment, p05 check and p05 evidence are unversioned
   legacy support objects parsed by the `run-verification/1` envelope profile.
 
@@ -46,7 +46,7 @@ were historical.
   `5eedc0de5eedc0de5eedc0de5eedc0de5eedc0de`.
 - `chunker.sha256` (envelope): `925792df40294d2e4727bd4ebf7227ab3853f5c7f2bc8796bf6784dddc4c0f5a`
   — SHA-256 of the documented ASCII string `cure-light synthetic chunker pin (fixture)\n`.
-  The recipe object is the real `code-units-sim/2` recipe (4096/6144/3/true).
+  The recipe object is the real `code-units-sim/3` recipe (4096/6144/3/true).
 - `verifier.sha256` (envelope): placeholder
   `2a891cce63f56263cc2ff92c4eaed43bd022a1e3a2b5fcf87684e7b49e967003`
   — SHA-256 of `placeholder: kernel/tools/verify.mjs absent at fixture seed time\n`.
@@ -60,9 +60,10 @@ were historical.
 
 ## Exact transformations applied (migration, 2026-10-04)
 
-1. **Byte-identical copies**: all three `claims/sources/*` documents,
-   `units/units2/manifest.json`, all 46 payloads, `join/claims-list.json`,
-   `join/p05-check.json`. Their original hashes above still hold.
+1. **Byte-identical copies**: all three `claims/sources/*` documents, all 46
+   payloads, `join/claims-list.json`, `join/p05-check.json`. Their original
+   hashes above still hold; `units/units2/manifest.json` was later migrated to
+   `/3` (item 7), so its table hash is historical.
 2. **Absolute path migration** `/work/runs/s28-run-p0/` → run-root-relative:
    `claims/sources/*.json` `sources[].path` → `claims/sources/...`;
    assignment `output_path` → `join/box-0000.jsonl`, `units_dir` →
@@ -94,6 +95,14 @@ were historical.
    196608-byte input ceiling, `witness_max_chars=160`, `retry_limit=1`,
    `resplit='halves'`, `max_resplit_depth=1`, `output_ceiling_bytes=null`.
 6. **No remaining `/work/runs/...` string** exists under `seed/` (grep-checked).
+7. **`code-units-sim/3` migration (2026-10-07)**: `units/units2/manifest.json`
+   gained `opaque_occurrences: []`, `skips: []`, `coverage` (complete, 0, []) and
+   `counts.opaque_occurrences`/`counts.opaque_bytes`; `join-draft.v1.json` and
+   `run-manifest.json` bind schema `/3`. Re-pinned: units manifest
+   `730ec8b4badd32887acfb707bdcddd7dd1e891db9cc764cca1202845f3517bc9`
+   (29330 bytes), join draft
+   `6cb635f8cad87c0c0fa63d318912c93c6d42dfc040e43dac0e525828ad27d78e`,
+   assignment `manifest_sha256`, envelope units/join pins.
 
 ## Rejection/regression evidence kept
 

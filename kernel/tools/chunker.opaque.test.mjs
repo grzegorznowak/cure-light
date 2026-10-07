@@ -325,4 +325,46 @@ describe("opaque over-ceiling lines (/3 RED contract)", () => {
     const payloadBytes = manifest.units.reduce((sum, unit) => sum + unit.byte_len, 0);
     assert.equal(manifest.counts.total_bytes, payloadBytes, "raw bytes are excluded from total_bytes");
   });
+
+  it("a14 hunk-header section text must not echo an opaque body", () => {
+    const body = Buffer.from(`def ${MARKER}${"x".repeat(BODY_LENGTH - 4 - markerBytes.length)}`);
+    // Git can copy the nearest preceding definition line into a later hunk's
+    // `@@ ... @@ <section>` text; here that line is the opaque occurrence itself.
+    const lines = [body];
+    for (let i = 0; i < 40; i++) lines.push(Buffer.from(`# comment ${i}`));
+    const base = lines.map((line) => Buffer.from(line));
+    const subject = lines.map((line) => Buffer.from(line));
+    base[3] = Buffer.from("# old3"); subject[3] = Buffer.from("# new3");
+    base[30] = Buffer.from("# old30"); subject[30] = Buffer.from("# new30");
+    const repo = changedRepo("opaque-a14", "demo.py", fileBytes(base), fileBytes(subject));
+    const run = runChunker({ repo });
+    const manifest = assertSuccess(run);
+    assert.equal(manifest.opaque_occurrences.length, 1, "the oversized def line is one context occurrence");
+    for (const unit of manifest.units) {
+      const text = readFileSync(path.join(run.outDir, unit.file), "utf8");
+      for (const line of text.split("\n")) {
+        assert.equal(line.startsWith("@@ ") && line.includes(MARKER), false, `leaked section text in ${unit.unit_id}`);
+      }
+    }
+    assertNoLeak(run, body);
+  });
+
+  it("a15 unrelated one-sided occurrences in different files stay unpaired", () => {
+    const removed = opaqueBody();
+    const added = Buffer.concat([markerBytes, Buffer.alloc(BODY_LENGTH - markerBytes.length, 0x79)]);
+    const repo = createFixtureRepo("opaque-a15");
+    write(repo, "one.txt", fileBytes([removed, "small"]));
+    write(repo, "two.txt", fileBytes(["small"]));
+    commitAll(repo, "base");
+    branch(repo, "subject");
+    write(repo, "one.txt", fileBytes(["small"]));
+    write(repo, "two.txt", fileBytes(["small", added]));
+    commitAll(repo, "subject");
+    const run = runChunker({ repo });
+    const manifest = assertSuccess(run);
+    assert.equal(manifest.opaque_occurrences.length, 2);
+    assert.deepStrictEqual(manifest.skips.map((skip) => skip.reason), ["unpaired"]);
+    assert.equal(manifest.skips[0].occurrence_ids.length, 2);
+    assert.equal(manifest.coverage.status, "partial");
+  });
 });

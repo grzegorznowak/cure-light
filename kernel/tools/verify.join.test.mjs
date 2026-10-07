@@ -252,9 +252,9 @@ describe("join prerequisites — claims+units fatal (P3 open question 2)", () =>
 
   it("F2: wrong-kind claims prerequisite schema refuses join with exit 2", () => {
     const runRoot = materializeRun("join-prereq-claims-wrong-kind");
-    mutateClaimsDraft(runRoot, (claims) => { claims.schema_version = "code-units-sim/2"; });
+    mutateClaimsDraft(runRoot, (claims) => { claims.schema_version = "code-units-sim/3"; });
     const r = runVerifier(["join", "--run", runRoot], { runRoot });
-    expectRefusal(r, "join.prerequisites", 'prerequisite refused: claims: wrong schema kind: "code-units-sim/2" for claims');
+    expectRefusal(r, "join.prerequisites", 'prerequisite refused: claims: wrong schema kind: "code-units-sim/3" for claims');
   });
 
   it("F2: unknown units prerequisite schema refuses join with exit 2 naming it", () => {
@@ -297,7 +297,7 @@ describe("join support-artifact schema dispatch (F3)", () => {
       ["p05-check-join-draft", P05_CHECK, "join-draft/1"],
       ["p05-check-envelope", P05_CHECK, "run-verification/1"],
       ["p05-evidence-claims-draft", P05_EVIDENCE, "claims-draft/3"],
-      ["p05-evidence-units", P05_EVIDENCE, "code-units-sim/2"],
+      ["p05-evidence-units", P05_EVIDENCE, "code-units-sim/3"],
     ]) {
       const runRoot = materializeRun(`join-support-registered-${label}`);
       editJson(runRoot, ref, (obj) => { obj.schema_version = sv; });
@@ -1473,6 +1473,42 @@ describe("join.machine and join.approval — opaque units are machine-only (plan
     expectCheckOk(v, "join.machine", "machine units: 1");
     assert.equal(readJson(runRoot, JOIN_DRAFT).candidate_unclaimed.includes(unitId), false);
   });
+
+  it("review: approval occurrence_ids must project the recorded skip exactly", () => {
+    const { runRoot } = partialOpaqueJoinRun("join-approval-occurrences");
+    writeOperatorApproval(runRoot, {
+      approved: [{
+        skip_id: "skip-0000", occurrence_ids: [], policy_class: "big-blob",
+        rationale: "unbound occurrence list", basis: "partial-review",
+      }],
+    });
+    const r = runVerifier(["join", "--run", runRoot], { runRoot });
+    expectFailure(r, "join.approval", "approval binding mismatch: occurrence_ids");
+  });
+
+  it("review: approval basis is a closed enum", () => {
+    const { runRoot } = partialOpaqueJoinRun("join-approval-basis");
+    writeOperatorApproval(runRoot, {
+      approved: [{
+        skip_id: "skip-0000", occurrence_ids: ["occ-0000"], policy_class: "big-blob",
+        rationale: "invalid basis", basis: "not-a-basis",
+      }],
+    });
+    const r = runVerifier(["join", "--run", runRoot], { runRoot });
+    expectFailure(r, "join.approval", 'invalid basis: "not-a-basis"');
+  });
+
+  it("review: duplicate approval entries for one skip fail closed", () => {
+    const { runRoot } = partialOpaqueJoinRun("join-approval-duplicate-entry");
+    writeOperatorApproval(runRoot, {
+      approved: [
+        { skip_id: "skip-0000", occurrence_ids: ["occ-0000"], policy_class: "big-blob", rationale: "one", basis: "partial-review" },
+        { skip_id: "skip-0000", occurrence_ids: ["occ-0000"], policy_class: "vendor", rationale: "two", basis: "excluded" },
+      ],
+    });
+    const r = runVerifier(["join", "--run", runRoot], { runRoot });
+    expectFailure(r, "join.approval", 'duplicate approval entry: "skip-0000"');
+  });
 });
 
 describe("empty inventory (plan §4 item 28; representation documented)", () => {
@@ -1492,7 +1528,7 @@ describe("empty inventory (plan §4 item 28; representation documented)", () => 
     for (const command of ["claims", "units"]) {
       const r = runVerifier([command, "--run", runRoot], { runRoot });
       const v = expectVerdict(r, 0);
-      assert.equal(v.schema, command === "units" ? "code-units-sim/2" : "claims-draft/3");
+      assert.equal(v.schema, command === "units" ? "code-units-sim/3" : "claims-draft/3");
     }
   });
 

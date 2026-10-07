@@ -631,7 +631,10 @@ export function materializeEmptyRun(label = "empty") {
   });
   editJson(runRoot, UNITS_MANIFEST, (manifest) => {
     manifest.units = [];
-    manifest.counts = { units: 0, files: 0, line_split_units: 0, total_bytes: 0 };
+    manifest.opaque_occurrences = [];
+    manifest.skips = [];
+    manifest.coverage = { status: "complete", machine_occurrences: 0, skips: [] };
+    manifest.counts = { units: 0, files: 0, line_split_units: 0, opaque_occurrences: 0, opaque_bytes: 0, total_bytes: 0 };
   });
   const seedJoin = readJson(runRoot, JOIN_DRAFT);
   writeJson(runRoot, JOIN_DRAFT, {
@@ -643,7 +646,7 @@ export function materializeEmptyRun(label = "empty") {
     units_manifest: {
       ref: UNITS_MANIFEST,
       sha256: artifactSha(runRoot, UNITS_MANIFEST),
-      schema_version: "code-units-sim/2",
+      schema_version: "code-units-sim/3",
       unit_count: 0,
     },
     boxes: [],

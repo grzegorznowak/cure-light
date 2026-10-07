@@ -96,17 +96,29 @@ describe("CLI and failure surfaces", () => {
     assert.ok(!existsSync(manifestPath(res.outDir)));
   });
 
-  it("indivisible line over the ceiling: exit 1, named ceiling error, no manifest", () => {
+  it("indivisible line over the ceiling: partial success omits opaque bytes", () => {
     const repo = createFixtureRepo("ceiling-line");
+    const opaque = "A".repeat(7000);
     write(repo, "huge.txt", "base\n");
     commitAll(repo, "base");
     branch(repo, "subject");
-    write(repo, "huge.txt", `${"A".repeat(7000)}\n`);
+    write(repo, "huge.txt", `${opaque}\n`);
     commitAll(repo, "subject");
     const res = runChunker({ repo });
-    assert.equal(res.status, 1);
-    assert.match(res.stderr, new RegExp(`^chunker: indivisible line exceeds the ${CEILING_BYTES}-byte ceiling`));
-    assert.ok(!existsSync(manifestPath(res.outDir)), "failed run must not publish a manifest");
+    assert.equal(res.status, 0);
+    assert.equal(res.stderr, "");
+    const manifest = readManifest(res.outDir);
+    assert.equal(manifest.schema_version, "code-units-sim/3");
+    assert.equal(manifest.opaque_occurrences.length, 1);
+    assert.deepStrictEqual(
+      { side: manifest.opaque_occurrences[0].side, state: manifest.opaque_occurrences[0].state },
+      { side: "added", state: "unpaired" },
+    );
+    assert.equal(manifest.skips[0].reason, "unpaired");
+    assert.equal(manifest.coverage.status, "partial");
+    const publicBytes = [readFileSync(manifestPath(res.outDir)), Buffer.from(res.stdout)];
+    for (const unit of manifest.units) publicBytes.push(readFileSync(path.join(res.outDir, unit.file)));
+    assert.equal(Buffer.concat(publicBytes).includes(Buffer.from(opaque)), false, "opaque bytes never reach public artifacts");
   });
 
   it("outDir is an existing regular file: mkdir fails with chunker: prefix", async () => {
@@ -141,10 +153,10 @@ describe("CLI and failure surfaces", () => {
 });
 
 describe("manifest and payload contract", () => {
-  it("schema is code-units-sim/2 and the recipe is pinned exactly", async () => {
+  it("schema is code-units-sim/3 and the recipe is pinned exactly", async () => {
     const { repo: repository, run } = await fixtureRunOnce("basic-multi-file");
     const manifest = assertRunContract(run, { label: "basic" });
-    assert.equal(manifest.schema_version, "code-units-sim/2");
+    assert.equal(manifest.schema_version, "code-units-sim/3");
     assert.deepStrictEqual(manifest.recipe, RECIPE);
     assert.deepStrictEqual(manifest.recipe, {
       chunker: "chunker.mjs",
@@ -400,7 +412,7 @@ describe("no-hunk and special surfaces", () => {
     const { repo } = await buildFixture("empty-diff");
     const run = runChunker({ repo });
     const manifest = assertRunContract(run, { label: "empty-diff" });
-    assert.deepStrictEqual(manifest.counts, { units: 0, files: 0, line_split_units: 0, total_bytes: 0 });
+    assert.deepStrictEqual(manifest.counts, { units: 0, files: 0, line_split_units: 0, opaque_occurrences: 0, opaque_bytes: 0, total_bytes: 0 });
     assert.deepStrictEqual(manifest.units, []);
     const lines = run.stdout.split("\n");
     assert.equal(lines.at(-1), "");

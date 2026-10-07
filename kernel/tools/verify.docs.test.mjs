@@ -555,10 +555,11 @@ describe("docs contract — README / CHANGELOG / consistency", () => {
     has(CHANGELOG, "### 2026-10-02 — Phase 0: claims → chunker → join → gate", "historical section intact");
   });
 
-  it("chunker.md and evidence-format.md note verifier consumption without changing chunker schema", () => {
+  it("chunker.md and evidence-format.md note verifier consumption under the /3 schema", () => {
     has(CHUNKER, "consumed mechanically by the pinned verifier", "chunker verify consumption");
     has(CHUNKER, "internal units prerequisite", "chunker internal prerequisite");
-    has(CHUNKER, "chunker schema/output is unchanged", "chunker schema unchanged");
+    has(CHUNKER, "code-units-sim/3 always, never code-units-sim/2", "hard schema migration");
+    has(CHUNKER, "1024-byte opaque descriptor limit", "bounded opaque descriptor");
     has(EVIDENCE, "delegated `verify join` verdict", "evidence verdict ref");
     has(EVIDENCE, "diagnostic verdicts use the same shape when run and never gate", "evidence diagnostics non-gating");
   });
@@ -1442,7 +1443,7 @@ describe("docs contract — artifact contracts S2 follow-up (join-draft units_ma
       "distinct from the envelope `units_manifest` pin",
       "must equal the discovered units manifest ref",
       "sha256 of the exact units manifest bytes",
-      "exactly `code-units-sim/2`",
+      "exactly `code-units-sim/3`",
       "whole-manifest",
       "required checks, not an exclusive allowed-key set",
       "does not require `unit_count`",

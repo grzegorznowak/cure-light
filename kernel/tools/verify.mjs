@@ -36,7 +36,7 @@
 // SUPPORTED SCHEMAS
 //   run-verification/1  envelope at <run-root>/run-manifest.json
 //   claims-draft/3      claims/claims-draft*.json
-//   code-units-sim/2    units/units2/manifest.json | units2/manifest.json
+//   code-units-sim/3    units/units2/manifest.json | units2/manifest.json
 //   join-draft/1        join/join-draft*.json
 //   Unknown schemas anywhere in the required graph refuse with exit 2.
 //   Stdout is exactly one JSON verdict:
@@ -57,7 +57,7 @@ const VERIFY_PATH = fileURLToPath(import.meta.url);
 // be compared against the envelope.
 const VERIFIER_REL_PATH = "kernel/tools/verify.mjs";
 const USAGE = "usage: verify <claims|units|join> --run <run-root>";
-const ENVELOPE_USAGE = "usage: verify envelope --run <run-root> --operator-ref <string> --chunker-sha256 <64-lowercase-hex> --input-ceiling-bytes <decimal nonneg int> [--output-ceiling-bytes <decimal nonneg int|none>] [--attempts <run-root-relative-ref>]";
+const ENVELOPE_USAGE = "usage: verify envelope --run <run-root> --operator-ref <string> --chunker-sha256 <64-lowercase-hex> --input-ceiling-bytes <decimal nonneg int> [--output-ceiling-bytes <decimal nonneg int|none>] [--attempts <run-root-relative-ref>] [--approval <run-root-relative-ref>]";
 const CHUNKER_REL_PATH = "kernel/tools/chunker.mjs";
 const CAPTURE_MANIFEST_REF = "claims/sources/capture-manifest.json";
 const SHA256_HEX_RE = /^[0-9a-f]{64}$/;
@@ -72,14 +72,14 @@ const COMMANDS = new Set(["claims", "units", "join"]);
 const REGISTRY = new Map([
   ["run-verification/1", { family: "envelope" }],
   ["claims-draft/3", { family: "claims" }],
-  ["code-units-sim/2", { family: "units" }],
+  ["code-units-sim/3", { family: "units" }],
   ["join-draft/1", { family: "join" }],
 ]);
 
 const PRIMARY_PIN_FIELD = { claims: "claims_draft", units: "units_manifest", join: "join_draft" };
 const PRIMARY_KIND = { claims: "claims-draft", units: "units-manifest", join: "join-draft" };
 
-// Frozen code-units-sim/2 recipe (plan §3 U2): both the manifest recipe and the
+// Frozen code-units-sim/3 recipe (plan §3 U2): both the manifest recipe and the
 // envelope's recorded chunker recipe must equal these constants exactly.
 const UNITS_RECIPE = Object.freeze({
   chunker: "chunker.mjs",
@@ -88,8 +88,18 @@ const UNITS_RECIPE = Object.freeze({
   context: 3,
   block_preference: true,
 });
-const BOUNDARY_KINDS = new Set(["file", "block", "line-split"]);
+// `opaque` is the /3 machine-only descriptor unit: a bounded JSON payload in the
+// uNNNN.txt namespace whose raw occurrence bytes live in units2/raw only.
+const BOUNDARY_KINDS = new Set(["file", "block", "line-split", "opaque"]);
 const PAYLOAD_BASENAME = /^u\d{4}\.txt$/;
+const RAW_BASENAME = /^occ-\d{4}\.bin$/;
+const OPAQUE_DESCRIPTOR_MAX_BYTES = 1024;
+const OPAQUE_SIDES = new Set(["removed", "added", "context"]);
+const OPAQUE_STATES = new Set(["paired", "context", "unpaired", "ambiguous"]);
+const OPAQUE_SKIP_REASONS = new Set(["unpaired", "ambiguous", "not-byte-equal"]);
+const OCCURRENCE_ID_RE = /^occ-\d{4}$/;
+const PAIR_ID_RE = /^pair-\d{4}$/;
+const SKIP_ID_RE = /^skip-\d{4}$/;
 
 // Preamble/metadata lines the chunker can carry in a payload (no prefix-order
 // ambiguity with +/-, which are checked after). Mirrors the frozen witness
@@ -1185,7 +1195,7 @@ function runClaims(ctx) {
 }
 
 // ---------------------------------------------------------------------------
-// units — code-units-sim/2 (U1..U7)
+// units — code-units-sim/3 (U1..U8)
 //
 // Join (join-draft/1) is implemented further below: J1–J12 checks are live.
 // ---------------------------------------------------------------------------
@@ -1208,9 +1218,16 @@ function validateUnitsShape(manifest) {
   }
 
   if (!isPlainObject(manifest.counts)) return bad("/counts", "object");
-  for (const field of ["units", "files", "line_split_units", "total_bytes"]) {
+  for (const field of ["units", "files", "line_split_units", "opaque_occurrences", "opaque_bytes", "total_bytes"]) {
     if (!isNonNegInt(manifest.counts[field])) return bad(`/counts/${field}`, "nonnegative integer");
   }
+
+  if (!Array.isArray(manifest.opaque_occurrences)) return bad("/opaque_occurrences", "array");
+  if (!Array.isArray(manifest.skips)) return bad("/skips", "array");
+  if (!isPlainObject(manifest.coverage)) return bad("/coverage", "object");
+  if (!isNonEmptyString(manifest.coverage.status)) return bad("/coverage/status", "nonempty string");
+  if (!isNonNegInt(manifest.coverage.machine_occurrences)) return bad("/coverage/machine_occurrences", "nonnegative integer");
+  if (!Array.isArray(manifest.coverage.skips)) return bad("/coverage/skips", "array");
 
   if (!Array.isArray(manifest.units)) return bad("/units", "array");
   for (let i = 0; i < manifest.units.length; i++) {
@@ -1436,9 +1453,11 @@ function checkUnitCounts(ctx, manifest, capture, payloads) {
     units: manifest.units.length,
     files: new Set(manifest.units.map((u) => u.path)).size,
     line_split_units: manifest.units.filter((u) => u.boundary_kind === "line-split").length,
+    opaque_occurrences: manifest.opaque_occurrences.length,
+    opaque_bytes: manifest.opaque_occurrences.reduce((n, entry) => n + entry.byte_length, 0),
     total_bytes: manifest.units.reduce((n, u) => n + payloads.get(u.unit_id).length, 0),
   };
-  for (const field of ["units", "files", "line_split_units", "total_bytes"]) {
+  for (const field of ["units", "files", "line_split_units", "opaque_occurrences", "opaque_bytes", "total_bytes"]) {
     if (manifest.counts[field] !== recomputed[field]) {
       ctx.stop("units.counts", `unit count mismatch: ${field}`);
       return false;
@@ -1502,6 +1521,8 @@ function checkUnitBounds(ctx, manifest, payloads) {
 // representable must match the manifest path. No subject replay.
 function checkUnitDiff(ctx, manifest, payloads) {
   for (const unit of manifest.units) {
+    // Opaque descriptors are bounded metadata JSON, not diff-framed payloads.
+    if (unit.boundary_kind === "opaque") continue;
     const text = decodeUtf8(payloads.get(unit.unit_id));
     if (text === null) {
       ctx.stop("units.diff", `invalid UTF-8: ${q(unit.file)}`);
@@ -1530,6 +1551,234 @@ function checkUnitDiff(ctx, manifest, payloads) {
     }
   }
   ctx.ok("units.diff", "ok");
+  return true;
+}
+
+/** Read one raw occurrence; missing bytes stop under the units.opaque check. */
+function readRawOccurrence(ctx, ref, baseRel, occurrenceId) {
+  const resolved = resolveRef(ctx, ref, baseRel);
+  if (resolved.bad || resolved.missing || resolved.unreadable) {
+    ctx.stop("units.opaque", `opaque occurrence missing: ${q(occurrenceId)}`);
+    return null;
+  }
+  if (resolved.escape) {
+    ctx.refuse("artifact.path", `artifact path escapes run root: ${resolved.ref}`);
+    return null;
+  }
+  if (resolved.nonregular) {
+    ctx.stop("artifact.type", `artifact is not a regular file: ${resolved.ref}`);
+    return null;
+  }
+  const cached = ctx.cache.get(resolved.abs);
+  if (cached) return cached;
+  try {
+    const buf = readFileSync(resolved.abs);
+    ctx.cache.set(resolved.abs, buf);
+    return buf;
+  } catch {
+    ctx.stop("units.opaque", `opaque occurrence missing: ${q(occurrenceId)}`);
+    return null;
+  }
+}
+
+// U8 opaque quarantine: occurrence records pin the machine-only raw store,
+// byte-equality certificates are recomputed from raw bytes, coverage/skips must
+// agree with occurrence states, and every opaque descriptor is bounded metadata.
+function checkUnitOpaque(ctx, manifest, payloads, unitsRef) {
+  const fail = (detail) => {
+    ctx.fail("units.opaque", detail);
+    return false;
+  };
+  const outDirRaw = path.posix.dirname(path.posix.dirname(unitsRef));
+  const outDir = outDirRaw === "." ? "" : outDirRaw;
+
+  const occurrences = manifest.opaque_occurrences;
+  const byId = new Map();
+  const rawRefs = new Set();
+  for (let i = 0; i < occurrences.length; i++) {
+    const entry = occurrences[i];
+    const where = `/opaque_occurrences/${i}`;
+    if (!isPlainObject(entry)) return fail(`invalid field: ${where} expected object`);
+    // Identifiers are grammar-pinned before any detail interpolates them: an
+    // attacker-controlled id must never be echoed into the verdict (CB4).
+    if (!isNonEmptyString(entry.occurrence_id) || !OCCURRENCE_ID_RE.test(entry.occurrence_id)) {
+      return fail("invalid occurrence id");
+    }
+    if (byId.has(entry.occurrence_id)) return fail(`duplicate occurrence id: ${q(entry.occurrence_id)}`);
+    if (!isNonEmptyString(entry.path)) return fail(`invalid field: ${where}/path expected nonempty string`);
+    if (!OPAQUE_SIDES.has(entry.side)) return fail(`invalid occurrence side: ${q(entry.occurrence_id)}`);
+    if (!isNonNegInt(entry.byte_length)) return fail(`invalid field: ${where}/byte_length expected nonnegative integer`);
+    if (!isNonEmptyString(entry.sha256) || !SHA256_HEX_RE.test(entry.sha256)) {
+      return fail(`invalid field: ${where}/sha256 expected sha256 hex string`);
+    }
+    if (entry.ref !== `units2/raw/${entry.occurrence_id}.bin`) {
+      return fail(`invalid raw occurrence ref for ${q(entry.occurrence_id)}`);
+    }
+    if (entry.pair_id !== null && !PAIR_ID_RE.test(entry.pair_id)) {
+      return fail("invalid pair id");
+    }
+    if (!OPAQUE_STATES.has(entry.state)) return fail(`invalid occurrence state: ${q(entry.occurrence_id)}`);
+    rawRefs.add(entry.ref);
+    byId.set(entry.occurrence_id, entry);
+  }
+
+  // Raw buffers: exact bytes, recorded length and sha256 per occurrence.
+  const rawBuffers = new Map();
+  for (const entry of occurrences) {
+    const buf = readRawOccurrence(ctx, entry.ref, outDir, entry.occurrence_id);
+    if (!buf || ctx.aborted) return false;
+    if (buf.length !== entry.byte_length) {
+      return fail(`opaque occurrence byte_length mismatch: ${q(entry.occurrence_id)}`);
+    }
+    if (sha256(buf) !== entry.sha256) {
+      return fail(`opaque occurrence sha256 mismatch: ${q(entry.occurrence_id)}`);
+    }
+    rawBuffers.set(entry.occurrence_id, buf);
+  }
+
+  // Raw store namespace: pinned refs sit under units2/raw and no unpinned
+  // occurrence file may hide anywhere else in the units root.
+  const walkRaw = (dirRel) => {
+    const absDir = dirRel === "." ? path.join(ctx.runRoot, outDir) : path.join(ctx.runRoot, outDir, dirRel);
+    let entries;
+    try {
+      entries = readdirSync(absDir, { withFileTypes: true });
+    } catch {
+      return true;
+    }
+    for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name))) {
+      const ref = dirRel === "." ? entry.name : `${dirRel}/${entry.name}`;
+      if (entry.isDirectory()) {
+        if (!walkRaw(ref)) return false;
+        continue;
+      }
+      if (!(entry.isFile() || entry.isSymbolicLink())) continue;
+      if (!RAW_BASENAME.test(entry.name) || rawRefs.has(ref)) continue;
+      return fail(`unpinned raw occurrence: ${q(ref)}`);
+    }
+    return true;
+  };
+  if (!walkRaw(".")) return false;
+
+  // Byte-equality certificates: a pair id binds exactly one removed and one
+  // added occurrence whose recorded bytes are identical.
+  const pairs = new Map();
+  for (const entry of occurrences) {
+    if (entry.pair_id === null) continue;
+    if (!pairs.has(entry.pair_id)) pairs.set(entry.pair_id, []);
+    pairs.get(entry.pair_id).push(entry);
+  }
+  for (const [pairId, members] of pairs) {
+    const removed = members.filter((entry) => entry.side === "removed");
+    const added = members.filter((entry) => entry.side === "added");
+    const invalid = members.length !== 2 || removed.length !== 1 || added.length !== 1
+      || members.some((entry) => entry.state !== "paired")
+      || removed[0].sha256 !== added[0].sha256
+      || !rawBuffers.get(removed[0].occurrence_id).equals(rawBuffers.get(added[0].occurrence_id));
+    if (invalid) return fail(`opaque certificate byte mismatch: ${q(pairId)}`);
+  }
+
+  // Coverage accounting: skips[] is the canonical list, coverage.skips its
+  // ordered id projection, and every non-machine occurrence is covered once.
+  const skips = manifest.skips;
+  const skipIds = [];
+  const covered = new Map();
+  for (const skip of skips) {
+    if (!isPlainObject(skip)) return fail("coverage/skips mismatch");
+    if (!isNonEmptyString(skip.skip_id) || !SKIP_ID_RE.test(skip.skip_id)) return fail("invalid skip id");
+    if (skipIds.includes(skip.skip_id)) return fail("coverage/skips mismatch");
+    if (!OPAQUE_SKIP_REASONS.has(skip.reason)) return fail("coverage/skips mismatch");
+    if (!Array.isArray(skip.occurrence_ids)) return fail("coverage/skips mismatch");
+    const members = [];
+    for (const id of skip.occurrence_ids) {
+      if (!isNonEmptyString(id) || !byId.has(id) || covered.has(id)) return fail("coverage/skips mismatch");
+      covered.set(id, skip.skip_id);
+      members.push(byId.get(id));
+    }
+    // The reason must describe the covered occurrences' actual evidence: a
+    // state alone cannot be relabelled by the skip and approved as such.
+    const reasonMatches = skip.reason === "ambiguous"
+      ? members.length > 0 && members.every((entry) => entry.state === "ambiguous")
+      : skip.reason === "not-byte-equal"
+        ? members.length === 2
+          && members.filter((entry) => entry.side === "removed").length === 1
+          && members.filter((entry) => entry.side === "added").length === 1
+          && members.every((entry) => entry.state === "unpaired")
+        : members.length > 0 && members.every((entry) => entry.state === "unpaired");
+    if (!reasonMatches) return fail("coverage/skips mismatch");
+    skipIds.push(skip.skip_id);
+  }
+  const coverage = manifest.coverage;
+  if (!sameArray(coverage.skips, skipIds)) return fail("coverage/skips mismatch");
+  for (const entry of occurrences) {
+    const needsSkip = entry.state === "unpaired" || entry.state === "ambiguous";
+    if (needsSkip !== covered.has(entry.occurrence_id)) return fail("coverage/skips mismatch");
+    if (entry.state === "paired" && entry.pair_id === null) return fail("coverage/skips mismatch");
+    if (entry.state !== "paired" && entry.pair_id !== null) return fail("coverage/skips mismatch");
+  }
+  if (coverage.machine_occurrences !== occurrences.length) return fail("coverage/skips mismatch");
+  if (coverage.status !== (skips.length ? "partial" : "complete")) return fail("coverage/skips mismatch");
+
+  // Descriptors: bounded metadata-only payloads bound to their own unit. The
+  // key set is exact (an extra field must never smuggle occurrence bytes into
+  // an LLM-facing artifact), the occurrence projection must match the manifest
+  // records, and descriptors together must partition the recorded occurrences
+  // and their certificates.
+  const descriptorOccurrences = new Map();
+  const listedPairs = new Map();
+  for (const unit of manifest.units) {
+    if (unit.boundary_kind !== "opaque") continue;
+    const buf = payloads.get(unit.unit_id);
+    if (buf.length > OPAQUE_DESCRIPTOR_MAX_BYTES) return fail(`opaque descriptor too large: ${q(unit.unit_id)}`);
+    const text = decodeUtf8(buf);
+    let descriptor = null;
+    try {
+      descriptor = text === null ? null : JSON.parse(text);
+    } catch {
+      descriptor = null;
+    }
+    if (!isPlainObject(descriptor) || !sameArray(Object.keys(descriptor).sort(), ["occurrences", "pairing", "schema", "unit_id"])) {
+      return fail(`opaque descriptor invalid: ${q(unit.unit_id)}`);
+    }
+    if (descriptor.schema !== "opaque-descriptor/1" || descriptor.unit_id !== unit.unit_id) {
+      return fail(`opaque descriptor invalid: ${q(unit.unit_id)}`);
+    }
+    if (!Array.isArray(descriptor.occurrences)) return fail(`opaque descriptor invalid: ${q(unit.unit_id)}`);
+    for (const entry of descriptor.occurrences) {
+      if (!isPlainObject(entry) || !sameArray(Object.keys(entry).sort(), ["byte_length", "occurrence_id", "sha256", "side"])) {
+        return fail(`opaque descriptor invalid: ${q(unit.unit_id)}`);
+      }
+      const record = byId.get(entry.occurrence_id);
+      if (!record || entry.side !== record.side || entry.byte_length !== record.byte_length || entry.sha256 !== record.sha256) {
+        return fail(`opaque descriptor invalid: ${q(unit.unit_id)}`);
+      }
+      if (descriptorOccurrences.has(entry.occurrence_id)) return fail(`opaque descriptor invalid: ${q(unit.unit_id)}`);
+      descriptorOccurrences.set(entry.occurrence_id, unit.unit_id);
+    }
+    const pairings = descriptor.pairing === null ? [] : Array.isArray(descriptor.pairing) ? descriptor.pairing : [descriptor.pairing];
+    for (const pairing of pairings) {
+      if (!isPlainObject(pairing) || !isNonEmptyString(pairing.pair_id) || !PAIR_ID_RE.test(pairing.pair_id) || !Array.isArray(pairing.occurrence_ids)) {
+        return fail(`opaque descriptor invalid: ${q(unit.unit_id)}`);
+      }
+      if (listedPairs.has(pairing.pair_id)) return fail(`opaque descriptor invalid: ${q(unit.unit_id)}`);
+      const membersHere = pairing.occurrence_ids.every((id) => descriptorOccurrences.get(id) === unit.unit_id);
+      if (!membersHere || pairing.occurrence_ids.length === 0) return fail(`opaque descriptor invalid: ${q(unit.unit_id)}`);
+      listedPairs.set(pairing.pair_id, pairing.occurrence_ids);
+    }
+  }
+  for (const entry of occurrences) {
+    if (!descriptorOccurrences.has(entry.occurrence_id)) return fail(`opaque descriptor missing occurrence: ${q(entry.occurrence_id)}`);
+  }
+  for (const [pairId, members] of pairs) {
+    const listed = listedPairs.get(pairId);
+    const memberIds = members.map((member) => member.occurrence_id).sort();
+    if (!listed || !sameArray([...listed].sort(), memberIds)) return fail(`opaque descriptor invalid: ${q(pairId)}`);
+  }
+  for (const pairId of listedPairs.keys()) {
+    if (!pairs.has(pairId)) return fail(`opaque descriptor invalid: ${q(pairId)}`);
+  }
+
+  ctx.ok("units.opaque", "ok");
   return true;
 }
 
@@ -1574,15 +1823,17 @@ function runUnits(ctx) {
   if (!checkUnitCounts(ctx, manifest, capture, payloads) || ctx.aborted) return;
   if (!checkUnitRanges(ctx, manifest) || ctx.aborted) return;
   if (!checkUnitBounds(ctx, manifest, payloads) || ctx.aborted) return;
-  checkUnitDiff(ctx, manifest, payloads);
+  if (!checkUnitDiff(ctx, manifest, payloads) || ctx.aborted) return;
+  checkUnitOpaque(ctx, manifest, payloads, ref);
 }
 
 // ---------------------------------------------------------------------------
-// join — join-draft/1 (J1..J7 implemented in P4a; J8..J12 explicit stubs)
+// join — join-draft/1 (J1..J14: J13 machine lane, J14 approval binding)
 // ---------------------------------------------------------------------------
 
 const CLOSENESS_VALUES = new Set(["high", "medium", "low"]);
 const ROLE_VALUES = new Set(["implements", "tests", "necessary-support", "removes", "changes"]);
+const POLICY_CLASSES = new Set(["generated-bulk", "vendor", "minified-asset", "moved-identical", "partial-review", "big-blob"]);
 
 /**
  * Witness marker rule (plan §2/§3 J6): the witness must start a payload line
@@ -1733,7 +1984,7 @@ function checkJoinBinding(ctx, join, unitsRef, unitsBuf, unitsObj) {
   };
   if (um.ref !== unitsRef) return bad();
   if (um.sha256 !== sha256(unitsBuf)) return bad();
-  if (um.schema_version !== "code-units-sim/2") return bad();
+  if (um.schema_version !== "code-units-sim/3") return bad();
   if (um.unit_count !== unitsObj.units.length) return bad();
   if (!Array.isArray(join.boxes)) return ctx.stop("shape", "invalid field: /boxes expected array");
   for (let i = 0; i < join.boxes.length; i++) {
@@ -1792,6 +2043,9 @@ function checkJoinAssignments(ctx, env, join, unitsObj, unitsRef, unitsBuf) {
       if (!manifestIndex.has(id)) return fail(`assigned unit not found: ${q(id)}`);
       if (seen.has(id)) return fail(`assigned unit duplicate: ${q(id)}`);
       seen.add(id);
+      if (unitsObj.units[manifestIndex.get(id)].boundary_kind === "opaque") {
+        return fail(`opaque unit assigned to a model box: ${q(id)}`);
+      }
       const idx = manifestIndex.get(id);
       if (idx <= last) return fail("assigned unit sweep mismatch");
       last = idx;
@@ -1800,11 +2054,126 @@ function checkJoinAssignments(ctx, env, join, unitsObj, unitsRef, unitsBuf) {
   }
   const sweep = [];
   for (const box of join.boxes) sweep.push(...assignments.get(box.box_id).units);
-  if (sweep.length !== manifestIds.length || sweep.some((id, k) => id !== manifestIds[k])) {
+  // Opaque descriptor units are machine-lane rows, never model-box assignments;
+  // the ordered union of box assignments and machine rows must still project the
+  // whole manifest exactly once, in manifest order.
+  const machineIds = Array.isArray(join.machine) ? join.machine.map((row) => row?.unit_id) : [];
+  const union = [...sweep, ...machineIds];
+  if (union.length !== manifestIds.length || union.some((id, k) => id !== manifestIds[k])) {
     return fail("assigned unit sweep mismatch");
   }
   ctx.ok("join.assignments", "ok");
   return assignments;
+}
+
+/**
+ * J13 machine lane: opaque descriptor units are accounted exclusively by
+ * `join.machine[]` rows (one per opaque unit, manifest order); rows carry no
+ * model links and an unresolved note bounded to preserve no-leak guarantees.
+ */
+function checkJoinMachine(ctx, join, unitsObj) {
+  const fail = (detail) => {
+    ctx.fail("join.machine", detail);
+    return false;
+  };
+  const rows = join.machine === undefined ? [] : join.machine;
+  if (!Array.isArray(rows)) return fail("invalid field: /machine expected array");
+  const opaqueIds = unitsObj.units.filter((unit) => unit.boundary_kind === "opaque").map((unit) => unit.unit_id);
+  const known = new Set(unitsObj.units.map((unit) => unit.unit_id));
+  const machineIds = [];
+  const seen = new Set();
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const p = `/machine/${i}`;
+    if (!isPlainObject(row)) return fail(`invalid field: ${p} expected object`);
+    for (const key of Object.keys(row)) {
+      if (key !== "unit_id" && key !== "links" && key !== "unresolved") return fail(`unexpected field: ${p}/${key}`);
+    }
+    if (!isNonEmptyString(row.unit_id) || !known.has(row.unit_id)) return fail(`invalid field: ${p}/unit_id expected known unit id`);
+    if (seen.has(row.unit_id)) return fail(`invalid machine row: ${q(row.unit_id)}`);
+    seen.add(row.unit_id);
+    if (!Array.isArray(row.links) || row.links.length !== 0) return fail("machine row must have links: []");
+    if (row.unresolved !== null && !isNonEmptyString(row.unresolved)) {
+      return fail(`invalid field: ${p}/unresolved expected null or nonempty string`);
+    }
+    if (typeof row.unresolved === "string" && Array.from(row.unresolved).length > 200) {
+      return fail(`machine unresolved exceeds 200 characters: ${q(row.unit_id)}`);
+    }
+    machineIds.push(row.unit_id);
+  }
+  const opaqueSet = new Set(opaqueIds);
+  for (const id of machineIds) {
+    if (!opaqueSet.has(id)) return fail(`invalid machine row: ${q(id)}`);
+  }
+  if (machineIds.length !== opaqueIds.length || machineIds.some((id, k) => id !== opaqueIds[k])) {
+    for (const id of opaqueIds) {
+      if (!seen.has(id)) return fail(`machine row missing: ${q(id)}`);
+    }
+    return fail("machine row order mismatch");
+  }
+  ctx.ok("join.machine", `machine units: ${machineIds.length}`);
+  return true;
+}
+
+/**
+ * J14 approval binding: a partial-coverage run (recorded skips) must carry an
+ * envelope-pinned operator-approval/1 artifact whose byte pin, identity tuple,
+ * operator_ref and policy classes bind to the recorded skips. Complete runs
+ * need no artifact; an unpinned artifact is never consulted.
+ */
+function checkJoinApproval(ctx, env, unitsObj) {
+  const fail = (detail) => {
+    ctx.fail("join.approval", detail);
+    return false;
+  };
+  const skips = Array.isArray(unitsObj.skips) ? unitsObj.skips : [];
+  const pin = isPlainObject(env.pilot) ? env.pilot.approval : undefined;
+  if (pin === undefined || pin === null) {
+    if (skips.length) return fail(`skip not approved: ${q(skips[0].skip_id)}`);
+    ctx.ok("join.approval", "approval not required");
+    return true;
+  }
+  if (!isPlainObject(pin) || !isNonEmptyString(pin.ref) || !isNonEmptyString(pin.sha256)) {
+    return fail("invalid field: /pilot/approval expected {ref, sha256}");
+  }
+  const buf = readArtifact(ctx, pin.ref);
+  if (!buf || ctx.aborted) return false;
+  if (sha256(buf) !== pin.sha256) return fail("approval artifact sha256 mismatch");
+  const approval = parseJsonObjectArtifact(ctx, pin.ref, buf);
+  if (!approval || ctx.aborted) return false;
+  if (approval.schema_version !== "operator-approval/1") return fail("approval binding mismatch: schema_version");
+  for (const field of ["run", "review_state", "base_oid", "subject_oid"]) {
+    if (approval[field] !== env[field]) return fail(`approval binding mismatch: ${field}`);
+  }
+  if (approval.operator_ref !== env.pilot.operator_ref) return fail("approval binding mismatch: operator_ref");
+  if (!Array.isArray(approval.approved)) return fail("invalid field: /approved expected array");
+  const skipById = new Map(skips.map((skip) => [skip.skip_id, skip]));
+  const approvedIds = new Set();
+  const policyClasses = new Set();
+  for (const entry of approval.approved) {
+    if (!isPlainObject(entry) || !isNonEmptyString(entry.skip_id) || !Array.isArray(entry.occurrence_ids) || !isNonEmptyString(entry.rationale)) {
+      return fail("malformed approval entry");
+    }
+    if (!POLICY_CLASSES.has(entry.policy_class) || policyClasses.has(entry.policy_class)) {
+      return fail(`invalid policy_class: ${q(entry.policy_class)}`);
+    }
+    policyClasses.add(entry.policy_class);
+    if (!skipById.has(entry.skip_id)) return fail(`unapproved skip reference: ${q(entry.skip_id)}`);
+    if (approvedIds.has(entry.skip_id)) return fail(`duplicate approval entry: ${q(entry.skip_id)}`);
+    const skip = skipById.get(entry.skip_id);
+    if (!sameArray(entry.occurrence_ids, skip.occurrence_ids)) {
+      return fail("approval binding mismatch: occurrence_ids");
+    }
+    if (entry.basis !== "partial-review" && entry.basis !== "excluded") {
+      return fail(`invalid basis: ${q(entry.basis)}`);
+    }
+    approvedIds.add(entry.skip_id);
+  }
+  for (const skip of skips) {
+    if (!approvedIds.has(skip.skip_id)) return fail(`skip not approved: ${q(skip.skip_id)}`);
+  }
+  ctx.ok("join.approval", "ok");
+  return true;
 }
 
 /** J3: strict row/link shapes and enums. */
@@ -1976,7 +2345,7 @@ function checkJoinClaimList(ctx, env, join, assignments, claims) {
  * integer (enforced) — every other value fails closed. Accepted non-recovery
  * boxes must be greedily packed (recovery halves exempt).
  */
-function checkJoinBudget(ctx, env, boxes, assignments, payloads) {
+function checkJoinBudget(ctx, env, boxes, assignments, payloads, unitsObj) {
   const pilot = isPlainObject(env.pilot) ? env.pilot : null;
   if (!pilot || !isNonNegInt(pilot.input_ceiling_bytes)) {
     ctx.fail("join.budget", "pilot input ceiling missing");
@@ -2013,6 +2382,14 @@ function checkJoinBudget(ctx, env, boxes, assignments, payloads) {
     ctx.fail("join.budget", detail);
     return false;
   };
+  // Run-level machine-lane units (opaque descriptors) are not box-assigned;
+  // the recorded p05 unit accounting sums the whole inventory (see the seed
+  // reseal convention), so box accounting adds the unassigned opaque bytes.
+  const assignedIds = new Set();
+  for (const assignment of assignments.values()) for (const id of assignment.units) assignedIds.add(id);
+  const machineBytes = (unitsObj?.units ?? [])
+    .filter((unit) => unit.boundary_kind === "opaque" && !assignedIds.has(unit.unit_id))
+    .reduce((n, unit) => n + payloads.get(unit.unit_id).length, 0);
   const inputs = [];
   let totalOutputBytes = 0;
   for (const { box, rows, buf } of boxes) {
@@ -2020,6 +2397,7 @@ function checkJoinBudget(ctx, env, boxes, assignments, payloads) {
     const entry = env.join_boxes.find((candidate) => isPlainObject(candidate) && candidate.box_id === box.box_id);
     if (!entry) return fail(`pilot ceiling mismatch: ${q(box.box_id)}`);
     const unitBytes = assignment.units.reduce((n, id) => n + payloads.get(id).length, 0);
+    const accountedBytes = unitBytes + machineBytes;
     const instructionsBuf = readArtifact(ctx, entry.instructions.ref);
     const claimsListBuf = readArtifact(ctx, entry.claims_list.ref);
     if (!instructionsBuf || !claimsListBuf || ctx.aborted) return false;
@@ -2028,13 +2406,13 @@ function checkJoinBudget(ctx, env, boxes, assignments, payloads) {
     const p05 = parseJsonObjectArtifact(ctx, entry.p05_evidence.ref, p05Buf);
     if (!p05 || ctx.aborted) return false;
     const budget = isPlainObject(p05.budget) ? p05.budget : {};
-    const boxInput = unitBytes + claimsListBuf.length + instructionsBuf.length;
+    const boxInput = accountedBytes + claimsListBuf.length + instructionsBuf.length;
     if (assignment.input_ceiling_bytes !== approved || budget.input_ceiling_bytes !== approved) {
       return fail(`pilot ceiling mismatch: ${q(box.box_id)}`);
     }
     if (boxInput > approved) return fail(`input budget exceeded: ${q(box.box_id)}`);
     if (assignment.total_unit_bytes !== unitBytes) return fail(`budget metric mismatch: ${q(box.box_id)}:total_unit_bytes`);
-    if (budget.unit_bytes !== unitBytes) return fail(`budget metric mismatch: ${q(box.box_id)}:unit_bytes`);
+    if (budget.unit_bytes !== accountedBytes) return fail(`budget metric mismatch: ${q(box.box_id)}:unit_bytes`);
     if (budget.claims_list_bytes !== claimsListBuf.length) return fail(`budget metric mismatch: ${q(box.box_id)}:claims_list_bytes`);
     if (budget.instructions_bytes !== instructionsBuf.length) return fail(`budget metric mismatch: ${q(box.box_id)}:instructions_bytes`);
     if (budget.box_input_bytes !== boxInput) return fail(`budget metric mismatch: ${q(box.box_id)}:box_input_bytes`);
@@ -2367,6 +2745,7 @@ function runJoin(ctx) {
     boxes.push({ box, rows, buf });
   }
 
+  if (!checkJoinMachine(ctx, join, units) || ctx.aborted) return;
   const assignments = checkJoinAssignments(ctx, env, join, units, unitsRef, unitsBuf);
   if (!assignments || ctx.aborted) return;
   if (!validateJoinRows(ctx, boxes)) return;
@@ -2375,11 +2754,12 @@ function runJoin(ctx) {
   if (!checkJoinWitness(ctx, units, unitsCtx.payloads, boxes)) return;
   if (!checkJoinClaimList(ctx, env, join, assignments, claims)) return;
 
-  checkJoinBudget(ctx, env, boxes, assignments, unitsCtx.payloads);
+  checkJoinBudget(ctx, env, boxes, assignments, unitsCtx.payloads, units);
   checkJoinRecovery(ctx, env, join, assignments);
   checkJoinMerge(ctx, join, boxes);
   checkJoinP05(ctx, env, boxes, claims);
   checkJoinCandidates(ctx, join, boxes, units);
+  checkJoinApproval(ctx, env, units);
 }
 
 // ---------------------------------------------------------------------------
@@ -2410,10 +2790,11 @@ function parseEnvelopeCli(args) {
     ["--input-ceiling-bytes", "inputCeilingBytes"],
     ["--output-ceiling-bytes", "outputCeilingBytes"],
     ["--attempts", "attempts"],
+    ["--approval", "approval"],
   ]);
   const values = {
     run: null, operatorRef: null, chunkerSha256: null,
-    inputCeilingBytes: null, outputCeilingBytes: null, attempts: null,
+    inputCeilingBytes: null, outputCeilingBytes: null, attempts: null, approval: null,
   };
   const seen = new Set();
   for (let i = 0; i < args.length; i++) {
@@ -2444,6 +2825,7 @@ function parseEnvelopeCli(args) {
     if (!Number.isSafeInteger(outputCeilingBytes)) return { ok: false, reason: "invalid --output-ceiling-bytes" };
   }
   if (values.attempts !== null && !isNonEmptyString(values.attempts)) return { ok: false, reason: "invalid --attempts" };
+  if (values.approval !== null && !isNonEmptyString(values.approval)) return { ok: false, reason: "invalid --approval" };
   return {
     ok: true,
     command: "envelope",
@@ -2454,6 +2836,7 @@ function parseEnvelopeCli(args) {
       inputCeilingBytes,
       outputCeilingBytes,
       attempts: values.attempts,
+      approval: values.approval,
     },
   };
 }
@@ -2534,7 +2917,7 @@ function envelopeUnitsSlice(ctx, identity, options) {
   const parsed = envelopeJsonObject(ctx, ref, "units manifest");
   const manifest = parsed.value;
   if (!isNonEmptyString(manifest.schema_version)) refuseEnvelope("malformed units manifest: schema_version");
-  if (manifest.schema_version !== "code-units-sim/2") refuseEnvelope(`unsupported schema_version: ${q(manifest.schema_version)}`);
+  if (manifest.schema_version !== "code-units-sim/3") refuseEnvelope(`unsupported schema_version: ${q(manifest.schema_version)}`);
   if (!isPlainObject(manifest.identity)) refuseEnvelope("malformed units manifest: identity");
   for (const field of ["base_oid", "subject_oid"]) {
     if (!isNonEmptyString(manifest.identity[field])) refuseEnvelope(`malformed units manifest: /identity/${field}`);
@@ -2542,6 +2925,11 @@ function envelopeUnitsSlice(ctx, identity, options) {
   }
   if (!isPlainObject(manifest.recipe)) refuseEnvelope("malformed units manifest: recipe");
   if (!Array.isArray(manifest.units)) refuseEnvelope("malformed units manifest: units");
+  // A partial-coverage inventory may not prepare a V1 run without the
+  // operator approval artifact; the join boundary re-binds its exact bytes.
+  if (isPlainObject(manifest.coverage) && manifest.coverage.status === "partial" && options.approval === null) {
+    refuseEnvelope("approval required for partial coverage");
+  }
 
   // Payload refs are the manifest's own `file` values, resolved under the
   // chunker OUTDIR (parent of the units2 directory), exactly as the verifier
@@ -2557,7 +2945,7 @@ function envelopeUnitsSlice(ctx, identity, options) {
     unitPayloads.push({ unit_id: unit.unit_id, ref: unit.file, sha256: sha256(read.buf) });
   }
   return {
-    units_manifest: { ref, sha256: sha256(parsed.buf), schema_version: "code-units-sim/2" },
+    units_manifest: { ref, sha256: sha256(parsed.buf), schema_version: "code-units-sim/3" },
     chunker: {
       path: CHUNKER_REL_PATH,
       sha256: options.chunkerSha256,
@@ -2828,6 +3216,15 @@ function generateEnvelope(runRoot, options) {
 
   const claims = envelopeClaimsSlice(ctx, identity);
   const units = envelopeUnitsSlice(ctx, identity, options);
+  let approvalPin = null;
+  if (options.approval !== null) {
+    if (!envelopeFileExists(ctx.runRoot, options.approval)) refuseEnvelope("approval artifact missing");
+    const approvalRead = envelopeJsonObject(ctx, options.approval, "approval artifact");
+    if (approvalRead.value.schema_version !== "operator-approval/1") {
+      refuseEnvelope(`unsupported schema_version: ${q(approvalRead.value.schema_version)}`);
+    }
+    approvalPin = { ref: approvalRead.ref, sha256: sha256(approvalRead.buf) };
+  }
   // The explicit attempt history is validated before the join slice because its
   // parent_box_id records drive instructions discovery for recovered boxes.
   const attemptsOverride = options.attempts === null ? null : envelopeAttemptsOverride(ctx, options.attempts);
@@ -2865,6 +3262,7 @@ function generateEnvelope(runRoot, options) {
     max_resplit_depth: 1,
     output_ceiling_bytes: options.outputCeilingBytes,
   };
+  if (approvalPin) envelope.pilot.approval = approvalPin;
   if (join) {
     envelope.join_boxes = join.join_boxes;
     envelope.join_attempts = joinAttempts;
