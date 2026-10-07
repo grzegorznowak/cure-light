@@ -1,5 +1,5 @@
 {
- "schema_version": "code-units-sim/2",
+ "schema_version": "code-units-sim/3",
  "recipe": {
   "chunker": "chunker.mjs",
   "target_bytes": 4096,
@@ -18,6 +18,8 @@
   "units": 1,
   "files": 1,
   "line_split_units": 0,
+  "opaque_occurrences": 0,
+  "opaque_bytes": 0,
   "total_bytes": 171
  },
  "units": [
@@ -38,5 +40,12 @@
    "blocks": 1,
    "boundary_kind": "block"
   }
- ]
+ ],
+ "opaque_occurrences": [],
+ "skips": [],
+ "coverage": {
+  "status": "complete",
+  "machine_occurrences": 0,
+  "skips": []
+ }
 }

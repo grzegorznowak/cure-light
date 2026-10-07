@@ -631,7 +631,10 @@ export function materializeEmptyRun(label = "empty") {
   });
   editJson(runRoot, UNITS_MANIFEST, (manifest) => {
     manifest.units = [];
-    manifest.counts = { units: 0, files: 0, line_split_units: 0, total_bytes: 0 };
+    manifest.opaque_occurrences = [];
+    manifest.skips = [];
+    manifest.coverage = { status: "complete", machine_occurrences: 0, skips: [] };
+    manifest.counts = { units: 0, files: 0, line_split_units: 0, opaque_occurrences: 0, opaque_bytes: 0, total_bytes: 0 };
   });
   const seedJoin = readJson(runRoot, JOIN_DRAFT);
   writeJson(runRoot, JOIN_DRAFT, {
@@ -643,7 +646,7 @@ export function materializeEmptyRun(label = "empty") {
     units_manifest: {
       ref: UNITS_MANIFEST,
       sha256: artifactSha(runRoot, UNITS_MANIFEST),
-      schema_version: "code-units-sim/2",
+      schema_version: "code-units-sim/3",
       unit_count: 0,
     },
     boxes: [],
@@ -656,4 +659,109 @@ export function materializeEmptyRun(label = "empty") {
   });
   resealEnvelope(runRoot);
   return runRoot;
+}
+
+/**
+ * Derive a /3 run with one first-class opaque descriptor and raw occurrences.
+ * No seed or existing helper is modified. Defaults to a certified byte-identical
+ * removed/added pair. Overrides support unpaired/ambiguous and malformed-case
+ * fixtures; mutateManifest runs after the coherent defaults and before resealing.
+ *
+ * options: { bodies?: [Buffer|string, ...], sides?, states?, pairId?, path?,
+ *   coverage?, skips?, descriptor?, mutateManifest? }. Each body is the exact
+ * line body, excluding diff marker and terminator (CR, if present, is retained).
+ * Returns {runRoot, unitId, occurrenceIds, rawRefs, bodies, descriptorRef}.
+ */
+export function materializeOpaqueRun(label = "opaque", options = {}) {
+  const runRoot = materializeRun(label);
+  const unitId = "u0046";
+  const descriptorRef = `units2/${unitId}.txt`;
+  const pathName = options.path ?? ".gitignore"; // already in the seed changed_files sweep
+  const bodies = (options.bodies ?? [Buffer.alloc(7000, 0x51), Buffer.alloc(7000, 0x51)])
+    .map((body) => Buffer.from(body));
+  const sides = options.sides ?? ["removed", "added"];
+  const pairId = options.pairId === undefined ? "pair-0000" : options.pairId;
+  if (bodies.length !== sides.length) throw new Error("opaque bodies/sides length mismatch");
+  const occurrenceIds = bodies.map((_, i) => `occ-${String(i).padStart(4, "0")}`);
+  const rawRefs = occurrenceIds.map((id) => `units2/raw/${id}.bin`);
+  const occurrences = bodies.map((body, i) => ({
+    occurrence_id: occurrenceIds[i], path: pathName, side: sides[i],
+    byte_length: body.length, sha256: sha256(body), ref: rawRefs[i],
+    pair_id: pairId, state: options.states?.[i] ?? (pairId === null ? "unpaired" : "paired"),
+  }));
+  const descriptor = options.descriptor ?? {
+    schema: "opaque-descriptor/1", unit_id: unitId,
+    occurrences: occurrences.map(({ occurrence_id, side, byte_length, sha256: hash }) =>
+      ({ occurrence_id, side, byte_length, sha256: hash })),
+    pairing: pairId === null ? null : { pair_id: pairId, occurrence_ids: occurrenceIds },
+  };
+  const descriptorBytes = Buffer.from(JSON.stringify(descriptor), "utf8");
+  writeBytes(runRoot, `units/${descriptorRef}`, descriptorBytes);
+  for (let i = 0; i < bodies.length; i++) writeBytes(runRoot, `units/${rawRefs[i]}`, bodies[i]);
+  editJson(runRoot, UNITS_MANIFEST, (manifest) => {
+    manifest.schema_version = "code-units-sim/3";
+    manifest.units.push({
+      unit_id: unitId, file: descriptorRef, path: pathName, ranges: [],
+      hunk_count: 0, byte_len: descriptorBytes.length, blocks: 1,
+      boundary_kind: "opaque",
+    });
+    manifest.opaque_occurrences = occurrences;
+    manifest.coverage = options.coverage ?? { status: "complete", machine_occurrences: occurrences.length, skips: [] };
+    manifest.skips = options.skips ?? [];
+    manifest.counts.units = manifest.units.length;
+    manifest.counts.total_bytes += descriptorBytes.length;
+    manifest.counts.opaque_occurrences = occurrences.length;
+    manifest.counts.opaque_bytes = bodies.reduce((total, body) => total + body.length, 0);
+    options.mutateManifest?.(manifest);
+  });
+  editJson(runRoot, RUN_MANIFEST, (env) => {
+    env.units_manifest.schema_version = "code-units-sim/3";
+  });
+  resealUnitsBinding(runRoot);
+  editJson(runRoot, JOIN_DRAFT, (join) => {
+    join.units_manifest.schema_version = "code-units-sim/3";
+  });
+  resealEnvelope(runRoot);
+  return { runRoot, unitId, occurrenceIds, rawRefs, bodies, descriptorRef };
+}
+
+/** Add the mandatory machine-only row for one opaque manifest unit. */
+export function addOpaqueMachineRow(runRoot, unitId, unresolved = null) {
+  editJson(runRoot, JOIN_DRAFT, (join) => {
+    join.machine ??= [];
+    join.machine.push({ unit_id: unitId, links: [], unresolved });
+  });
+  resealEnvelope(runRoot);
+  return readJson(runRoot, JOIN_DRAFT).machine;
+}
+
+/**
+ * Write and pin the operator approval artifact for the run's recorded skips.
+ * Overrides may replace identity fields or approved entries for negative cases.
+ */
+export function writeOperatorApproval(runRoot, { ref = "approvals/operator-approval.json", approved, ...overrides } = {}) {
+  const env = readJson(runRoot, RUN_MANIFEST);
+  const manifest = readJson(runRoot, UNITS_MANIFEST);
+  const defaultApproved = (manifest.skips ?? []).map((skip) => ({
+    skip_id: skip.skip_id,
+    occurrence_ids: structuredClone(skip.occurrence_ids),
+    policy_class: "big-blob",
+    rationale: "fixture operator approval for recorded partial coverage",
+    basis: "partial-review",
+  }));
+  const approval = {
+    schema_version: "operator-approval/1",
+    run: env.run,
+    review_state: env.review_state,
+    base_oid: env.base_oid,
+    subject_oid: env.subject_oid,
+    operator_ref: env.pilot.operator_ref,
+    approved: approved ?? defaultApproved,
+    ...overrides,
+  };
+  writeJson(runRoot, ref, approval);
+  editJson(runRoot, RUN_MANIFEST, (updated) => {
+    updated.pilot.approval = { ref, sha256: artifactSha(runRoot, ref) };
+  });
+  return { ref, approval };
 }

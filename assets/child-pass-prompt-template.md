@@ -17,6 +17,12 @@ decide a consumer or a verdict.
 Then read the assigned files: {file_list}.
 Then read the diff slices for your surface: {diff_paths} (base..subject).
 {coverage}
+READ BOUNDARY: opaque occurrence bodies live in the machine-only raw store
+(units2/raw/occ-*.bin); they are never model input. Never open, list, hash,
+quote or otherwise ingest those files or any raw occurrence content, and never
+treat opaque descriptor metadata (sha256/byte_length/occurrence ids) as
+reviewable code. Skipped occurrences are surfaced to the operator at the
+pre-V1 pause, not to you.
 AUTHORIZED SCOPE: {authorized_scope} when the slot is present (V2/V3 — the V1
 gate's recorded scope + explicit omissions; the coordinator must not spawn a
 V2/V3 child with a missing/blank slot).

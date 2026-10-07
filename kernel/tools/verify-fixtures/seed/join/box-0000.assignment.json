@@ -56,5 +56,5 @@
   "input_ceiling_bytes": 196608,
   "total_unit_bytes": 171492,
   "manifest_ref": "units/units2/manifest.json",
-  "manifest_sha256": "7266b92f33e441899bdfef59ef15cc3364655be4697caf8df44331e92a85a826"
+  "manifest_sha256": "730ec8b4badd32887acfb707bdcddd7dd1e891db9cc764cca1202845f3517bc9"
 }

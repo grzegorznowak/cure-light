@@ -399,6 +399,38 @@ describe("docs contract — conformance-pass (V1 mechanical boundary)", () => {
   });
 });
 
+describe("docs contract — opaque quarantine and human pre-V1 pause", () => {
+  it("defines /3 first-class opaque units, bounded descriptors and machine-only raw store", () => {
+    has(CHUNKER, "code-units-sim/3 always, never code-units-sim/2", "hard schema migration");
+    has(CHUNKER, "boundary_kind: opaque", "first-class opaque unit");
+    has(CHUNKER, "opaque_occurrences[]", "occurrence records");
+    has(CHUNKER, "opaque-descriptor/1", "metadata-only descriptor");
+    has(CHUNKER, "1024-byte opaque descriptor limit", "descriptor byte cap");
+    has(CHUNKER, "units2/raw/occ-NNNN.bin", "machine-only raw store");
+    has(CHUNKER, "coverage.status: partial", "partial coverage accounting");
+    has(CHUNKER, "counts.opaque_bytes", "raw-byte count separate from payload total_bytes");
+  });
+
+  it("opaque attribution is not semantic explanation; exclusions require evidence-linked policy_class", () => {
+    has(CONFORMANCE, "opaque units initialize UNRESOLVED", "initial opaque state");
+    has(CONFORMANCE, "certified pure move may be machine-attributed but never auto-EXPLAINED", "attribution/explanation split");
+    has(CONFORMANCE, "EXCLUDED only via evidence-linked policy_class", "approved exclusion gate");
+    has(CONFORMANCE, "suffix or minification alone cannot exclude an opaque unit", "no automatic filename waiver");
+    has(CONFORMANCE, "security-relevant opaque units cannot be EXCLUDED", "security exception");
+    has(CONFORMANCE, "security-relevant opaque units force limited-only or blocked", "review-basis downgrade");
+  });
+
+  it("deliberate skips surface to a human at pre-V1; partial review never silently launches children", () => {
+    has(CONFORMANCE, "every deliberate skip bubbles clearly to the human reviewer at the pre-V1 pause", "OQ2 human-facing pause");
+    has(CONFORMANCE, "occurrence ids, byte lengths, sha256, policy_class and rationale", "human-visible skip detail");
+    has(CONFORMANCE, "policy_class is a reviewer-visible label, not an automatic waiver", "policy meaning");
+    has(CONFORMANCE, "unapproved partial coverage pauses before V1: no Vector 1 children", "fail-closed pre-V1");
+    has(CONFORMANCE, "missing designation keeps repair_required", "source designation gate");
+    has(CONFORMANCE, "operator-approval/1", "operator-signed approval artifact");
+    has(CONFORMANCE, "--approval <run-root-relative-ref>", "approval binding flag");
+  });
+});
+
 describe("docs contract — requirements-check (row 10 + groups)", () => {
   it("binds the verifier path/sha256/tool_version in row 10 (engine OID)", () => {
     const text = read(REQUIREMENTS);
@@ -523,10 +555,11 @@ describe("docs contract — README / CHANGELOG / consistency", () => {
     has(CHANGELOG, "### 2026-10-02 — Phase 0: claims → chunker → join → gate", "historical section intact");
   });
 
-  it("chunker.md and evidence-format.md note verifier consumption without changing chunker schema", () => {
+  it("chunker.md and evidence-format.md note verifier consumption under the /3 schema", () => {
     has(CHUNKER, "consumed mechanically by the pinned verifier", "chunker verify consumption");
     has(CHUNKER, "internal units prerequisite", "chunker internal prerequisite");
-    has(CHUNKER, "chunker schema/output is unchanged", "chunker schema unchanged");
+    has(CHUNKER, "code-units-sim/3 always, never code-units-sim/2", "hard schema migration");
+    has(CHUNKER, "1024-byte opaque descriptor limit", "bounded opaque descriptor");
     has(EVIDENCE, "delegated `verify join` verdict", "evidence verdict ref");
     has(EVIDENCE, "diagnostic verdicts use the same shape when run and never gate", "evidence diagnostics non-gating");
   });
@@ -1410,7 +1443,7 @@ describe("docs contract — artifact contracts S2 follow-up (join-draft units_ma
       "distinct from the envelope `units_manifest` pin",
       "must equal the discovered units manifest ref",
       "sha256 of the exact units manifest bytes",
-      "exactly `code-units-sim/2`",
+      "exactly `code-units-sim/3`",
       "whole-manifest",
       "required checks, not an exclusive allowed-key set",
       "does not require `unit_count`",

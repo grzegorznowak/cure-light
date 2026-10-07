@@ -293,7 +293,7 @@ export function assertRunContract(run, { label = "" } = {}) {
   const prefix = label ? `[${label}] ` : "";
   assert.equal(run.status, 0, `${prefix}chunker exited ${run.status} (expected 0)\nstderr:\n${run.stderr}`);
   const manifest = readManifest(run.outDir);
-  assert.equal(manifest.schema_version, "code-units-sim/2", `${prefix}schema_version`);
+  assert.equal(manifest.schema_version, "code-units-sim/3", `${prefix}schema_version`);
   assert.deepStrictEqual(manifest.recipe, RECIPE, `${prefix}recipe must be pinned exactly`);
   const units = manifest.units;
   assert.ok(Array.isArray(units), `${prefix}units[]`);

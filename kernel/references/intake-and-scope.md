@@ -154,7 +154,7 @@ Unhandled runtime errors are one failed diagnostic, never a partial pass.
 the coordinator generates the candidate `run-manifest.json` with the same
 pinned tool:
 
-`node <pinned-engine>/kernel/tools/verify.mjs envelope --run <run-root> --operator-ref <string> --chunker-sha256 <64-lowercase-hex> --input-ceiling-bytes <decimal nonneg int> [--output-ceiling-bytes <decimal nonneg int|none>] [--attempts <run-root-relative-ref>]`
+`node <pinned-engine>/kernel/tools/verify.mjs envelope --run <run-root> --operator-ref <string> --chunker-sha256 <64-lowercase-hex> --input-ceiling-bytes <decimal nonneg int> [--output-ceiling-bytes <decimal nonneg int|none>] [--attempts <run-root-relative-ref>] [--approval <run-root-relative-ref>]`
 
 This is prep/recording, not a verdict or a gate: the printed document is one
 `run-verification/1` JSON object on stdout only, it never writes files
@@ -168,7 +168,14 @@ pin and a fresh delegated verdict. A refusal exits 2 with summary
 `join_draft`/`join_boxes`/`join_attempts`); every pin is recomputed from
 recorded bytes except the non-derivable policy inputs (`--operator-ref`,
 `--chunker-sha256`, `--input-ceiling-bytes`, optional
-`--output-ceiling-bytes`/`--attempts`). Without `--attempts` the generator
+`--output-ceiling-bytes`/`--attempts`/`--approval`). A `code-units-sim/3`
+inventory with partial coverage may not prepare a V1 run without
+`--approval <run-root-relative-ref>`: the generator refuses
+`approval required for partial coverage` when the flag is absent, refuses
+`approval artifact missing` when the referenced `operator-approval/1` artifact
+does not exist, and otherwise records its exact bytes as `pilot.approval = {ref,
+sha256}`; the delegated `verify join` re-binds those bytes to the recorded skips.
+Without `--attempts` the generator
 records first-attempt acceptance per current box — the tree cannot prove a
 retry did not happen — so runs with retries or splits must supply the recorded
 history; recovery semantics are validated by the delegated `verify join`, not
@@ -226,7 +233,7 @@ payload files must be regular files inside the run root (outside-root targets
 refuse).
 
 **Dispatch and envelope.** Validators are keyed by `schema_version` in the
-single file: `claims-draft/3`, `code-units-sim/2`, `join-draft/1`; the envelope
+single file: `claims-draft/3`, `code-units-sim/3`, `join-draft/1`; the envelope
 `<run-root>/run-manifest.json` carries `run-verification/1`. A supported schema
 belonging to another command is a wrong-kind refusal (2). The envelope is a
 recorded-input projection — the coordinator records refs/pins while preparing
@@ -234,7 +241,8 @@ artifacts, never validation logic. It holds run/state/base/subject and
 `cure_light_source_head_oid`, the verifier pin
 `{path,sha256,tool_version}`, capture/claims/chunker/units/join pins, the pilot
 policy `{operator_ref,input_ceiling_bytes,witness_max_chars:160,
-retry_limit:1,resplit:'halves',max_resplit_depth:1,output_ceiling_bytes:null|int}`,
+retry_limit:1,resplit:'halves',max_resplit_depth:1,output_ceiling_bytes:null|int,
+optional approval:{ref,sha256}}`,
 `join_boxes` pins and the structured `join_attempts` history. Stage-dependent
 entries are absent until produced; each command requires only its own evidence
 slice and never requires future-stage refs.
@@ -320,12 +328,12 @@ contract_ref: contract-<owner>-<pr>-s<n>   # notebook page (pi); disk path in fa
 contract_sources: [{class, pointer, path/section, role, blob_subject, blob_base, capture_sha256, capture_byte_length, hash, version_ref}]   # source designation + captured bytes/version refs + actual repo blob OIDs where applicable; no plugin synthetic blob identity
 chunker: {path: kernel/tools/chunker.mjs, sha256, recipe: {target_bytes: 4096, ceiling_bytes: 6144, context: 3, block_preference: true}}   # shipped engine tool; path + exact-byte sha256 + recipe bound to cure_light_source_head_oid
 claims_draft: {ref, sha256, schema_version: claims-draft/3}   # run-scoped proposal; V1 validates/freezes against captured sources
-units_manifest: {ref, sha256, schema_version: code-units-sim/2}   # current emitted schema; inventory order + payload refs, not unique changed-line counts
+units_manifest: {ref, sha256, schema_version: code-units-sim/3}   # current emitted schema (always /3; /2 is refused); inventory order + payload refs + opaque occurrence/skip/coverage records, not unique changed-line counts
 join_draft: {ref, sha256, schema_version: join-draft/1}   # P0.4 leads merged only after P0.5; candidate_unclaimed is not a final accounting state
 verifier: {path: kernel/tools/verify.mjs, sha256, tool_version: 1.0.0}   # pinned mechanical verifier; same cure_light_source_head_oid engine source as the chunker
 verification: {join: {ref, sha256, exit_code}}   # the single delegated fast-child `verify join` verdict bound to the exact input refs/hashes above is the mechanical boundary; stale/missing/nonzero stops. Optional `claims`/`units` diagnostic verdicts (same shape) may be recorded when run and never gate
 run_envelope: {ref: run-manifest.json, sha256, schema_version: run-verification/1}   # recorded-input projection (verifier/capture/claims/units/join pins + pilot policy); never a gate engine
-pilot: {operator_ref, input_ceiling_bytes, witness_max_chars: 160, retry_limit: 1, resplit: halves, max_resplit_depth: 1, output_ceiling_bytes: null}   # approved policy recorded in the envelope; a missing input ceiling fails closed
+pilot: {operator_ref, input_ceiling_bytes, witness_max_chars: 160, retry_limit: 1, resplit: halves, max_resplit_depth: 1, output_ceiling_bytes: null, approval: {ref, sha256}}   # approved policy recorded in the envelope; approval is recorded whenever --approval is supplied and is required for partial-coverage runs; a missing input ceiling fails closed
 source_consistency: {status: clean | recorded-inconsistency, records_ref}   # P0.2 comparison outcome only; missing designation/orientation records repair_required without an inconsistency
 repair_required: {required, records: [{reason, affected_scope, evidence_refs[]}], continuation: {mode: none | pause | evidence-only-v1 | limited-v1-only, scope, operator_disposition_ref}}   # independent Phase-0 record; required=true defaults to pause before Vector 1; only an explicit operator disposition sets evidence-only/limited modes (scope + ref), and neither clears the defect nor authorizes ordinary downstream work
 review_basis: {value: ready | limited-only | blocked | unknown, repair_required: {required, records, continuation}, blockers, allowed_next_scope, operator_disposition_ref}   # recorded after V1; repair_required reuses the Phase-0 record shape and identity (same frame page), finalized here, never recomputed; bound to source versions, Phase-0 artifact refs/hashes, V1 frozen claims + coverage evidence
