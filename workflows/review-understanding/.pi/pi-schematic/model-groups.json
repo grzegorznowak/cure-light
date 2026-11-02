@@ -2,10 +2,22 @@
   "version": 2,
   "groups": {
     "code-review": {
-      "models": []
+      "models": [
+        {
+          "provider": "openai-codex",
+          "modelId": "gpt-6.1-sol",
+          "thinkingLevel": "high"
+        }
+      ]
     },
     "plan": {
-      "models": []
+      "models": [
+        {
+          "provider": "openai-codex",
+          "modelId": "gpt-6.1-sol",
+          "thinkingLevel": "xhigh"
+        }
+      ]
     }
   }
 }
