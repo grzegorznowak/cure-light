@@ -109,6 +109,22 @@ test('identical workflow copy rerun reports existing; a differing workflow copy 
   assert.equal(readFileSync(destination, 'utf8'), 'different workflow bytes', 'conflicting copy untouched');
 });
 
+test('a correct legacy symlink workflow is upgraded to a regular copy on rerun', () => {
+  const root = project();
+  const destination = join(root, '.pi/workflows/review-understanding.js');
+  mkdirSync(dirname(destination), { recursive: true });
+  symlinkSync(relative(dirname(destination), join(PACKAGE, 'review-understanding.js')), destination);
+  const result = install({ project: root });
+  const workflow = result.links.find((link) => link.destination === destination);
+  assert.equal(workflow.status, 'upgraded');
+  assert.ok(lstatSync(destination).isFile());
+  assert.equal(lstatSync(destination).isSymbolicLink(), false);
+  assert.equal(readFileSync(destination, 'utf8'), readFileSync(join(PACKAGE, 'review-understanding.js'), 'utf8'));
+  const again = install({ project: root });
+  assert.ok(again.links.every((link) => link.status === 'existing'));
+  for (const name of NAMES) assert.ok(lstatSync(join(root, '.pi/skills', name)).isSymbolicLink(), name);
+});
+
 test('CLI supports --help and --dry-run and rejects unknown flags without writing', () => {
   const help = cli(['--help']);
   assert.equal(help.status, 0);
