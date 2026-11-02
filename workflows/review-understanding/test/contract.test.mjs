@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { runWorkflow } from './harness.mjs';
-import { PR, SKILLS, skillText, splits, understanding, WORKFLOW, modelGroupsEnv } from './support.mjs';
+import { PR, ROOT, SKILLS, skillText, splits, understanding, WORKFLOW, modelGroupsEnv } from './support.mjs';
 
 const run = (args = PR, overrides = {}) => {
   const { env = modelGroupsEnv({ missingGlobal: true }).env, ...rest } = overrides;
@@ -54,6 +55,19 @@ test('--plain changes only first-run output format, not its substantive instruct
   assert.equal(plain.calls.run[1].options.input.understanding, prose);
   assert.equal(plain.exit.format, 'plain');
   assert.equal(plain.exit.understanding, prose);
+});
+
+test('the shipped model-groups config defines both required groups with members', () => {
+  const shipped = JSON.parse(readFileSync(join(ROOT, '.pi', 'pi-schematic', 'model-groups.json'), 'utf8'));
+  assert.equal(shipped.version, 2);
+  for (const name of ['code-review', 'plan']) {
+    assert.ok(shipped.groups[name], name);
+    assert.ok(Array.isArray(shipped.groups[name].models) && shipped.groups[name].models.length >= 1, `${name}: at least one member`);
+    for (const model of shipped.groups[name].models) {
+      assert.ok(typeof model.provider === 'string' && model.provider, `${name}.provider`);
+      assert.ok(typeof model.modelId === 'string' && model.modelId, `${name}.modelId`);
+    }
+  }
 });
 
 test('fails fast before any model run when a required group is missing', () => {

@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "groups": {
+    "code-review": {
+      "models": [
+        {
+          "provider": "openai-codex",
+          "modelId": "gpt-6-sol",
+          "thinkingLevel": "high"
+        }
+      ]
+    },
+    "plan": {
+      "models": [
+        {
+          "provider": "openai-codex",
+          "modelId": "gpt-6-astra",
+          "thinkingLevel": "high"
+        }
+      ]
+    }
+  }
+}

@@ -41,14 +41,14 @@ The current working directory is the project — there is nothing else to decide
 
 The workflow is a regular copy (not a symlink) so it appears in the `/workflows` TUI list; the host's list ignores symlinked `.js` files, though bare-name resolution would still work. Skills stay symlinks — the skill loader follows them — so skill edits propagate from the canonical source. A previously installed correct symlink (from older installer versions) is upgraded to the copy automatically on rerun. If you change the canonical workflow, rerun the installer after removing the old `.pi/workflows/review-understanding.js` copy (an identical copy rerun reports `existing`; a different copy is a refused conflict). Run `node install.mjs --help` for flags; `--dry-run` checks everything without writing; rerunning is safe and idempotent.
 
-Configure the model groups (once per project):
+This repository ships `code-review` and `plan` with default single members at `.pi/pi-schematic/model-groups.json` — starting pi from the cure-light root already satisfies the preflight. For any other project, bring the groups config there (once per project):
 
 ```bash
 mkdir -p .pi/pi-schematic
 cp /path/to/cure-light/workflows/review-understanding/.pi/pi-schematic/model-groups.json .pi/pi-schematic/model-groups.json
 ```
 
-Then edit `.pi/pi-schematic/model-groups.json` and give each group a usable member (see below). Reload pi resources after changes.
+Then edit `.pi/pi-schematic/model-groups.json` if you want different members (see below). Reload pi resources after changes.
 
 ## Run the workflow
 
@@ -78,7 +78,7 @@ Each skill selects its group via `model-group:` frontmatter. The canonical proje
 | `code-review` | *(configure one)* | *(your provider)* | *(your choice)* |
 | `plan` | *(configure one)* | *(your provider)* | *(your choice)* |
 
-The shipped groups start empty because concrete providers/models are environment policy. Fill each with at least one model, e.g. `{ "provider": "openai-codex", "modelId": "…", "thinkingLevel": "high" }`. Consumers may edit the copy (models/thinking are project policy). A missing file means no groups; a selector referencing an unknown group blocks the turn. Use single-member groups for deterministic selection; for an accuracy comparison, pin the same concrete member in every session.
+The shipped groups carry one default member each; consumers may edit the copy (models/thinking are project policy) or replace members with ones valid on their machine. A missing file means no groups; a selector referencing an unknown or empty group blocks the turn. Use single-member groups for deterministic selection; for an accuracy comparison, pin the same concrete member in every session.
 
 **The workflow enforces this.** Before any model run it checks the project and global model-groups config and exits `needs-input` when `code-review` or `plan` is missing or has zero members, listing the missing/empty groups and a fix hint. This applies to both `structured` and `--plain`. For hermetic operation and tests the check honors `REVIEW_UNDERSTANDING_PROJECT_GROUPS` and `REVIEW_UNDERSTANDING_GLOBAL_GROUPS` (paths to config files) instead of the real defaults.
 
