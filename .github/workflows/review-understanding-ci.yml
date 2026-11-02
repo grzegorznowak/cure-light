@@ -31,7 +31,9 @@ jobs:
         run: |
           cd /tmp/review-understanding-scratch
           node "$GITHUB_WORKSPACE/workflows/review-understanding/install.mjs"
-          test -L .pi/workflows/review-understanding.js
+          test -f .pi/workflows/review-understanding.js
+          test ! -L .pi/workflows/review-understanding.js
+          cmp -s "$GITHUB_WORKSPACE/workflows/review-understanding/review-understanding.js" .pi/workflows/review-understanding.js
           test -L .pi/skills/review-understanding-summary
           test -L .pi/skills/review-understanding-splits
           node "$GITHUB_WORKSPACE/workflows/review-understanding/install.mjs"

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { lstatSync, mkdtempSync, realpathSync } from 'node:fs';
+import { lstatSync, mkdtempSync, readFileSync, realpathSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { isAbsolute, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -25,6 +25,10 @@ test('actual selected Pi loader discovers both skills through installed project 
   assert.equal(result.project, realpathSync(project));
   assert.equal(result.links.length, 3);
   assert.ok(result.links.every((link) => link.status === 'linked'));
+  const workflowDest = join(project, '.pi/workflows/review-understanding.js');
+  assert.ok(lstatSync(workflowDest).isFile(), 'workflow is a regular copy so /workflows lists it');
+  assert.equal(lstatSync(workflowDest).isSymbolicLink(), false);
+  assert.equal(readFileSync(workflowDest, 'utf8'), readFileSync(join(packageRoot, 'review-understanding.js'), 'utf8'));
   const dir = join(project, '.pi/skills');
   for (const name of SKILLS) {
     const destination = join(dir, name);

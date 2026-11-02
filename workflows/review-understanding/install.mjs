@@ -1,7 +1,9 @@
 #!/usr/bin/env node
-// One source package; discovery entries are links, never maintained copies.
+// One source package. The workflow is delivered as a regular copy so the host's
+// /workflows list (which ignores symlinked .js files) shows it; skill discovery
+// follows links, so skills stay symlinks to the canonical source.
 // Single mode: the current working directory is the project. No choices.
-import { lstatSync, mkdirSync, realpathSync, statSync, symlinkSync } from 'node:fs';
+import { copyFileSync, lstatSync, mkdirSync, readFileSync, realpathSync, statSync, symlinkSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -9,9 +11,10 @@ const PACKAGE = dirname(realpathSync(fileURLToPath(import.meta.url)));
 const SKILLS = ['review-understanding-summary', 'review-understanding-splits'];
 const HELP = `Usage: node install.mjs [--dry-run]
 
-Link this package's workflow and two skills into the .pi discovery folders of
-the current working directory (the project). No global install or overwrites.
-Run Pi from this directory; reload resources after installation.
+Install this package's workflow (regular copy) and two skills (symlinks) into the
+.pi discovery folders of the current working directory (the project). No global
+install or overwrites. Run Pi from this directory; reload resources after
+installation. The workflow copy appears in the /workflows list.
 
   --dry-run   Check every source and destination without changing files.
   --help      Show this help.
@@ -29,6 +32,9 @@ function directory(path) {
     throw new Error(`Conflict: discovery directory must be an ordinary directory: ${path}`);
   }
 }
+function sameBytes(a, b) {
+  try { return readFileSync(a).equals(readFileSync(b)); } catch { return false; }
+}
 
 export function install({ project = process.cwd(), dryRun = false } = {}) {
   const root = realpathSync(resolve(project));
@@ -39,7 +45,7 @@ export function install({ project = process.cwd(), dryRun = false } = {}) {
   // Inspect parents first. In particular, do not follow a discovery-directory
   // symlink and accidentally change another project or a user's global assets.
   for (const path of [pi, workflows, skills]) directory(path);
-  const links = [
+  const entries = [
     { source: join(PACKAGE, 'review-understanding.js'), destination: join(workflows, 'review-understanding.js'), kind: 'file' },
     ...SKILLS.map((name) => ({
       source: join(PACKAGE, 'skills', name),
@@ -47,41 +53,49 @@ export function install({ project = process.cwd(), dryRun = false } = {}) {
       kind: 'dir',
     })),
   ];
-  for (const link of links) {
-    const source = lstatSync(link.source);
-    if (source.isSymbolicLink() || !(link.kind === 'dir' ? source.isDirectory() : source.isFile())) {
-      throw new Error(`Package source is not an ordinary ${link.kind}: ${link.source}`);
+  for (const item of entries) {
+    const source = lstatSync(item.source);
+    if (source.isSymbolicLink() || !(item.kind === 'dir' ? source.isDirectory() : source.isFile())) {
+      throw new Error(`Package source is not an ordinary ${item.kind}: ${item.source}`);
     }
-    if (link.kind === 'dir' && !statSync(join(link.source, 'SKILL.md')).isFile()) {
-      throw new Error(`Package skill is missing SKILL.md: ${link.source}`);
+    if (item.kind === 'dir' && !statSync(join(item.source, 'SKILL.md')).isFile()) {
+      throw new Error(`Package skill is missing SKILL.md: ${item.source}`);
     }
-    const existing = entry(link.destination);
+    const existing = entry(item.destination);
     if (!existing) {
-      link.status = dryRun ? 'planned' : 'linked';
+      item.status = dryRun ? 'planned' : 'linked';
       continue;
     }
     let correct = false;
     if (existing.isSymbolicLink()) {
-      try { correct = realpathSync(link.destination) === realpathSync(link.source); } catch (error) {
+      // A previously installed correct symlink counts as existing, never replaced.
+      try { correct = realpathSync(item.destination) === realpathSync(item.source); } catch (error) {
         if (error.code !== 'ENOENT' && error.code !== 'ELOOP' && error.code !== 'ENOTDIR') throw error;
       }
+    } else if (item.kind === 'file' && existing.isFile()) {
+      // An identical workflow copy counts as existing; a different file is a conflict.
+      correct = sameBytes(item.destination, item.source);
     }
-    if (!correct) throw new Error(`Conflict: refusing to replace existing asset: ${link.destination}`);
-    link.status = 'existing';
+    if (!correct) throw new Error(`Conflict: refusing to replace existing asset: ${item.destination}`);
+    item.status = 'existing';
   }
   if (!dryRun) {
     for (const path of [pi, workflows, skills]) {
-      // Recheck before creation; symlink creation itself never overwrites.
+      // Recheck before creation; creation itself never overwrites.
       directory(path);
       mkdirSync(path, { recursive: true });
     }
-    for (const link of links) {
-      if (link.status !== 'existing') {
-        symlinkSync(relative(dirname(link.destination), link.source), link.destination, link.kind);
+    for (const item of entries) {
+      if (item.status !== 'existing') {
+        if (item.kind === 'dir') {
+          symlinkSync(relative(dirname(item.destination), item.source), item.destination, 'dir');
+        } else {
+          copyFileSync(item.source, item.destination);
+        }
       }
     }
   }
-  return { project: root, dryRun, links: links.map(({ source, destination, status }) => ({ source, destination, status })) };
+  return { project: root, dryRun, links: entries.map(({ source, destination, status }) => ({ source, destination, status })) };
 }
 
 function main(args) {

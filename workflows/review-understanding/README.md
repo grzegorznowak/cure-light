@@ -20,7 +20,7 @@ This package lives in the cure-light repo under `workflows/review-understanding/
 - Two stable skills, each with its own `model-group` route and `readonly: true` frontmatter
 - Structured first output by default (`options.output.schema`), a `--plain` mode with the same skill and research input, and an honest comparison protocol
 - A model-group preflight: the workflow fails fast, before any model spend, when `code-review` or `plan` is absent or has no members
-- A symlink installer (`install.mjs`) with strict no-overwrite/no-delete preflight
+- An installer (`install.mjs`) with strict no-overwrite/no-delete preflight, a regular workflow copy and skill symlinks
 - A shipped `model-groups.json` (schema v2) with the two required groups
 - No external npm dependencies; headless tests in `test/`
 
@@ -33,13 +33,13 @@ cd /path/to/your/project
 node /path/to/cure-light/workflows/review-understanding/install.mjs
 ```
 
-The current working directory is the project — there is nothing else to decide. Start pi from this directory and reload resources after installation. The installer links:
+The current working directory is the project — there is nothing else to decide. Start pi from this directory and reload resources after installation. The installer writes:
 
-- `.pi/workflows/review-understanding.js` → canonical `review-understanding.js`
-- `.pi/skills/review-understanding-summary` → canonical skill directory
-- `.pi/skills/review-understanding-splits` → canonical skill directory
+- `.pi/workflows/review-understanding.js` → regular copy of canonical `review-understanding.js`
+- `.pi/skills/review-understanding-summary` → symlink to canonical skill directory
+- `.pi/skills/review-understanding-splits` → symlink to canonical skill directory
 
-Run `node install.mjs --help` for flags. `--dry-run` checks everything without writing. Rerunning is safe and idempotent (links are reported `existing`). Discovery entries are symlinks into this repository: one source of truth, no maintained copies.
+The workflow is a regular copy (not a symlink) so it appears in the `/workflows` TUI list; the host's list ignores symlinked `.js` files, though bare-name resolution would still work. Skills stay symlinks — the skill loader follows them — so skill edits propagate from the canonical source. If you change the canonical workflow, rerun the installer after removing the old `.pi/workflows/review-understanding.js` copy (an identical copy rerun reports `existing`; a different copy is a refused conflict). Run `node install.mjs --help` for flags; `--dry-run` checks everything without writing; rerunning is safe and idempotent.
 
 Configure the model groups (once per project):
 
