@@ -1,0 +1,39 @@
+name: review-understanding CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'workflows/review-understanding/**'
+      - '.github/workflows/review-understanding-ci.yml'
+  pull_request:
+    paths:
+      - 'workflows/review-understanding/**'
+      - '.github/workflows/review-understanding-ci.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: Run headless package tests
+        run: node --test workflows/review-understanding/test/*.test.mjs
+      - name: Installer preflight (dry-run, scratch project)
+        run: |
+          rm -rf /tmp/review-understanding-scratch
+          mkdir -p /tmp/review-understanding-scratch
+          cd /tmp/review-understanding-scratch
+          node "$GITHUB_WORKSPACE/workflows/review-understanding/install.mjs" --dry-run
+      - name: Installer real link check (scratch project)
+        run: |
+          cd /tmp/review-understanding-scratch
+          node "$GITHUB_WORKSPACE/workflows/review-understanding/install.mjs"
+          test -L .pi/workflows/review-understanding.js
+          test -L .pi/skills/review-understanding-summary
+          test -L .pi/skills/review-understanding-splits
+          node "$GITHUB_WORKSPACE/workflows/review-understanding/install.mjs"
+      - name: No repo mutations by tests
+        run: git diff --exit-code && test -z "$(git status --porcelain)"
