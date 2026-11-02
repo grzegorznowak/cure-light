@@ -19,11 +19,16 @@ const cli = (args, cwd = PACKAGE) => spawnSync(process.execPath, [INSTALLER, ...
 function verifyLinks(root, result) {
   assert.equal(result.project, realpathSync(root));
   assert.equal(result.links.length, 3);
-  const expected = [
-    [join(root, '.pi/workflows/review-understanding.js'), join(PACKAGE, 'review-understanding.js')],
-    ...NAMES.map((name) => [join(root, '.pi/skills', name), join(PACKAGE, 'skills', name)]),
-  ];
-  for (const [destination, source] of expected) {
+  const workflowDest = join(root, '.pi/workflows/review-understanding.js');
+  const workflowSource = join(PACKAGE, 'review-understanding.js');
+  // The workflow is a regular copy so the host's /workflows list shows it.
+  assert.ok(lstatSync(workflowDest).isFile());
+  assert.equal(lstatSync(workflowDest).isSymbolicLink(), false);
+  assert.equal(readFileSync(workflowDest, 'utf8'), readFileSync(workflowSource, 'utf8'));
+  assert.ok(result.links.some((link) => link.source === workflowSource && link.destination === workflowDest));
+  for (const name of NAMES) {
+    const destination = join(root, '.pi/skills', name);
+    const source = join(PACKAGE, 'skills', name);
     assert.ok(lstatSync(destination).isSymbolicLink());
     assert.equal(isAbsolute(readlinkSync(destination)), false, 'Discovery link is relative.');
     assert.equal(realpathSync(destination), source);
@@ -90,6 +95,18 @@ test('respects a project workflows directory that already contains an unrelated 
   const result = install({ project: root });
   verifyLinks(root, result);
   assert.equal(readFileSync(join(workflows, 'other.js'), 'utf8'), 'module.exports = 1;');
+});
+
+test('identical workflow copy rerun reports existing; a differing workflow copy conflicts', () => {
+  const root = project();
+  const first = install({ project: root });
+  assert.ok(first.links.every((link) => link.status === 'linked'));
+  const second = install({ project: root });
+  assert.ok(second.links.every((link) => link.status === 'existing'));
+  const destination = join(root, '.pi/workflows/review-understanding.js');
+  writeFileSync(destination, 'different workflow bytes');
+  assert.throws(() => install({ project: root }), /refusing to replace existing asset/);
+  assert.equal(readFileSync(destination, 'utf8'), 'different workflow bytes', 'conflicting copy untouched');
 });
 
 test('CLI supports --help and --dry-run and rejects unknown flags without writing', () => {
