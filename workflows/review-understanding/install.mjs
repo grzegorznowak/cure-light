@@ -3,7 +3,7 @@
 // /workflows list (which ignores symlinked .js files) shows it; skill discovery
 // follows links, so skills stay symlinks to the canonical source.
 // Single mode: the current working directory is the project. No choices.
-import { copyFileSync, lstatSync, mkdirSync, readFileSync, realpathSync, statSync, symlinkSync } from 'node:fs';
+import { copyFileSync, lstatSync, mkdirSync, readFileSync, realpathSync, statSync, symlinkSync, unlinkSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -15,6 +15,8 @@ Install this package's workflow (regular copy) and two skills (symlinks) into th
 .pi discovery folders of the current working directory (the project). No global
 install or overwrites. Run Pi from this directory; reload resources after
 installation. The workflow copy appears in the /workflows list.
+
+A previously installed correct symlink is upgraded to the workflow copy on rerun.
 
   --dry-run   Check every source and destination without changing files.
   --help      Show this help.
@@ -68,9 +70,15 @@ export function install({ project = process.cwd(), dryRun = false } = {}) {
     }
     let correct = false;
     if (existing.isSymbolicLink()) {
-      // A previously installed correct symlink counts as existing, never replaced.
+      // A previously installed correct symlink counts as existing, never replaced —
+      // except the workflow file, which is upgraded to a copy so the host lists it.
       try { correct = realpathSync(item.destination) === realpathSync(item.source); } catch (error) {
         if (error.code !== 'ENOENT' && error.code !== 'ELOOP' && error.code !== 'ENOTDIR') throw error;
+      }
+      if (correct && item.kind === 'file') {
+        item.upgrade = true;
+        item.status = dryRun ? 'planned' : 'upgraded';
+        continue;
       }
     } else if (item.kind === 'file' && existing.isFile()) {
       // An identical workflow copy counts as existing; a different file is a conflict.
@@ -86,7 +94,10 @@ export function install({ project = process.cwd(), dryRun = false } = {}) {
       mkdirSync(path, { recursive: true });
     }
     for (const item of entries) {
-      if (item.status !== 'existing') {
+      if (item.status === 'upgraded') {
+        unlinkSync(item.destination);
+        copyFileSync(item.source, item.destination);
+      } else if (item.status !== 'existing') {
         if (item.kind === 'dir') {
           symlinkSync(relative(dirname(item.destination), item.source), item.destination, 'dir');
         } else {
