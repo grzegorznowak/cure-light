@@ -5,7 +5,7 @@
       "models": [
         {
           "provider": "openai-codex",
-          "modelId": "gpt-6-sol",
+          "modelId": "gpt-6.1-sol",
           "thinkingLevel": "high"
         }
       ]
@@ -14,8 +14,8 @@
       "models": [
         {
           "provider": "openai-codex",
-          "modelId": "gpt-6-astra",
-          "thinkingLevel": "high"
+          "modelId": "gpt-6.1-sol",
+          "thinkingLevel": "xhigh"
         }
       ]
     }
