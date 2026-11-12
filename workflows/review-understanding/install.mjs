@@ -8,10 +8,10 @@ import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const PACKAGE = dirname(realpathSync(fileURLToPath(import.meta.url)));
-const SKILLS = ['review-understanding-summary', 'review-understanding-splits'];
+const SKILLS = ['review-understanding-summary', 'review-understanding-splits', 'check-tests-soundness'];
 const HELP = `Usage: node install.mjs [--dry-run]
 
-Install this package's workflow (regular copy) and two skills (symlinks) into the
+Install this package's workflow (regular copy) and its skills (symlinks) into the
 .pi discovery folders of the current working directory (the project). No global
 install or overwrites. Run Pi from this directory; reload resources after
 installation. The workflow copy appears in the /workflows list.

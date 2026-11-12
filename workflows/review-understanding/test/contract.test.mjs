@@ -137,7 +137,7 @@ test('runs explicit skills with nonempty args so fenced input does not corrupt s
 });
 
 test('discoverable package skills bind their model groups and readonly policy', () => {
-  const expected = [['review-understanding-summary', 'code-review'], ['review-understanding-splits', 'plan']];
+  const expected = [['review-understanding-summary', 'code-review'], ['review-understanding-splits', 'plan'], ['check-tests-soundness', 'plan']];
   assert.deepEqual(SKILLS.sort(), expected.map(([name]) => name).sort());
   for (const [name, group] of expected) {
     const text = skillText(name);

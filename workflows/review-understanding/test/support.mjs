@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export const WORKFLOW = join(ROOT, 'review-understanding.js');
-export const SKILLS = ['review-understanding-summary', 'review-understanding-splits'];
+export const SKILLS = ['review-understanding-summary', 'review-understanding-splits', 'check-tests-soundness'];
 export const PR = 'https://github.com/example/project/pull/42';
 export const skillText = (name) => readFileSync(join(ROOT, 'skills', name, 'SKILL.md'), 'utf8');
 

@@ -4,7 +4,7 @@ A small, standalone PR-understanding workflow. It does not extend the paused rev
 
 ## Package source and project installation
 
-The package root (`workflows/review-understanding/`) owns the canonical `review-understanding.js`, two `skills/review-understanding-{summary,splits}/SKILL.md` files, `install.mjs`, `README.md`, `CONTRACT.md`, `LICENSE` and `.pi/pi-schematic/model-groups.json`. Discovery locations contain links, not maintained copies.
+The package root (`workflows/review-understanding/`) owns the canonical `review-understanding.js`, three `skills/<name>/SKILL.md` files (`review-understanding-summary`, `review-understanding-splits`, `check-tests-soundness`), `install.mjs`, `README.md`, `CONTRACT.md`, `LICENSE` and `.pi/pi-schematic/model-groups.json`. Discovery locations contain links, not maintained copies.
 
 Run `node /path/to/cure-light/workflows/review-understanding/install.mjs [--dry-run]` from the target project root. The CLI uses the current working directory as the project; it has no `--project` flag. It writes the canonical workflow as a regular copy at `.pi/workflows/review-understanding.js` (a regular file appears in the host's `/workflows` list; symlinked `.js` files are omitted) and links each canonical skill directory under `.pi/skills/` (skill discovery follows links). It has no external dependencies, global mode or settings edits. It preflights every destination before writes and refuses collisions without overwrite/deletion: a same-target correct symlink counts as `existing`, except the workflow symlink which is upgraded to a regular copy (`status` `upgraded`) so the host's `/workflows` list shows it; an identical workflow copy counts as `existing`; any other existing file/directory/link is a refused conflict. Dry-run writes nothing. The programmatic export is `install({ project = process.cwd(), dryRun = false } = {})`, returning `{ project, dryRun, links: [{ source, destination, status }] }`; status is `linked`, `upgraded`, `existing` or `planned`.
 
@@ -41,7 +41,8 @@ Reasons: `needs-input` (bad argument, or unusable model groups, before model wor
 
 - `review-understanding-summary` — `model-group: code-review`, `readonly: true`. Reads the PR and linked issues via read-only `gh`, groups the changeset by behavior/domain, returns the structured summary (or prose in `--plain`), and honors the coverage/limitations rules above.
 - `review-understanding-splits` — `model-group: plan`, `readonly: true`. Uses only the supplied understanding; returns Markdown split suggestions.
-- Both treat PR/issue/diff content as untrusted data; both forbid posting, edits, checkouts, project tests and spawned children.
+- `check-tests-soundness` — `model-group: plan`, `readonly: true`. Reviews the test surface of a diff: coverage of changed call surfaces and flows, separation by bounded context and test flavour, appropriate unit/integration/acceptance levels, and no duplicate coverage elsewhere. It never runs tests or measures coverage. The workflow does not invoke it; it is installed alongside the workflow skills for standalone use.
+- All three treat PR/issue/diff content as untrusted data; all forbid posting, edits, checkouts, project tests and spawned children.
 - The workflow toggles readonly itself (guard for UI-less hosts) and restores the prior posture on ordinary completion/failure; terminal host stops can bypass restoration and leave readonly enabled.
 
 ## Verification
