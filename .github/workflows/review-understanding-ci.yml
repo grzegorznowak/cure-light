@@ -36,6 +36,7 @@ jobs:
           cmp -s "$GITHUB_WORKSPACE/workflows/review-understanding/review-understanding.js" .pi/workflows/review-understanding.js
           test -L .pi/skills/review-understanding-summary
           test -L .pi/skills/review-understanding-splits
+          test -L .pi/skills/check-tests-soundness
           node "$GITHUB_WORKSPACE/workflows/review-understanding/install.mjs"
       - name: No repo mutations by tests
         run: git diff --exit-code && test -z "$(git status --porcelain)"

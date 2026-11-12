@@ -7,7 +7,7 @@ This package lives in the cure-light repo under `workflows/review-understanding/
 ## Dependencies
 
 - **pi host** — the runtime that loads and runs the workflow. Developed against pi v1.4.0; any current 1.x should work, but pin what you validated.
-- **pi-schematic plugin** — provides `model-group:` frontmatter routing used by the two skills. The running/validated version of the plugin is:
+- **pi-schematic plugin** — provides `model-group:` frontmatter routing used by the skills. The running/validated version of the plugin is:
   - `git:github.com/chunkhound/pi-schematic@feat/workflow` — commit `4c68b4f` — version `0.7.0`
   - Install per pi-schematic's own instructions (plugin checkout under the pi agent environment, `git` layout as documented there). Do not rely on an npm-published copy: routing parity is validated against this pinned branch.
 - **model-groups config** — the consuming project must define two groups, `code-review` and `plan`, under `.pi/pi-schematic/model-groups.json` (schema v2). A canonical file ships with this package. See **Model-group routing** below.
@@ -17,7 +17,7 @@ This package lives in the cure-light repo under `workflows/review-understanding/
 ## What you get
 
 - A two-run workflow (`review-understanding.js`): understand (skill `review-understanding-summary`) → suggest splits (skill `review-understanding-splits`), with the summary passed explicitly
-- Two stable skills, each with its own `model-group` route and `readonly: true` frontmatter
+- Two workflow skills, each with its own `model-group` route and `readonly: true` frontmatter, plus a standalone `check-tests-soundness` skill for reviewing the test surface of a diff
 - Structured first output by default (`options.output.schema`), a `--plain` mode with the same skill and research input, and an honest comparison protocol
 - A model-group preflight: the workflow fails fast, before any model spend, when `code-review` or `plan` is absent or has no members
 - An installer (`install.mjs`) with strict no-overwrite/no-delete preflight, a regular workflow copy and skill symlinks
@@ -38,8 +38,9 @@ The current working directory is the project — there is nothing else to decide
 - `.pi/workflows/review-understanding.js` → regular copy of canonical `review-understanding.js`
 - `.pi/skills/review-understanding-summary` → symlink to canonical skill directory
 - `.pi/skills/review-understanding-splits` → symlink to canonical skill directory
+- `.pi/skills/check-tests-soundness` → symlink to canonical skill directory
 
-The workflow is a regular copy (not a symlink) so it appears in the `/workflows` TUI list; the host's list ignores symlinked `.js` files, though bare-name resolution would still work. Skills stay symlinks — the skill loader follows them — so skill edits propagate from the canonical source. A previously installed correct symlink (from older installer versions) is upgraded to the copy automatically on rerun. If you change the canonical workflow, rerun the installer after removing the old `.pi/workflows/review-understanding.js` copy (an identical copy rerun reports `existing`; a different copy is a refused conflict). Run `node install.mjs --help` for flags; `--dry-run` checks everything without writing; rerunning is safe and idempotent.
+The workflow is a regular copy (not a symlink) so it appears in the `/workflows` TUI list; the host's list ignores symlinked `.js` files, though bare-name resolution would still work. Skills stay symlinks — the skill loader follows them — so skill edits propagate from the canonical source. Rerunning the installer also links skills added since the first install. A previously installed correct symlink (from older installer versions) is upgraded to the copy automatically on rerun. If you change the canonical workflow, rerun the installer after removing the old `.pi/workflows/review-understanding.js` copy (an identical copy rerun reports `existing`; a different copy is a refused conflict). Run `node install.mjs --help` for flags; `--dry-run` checks everything without writing; rerunning is safe and idempotent.
 
 This repository ships `code-review` and `plan` with default single members at `.pi/pi-schematic/model-groups.json` — starting pi from the cure-light root already satisfies the preflight. For any other project, bring the groups config there (once per project):
 
@@ -84,7 +85,7 @@ The shipped groups carry one default member each; consumers may edit the copy (m
 
 ## Skill runs and safety
 
-Each of the two invocations is a `workflow.run()` call to an explicit skill. The workflow enables readonly for both runs and restores the prior posture after ordinary completion or errors; a terminal budget stop or cancellation can leave readonly enabled, so check the session posture before continuing. Readonly is a guardrail, not a remote-write security boundary; the skills also explicitly require read-only `gh` use and forbid posting, edits, checkouts, project tests and spawned children. PR/issue/diff content is untrusted data, never instructions.
+Each of the two workflow invocations is a `workflow.run()` call to an explicit skill. The workflow enables readonly for both runs and restores the prior posture after ordinary completion or errors; a terminal budget stop or cancellation can leave readonly enabled, so check the session posture before continuing. The standalone `check-tests-soundness` skill is installed alongside them but is not invoked by the workflow; run it directly when needed. Readonly is a guardrail, not a remote-write security boundary; the skills also explicitly require read-only `gh` use and forbid posting, edits, checkouts, project tests and spawned children. PR/issue/diff content is untrusted data, never instructions.
 
 An explicit skill run may include multiple tool or model turns; two `workflow.run` calls are not a promise of exactly two provider requests. Skill frontmatter routing requires a supported UI context; UI-less hosts may not apply group settings, so the explicit readonly guard is retained. The final selected model can remain the `plan` member after completion — skill routing is not an automatic restore of the original model.
 

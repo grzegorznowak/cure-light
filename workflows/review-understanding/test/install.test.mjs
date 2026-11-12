@@ -10,7 +10,7 @@ import { ROOT, SKILLS } from './support.mjs';
 
 const PACKAGE = realpathSync(ROOT);
 const INSTALLER = join(PACKAGE, 'install.mjs');
-const NAMES = ['review-understanding-summary', 'review-understanding-splits'];
+const NAMES = ['review-understanding-summary', 'review-understanding-splits', 'check-tests-soundness'];
 const project = () => mkdtempSync(join(tmpdir(), 'review-understanding-install-'));
 const cli = (args, cwd = PACKAGE) => spawnSync(process.execPath, [INSTALLER, ...args], {
   cwd, encoding: 'utf8', timeout: 10_000,
@@ -18,7 +18,7 @@ const cli = (args, cwd = PACKAGE) => spawnSync(process.execPath, [INSTALLER, ...
 
 function verifyLinks(root, result) {
   assert.equal(result.project, realpathSync(root));
-  assert.equal(result.links.length, 3);
+  assert.equal(result.links.length, 4);
   const workflowDest = join(root, '.pi/workflows/review-understanding.js');
   const workflowSource = join(PACKAGE, 'review-understanding.js');
   // The workflow is a regular copy so the host's /workflows list shows it.
@@ -69,17 +69,17 @@ test('dry-run makes no discovery folders, then reports existing links after inst
 for (const kind of ['file', 'directory', 'wrong-link', 'broken-link', 'loop-link', 'identical-copy']) {
   test(`last skill ${kind} conflict prevents every new link`, () => {
     const root = project();
-    const destination = join(root, '.pi/skills/review-understanding-splits');
+    const destination = join(root, '.pi/skills/check-tests-soundness');
     mkdirSync(dirname(destination), { recursive: true });
     if (kind === 'file') writeFileSync(destination, 'preserve');
     if (kind === 'directory' || kind === 'identical-copy') {
       mkdirSync(destination);
       writeFileSync(join(destination, 'SKILL.md'), kind === 'identical-copy'
-        ? readFileSync(join(PACKAGE, 'skills/review-understanding-splits/SKILL.md')) : 'preserve');
+        ? readFileSync(join(PACKAGE, 'skills/check-tests-soundness/SKILL.md')) : 'preserve');
     }
     if (kind === 'wrong-link') symlinkSync(join(PACKAGE, 'skills/review-understanding-summary'), destination);
     if (kind === 'broken-link') symlinkSync('missing-skill', destination);
-    if (kind === 'loop-link') symlinkSync('review-understanding-splits', destination);
+    if (kind === 'loop-link') symlinkSync('check-tests-soundness', destination);
     const before = lstatSync(destination);
     assert.throws(() => install({ project: root }), /refusing to replace existing asset/);
     assert.equal(lstatSync(destination).ino, before.ino, `${kind}: destination untouched`);

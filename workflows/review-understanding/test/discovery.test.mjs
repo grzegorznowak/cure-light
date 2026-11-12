@@ -13,7 +13,7 @@ import { ROOT, SKILLS } from './support.mjs';
 // Use the real installed module at an explicit path; no copied parser, live/global
 // installation or Pi/model launch.
 const loaderPath = process.env.REVIEW_UNDERSTANDING_SKILL_LOADER;
-test('actual selected Pi loader discovers both skills through installed project symlinks', {
+test('actual selected Pi loader discovers all package skills through installed project symlinks', {
   skip: loaderPath ? false : 'Set REVIEW_UNDERSTANDING_SKILL_LOADER to opt into native offline skill discovery.',
 }, async () => {
   assert.ok(isAbsolute(loaderPath), 'Use an absolute installed Pi skill-loader path.');
@@ -23,7 +23,7 @@ test('actual selected Pi loader discovers both skills through installed project 
   const packageRoot = realpathSync(ROOT);
   const result = install({ project });
   assert.equal(result.project, realpathSync(project));
-  assert.equal(result.links.length, 3);
+  assert.equal(result.links.length, 4);
   assert.ok(result.links.every((link) => link.status === 'linked'));
   const workflowDest = join(project, '.pi/workflows/review-understanding.js');
   assert.ok(lstatSync(workflowDest).isFile(), 'workflow is a regular copy so /workflows lists it');
